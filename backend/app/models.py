@@ -35,3 +35,32 @@ class IndustrialStream(Base):
         default=lambda: datetime.now(timezone.utc),
         nullable=False,
     )
+
+
+class CircularRecommendation(Base):
+    """Rules-based circular economy recommendation for one industrial stream."""
+
+    __tablename__ = "circular_recommendations"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    stream_id: Mapped[str] = mapped_column(String(30), index=True, nullable=False)
+    recommended_circular_action: Mapped[str] = mapped_column(String(255), nullable=False)
+    circular_strategy_category: Mapped[str] = mapped_column(String(120), index=True, nullable=False)
+    reasoning: Mapped[str] = mapped_column(Text, nullable=False)
+    risk_level: Mapped[str] = mapped_column(String(40), index=True, nullable=False)
+    confidence_score: Mapped[int] = mapped_column(Integer, nullable=False)
+    evidence_quality_score: Mapped[int] = mapped_column(Integer, nullable=False)
+    missing_data: Mapped[str] = mapped_column(Text, nullable=False)
+    human_review_required: Mapped[bool] = mapped_column(nullable=False)
+    estimated_annual_waste_diverted_kg: Mapped[float] = mapped_column(Float, nullable=False)
+    estimated_annual_disposal_cost_avoided: Mapped[float] = mapped_column(Float, nullable=False)
+    supplier_procurement_action: Mapped[str] = mapped_column(Text, nullable=False)
+    industrial_symbiosis_opportunity: Mapped[str] = mapped_column(String(80), index=True, nullable=False)
+    next_action: Mapped[str] = mapped_column(Text, nullable=False)
+    dashboard_priority: Mapped[str] = mapped_column(String(80), index=True, nullable=False)
+    rule_applied: Mapped[str] = mapped_column(String(120), index=True, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )

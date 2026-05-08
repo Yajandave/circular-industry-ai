@@ -1,6 +1,6 @@
 # Backend - Circular Industry AI
 
-This backend is the Milestone 2 foundation for the Circular Industry AI portfolio project.
+This backend now includes the Milestone 3 rules-based recommendation engine. It began as the Milestone 2 foundation for the Circular Industry AI portfolio project.
 
 It uses:
 
@@ -10,9 +10,9 @@ It uses:
 - Pydantic for request/response schemas
 - Pandas for loading the synthetic industrial stream CSV
 
-## What this milestone does
+## What this backend does
 
-Milestone 2 turns the Milestone 1 dataset into a working backend service.
+Milestone 2 turned the Milestone 1 dataset into a working backend service. Milestone 3 adds deterministic circular economy recommendations, risk scoring, evidence scoring and human review flags.
 
 The API can:
 
@@ -20,9 +20,10 @@ The API can:
 2. load the sample industrial material/waste stream dataset
 3. return all streams
 4. return one stream by stream ID
-5. return basic summary metrics
-
-It does **not** yet run circular economy recommendations. That comes in Milestone 3.
+5. return basic stream summary metrics
+6. run rules-based circular economy recommendations
+7. return recommendation outputs and summary metrics
+8. flag hazardous or weak-evidence streams for human review
 
 ## Setup
 
@@ -66,6 +67,10 @@ POST /api/streams/load-sample
 GET  /api/streams
 GET  /api/streams/summary
 GET  /api/streams/{stream_id}
+POST /api/recommendations/run
+GET  /api/recommendations
+GET  /api/recommendations/summary
+GET  /api/recommendations/{stream_id}
 ```
 
 ## Suggested manual test order
@@ -76,6 +81,9 @@ GET  /api/streams/{stream_id}
 4. Run `GET /api/streams`
 5. Run `GET /api/streams/S001`
 6. Run `GET /api/streams/summary`
+7. Run `POST /api/recommendations/run`
+8. Run `GET /api/recommendations/S001`
+9. Run `GET /api/recommendations/summary`
 
 ## Run tests
 
@@ -99,4 +107,21 @@ pytest
 
 ```text
 feat: add FastAPI backend and industrial stream database
+```
+
+
+## Milestone 3 acceptance criteria
+
+- Rules engine generates recommendations for loaded streams
+- Hazardous, unknown or high-contamination streams are flagged for human review
+- S001 is classified as a closed-loop recycling review case
+- Recommendation outputs include risk level, confidence score and evidence quality score
+- Recommendation outputs include missing data, next action and supplier/procurement action
+- Recommendation summary endpoint returns high-level metrics
+- Tests pass
+
+## Suggested Milestone 3 commit message
+
+```text
+feat: add rules-based circular recommendation engine
 ```

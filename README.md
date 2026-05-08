@@ -185,3 +185,53 @@ This milestone shows that the project is moving from a static dataset into a usa
 ```text
 feat: add FastAPI backend and industrial stream database
 ```
+
+
+---
+
+## Milestone 3: Rules-Based Circular Recommendation Engine
+
+Milestone 3 adds the first decision-support layer. The backend can now run a deterministic rules engine over the loaded industrial streams and create circular economy recommendations.
+
+### New recommendation endpoints
+
+```text
+POST /api/recommendations/run
+GET  /api/recommendations
+GET  /api/recommendations/summary
+GET  /api/recommendations/{stream_id}
+```
+
+### What the rules engine produces
+
+Each stream receives:
+
+- recommended circular action
+- circular strategy category
+- reasoning
+- risk level
+- confidence score
+- evidence quality score
+- missing data
+- human review flag
+- estimated annual waste diversion
+- estimated annual disposal cost avoided
+- supplier/procurement action
+- industrial symbiosis opportunity flag
+- next action
+- dashboard priority
+- rule applied
+
+### Example
+
+For `S001`, Aluminium machining offcuts, the rules engine classifies the stream as a closed-loop recycling review case. The system also flags that alloy grade or material segregation evidence is needed before making a stronger circularity claim.
+
+### What this proves
+
+This milestone shows circular economy decision logic, not uncontrolled AI generation. It demonstrates the ability to structure industrial sustainability recommendations around material type, contamination risk, hazardous status, supplier evidence and evidence gaps.
+
+### Suggested commit message
+
+```text
+feat: add rules-based circular recommendation engine
+```
