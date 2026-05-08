@@ -235,3 +235,28 @@ This milestone shows circular economy decision logic, not uncontrolled AI genera
 ```text
 feat: add rules-based circular recommendation engine
 ```
+
+
+## Milestone 4 update: controlled agentic decision support
+
+The project now includes an advanced agentic review layer. This does not turn the project into a chatbot. Instead, it creates a controlled multi-agent decision-support workflow around the rules engine.
+
+Specialist reviewers now provide:
+
+- evidence audit
+- risk review
+- procurement review
+- industrial symbiosis screening
+- resource efficiency review
+- executive synthesis
+- ranked action planning
+
+The rules engine remains locked as the decision source. The agentic layer explains, challenges, structures and prioritises the recommendation. It cannot lower risk, remove human-review flags or verify unsupported claims.
+
+New endpoints:
+
+```text
+GET /api/agent/review-pack/{stream_id}
+GET /api/agent/management-summary
+GET /api/agent/action-plan
+```

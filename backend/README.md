@@ -125,3 +125,18 @@ feat: add FastAPI backend and industrial stream database
 ```text
 feat: add rules-based circular recommendation engine
 ```
+
+
+## Milestone 4: controlled agentic decision support
+
+The API now includes an advanced agentic review layer that enriches rules-based recommendations without replacing them.
+
+New endpoints:
+
+```text
+GET /api/agent/review-pack/{stream_id}
+GET /api/agent/management-summary
+GET /api/agent/action-plan
+```
+
+The agentic layer includes specialist reviewers for evidence, risk, procurement, industrial symbiosis, resource efficiency and executive synthesis. The rules engine remains the source of truth. The agentic layer cannot lower risk, remove human-review flags or override the rule applied.

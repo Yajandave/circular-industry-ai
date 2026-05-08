@@ -99,3 +99,41 @@ class RecommendationSummary(BaseModel):
     blocked: int
     total_estimated_annual_waste_diverted_kg: float
     total_estimated_annual_disposal_cost_avoided: float
+
+
+# Milestone 4: advanced agentic decision-support schemas
+
+class AgenticReviewPack(BaseModel):
+    stream_id: str
+    stream_name: str
+    material: str
+    decision_locked_by_rules: bool
+    rule_applied: str
+    base_recommendation: dict
+    executive_synthesis: dict
+    evidence_audit: dict
+    risk_review: dict
+    procurement_review: dict
+    industrial_symbiosis_review: dict
+    resource_efficiency_review: dict
+
+
+class AgenticManagementSummary(BaseModel):
+    decision_source: str
+    total_recommendations: int
+    human_review_required: int
+    risk_breakdown: dict
+    strategy_breakdown: dict
+    high_priority_count: int
+    low_evidence_count: int
+    estimated_annual_waste_diverted_kg: float
+    estimated_annual_disposal_cost_avoided: float
+    executive_summary: str
+    top_cost_avoidance_candidates: list[dict]
+    portfolio_note: str
+
+
+class AgenticActionPlan(BaseModel):
+    ranking_method: str
+    phases: dict
+    governance_note: str
