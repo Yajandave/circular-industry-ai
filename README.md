@@ -157,3 +157,31 @@ chore: initialise project structure and industrial stream dataset
 ## Portfolio positioning
 
 This milestone proves the project is being built from a realistic industrial data foundation rather than from a generic AI-chatbot idea. It shows the ability to structure circular economy data around material flows, supplier relationships, waste routes, risk conditions and evidence gaps.
+
+---
+
+## Milestone 2: Backend Database and API
+
+Milestone 2 adds a working FastAPI + SQLite backend foundation.
+
+The backend can load the synthetic industrial stream dataset into SQLite and expose it through structured API endpoints.
+
+### Endpoints
+
+```text
+GET  /health
+POST /api/streams/load-sample
+GET  /api/streams
+GET  /api/streams/summary
+GET  /api/streams/{stream_id}
+```
+
+### What this proves
+
+This milestone shows that the project is moving from a static dataset into a usable analytical system. The backend now provides the data layer needed for the future rules engine, scoring workflow, dashboard and evidence register.
+
+### Suggested commit message
+
+```text
+feat: add FastAPI backend and industrial stream database
+```
