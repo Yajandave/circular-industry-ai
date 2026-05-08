@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from io import BytesIO
 from pathlib import Path
 
 import pandas as pd
@@ -13,11 +14,8 @@ PROJECT_ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_SAMPLE_CSV = PROJECT_ROOT / "data" / "sample_industrial_streams.csv"
 
 
-def load_streams_from_csv(csv_path: Path = DEFAULT_SAMPLE_CSV) -> list[schemas.IndustrialStreamCreate]:
-    if not csv_path.exists():
-        raise FileNotFoundError(f"CSV file not found: {csv_path}")
-
-    df = pd.read_csv(csv_path)
+def _dataframe_to_streams(df: pd.DataFrame) -> list[schemas.IndustrialStreamCreate]:
+    """Convert a validated dataframe into IndustrialStreamCreate records."""
     validate_required_columns(df)
 
     records: list[schemas.IndustrialStreamCreate] = []
@@ -41,3 +39,21 @@ def load_streams_from_csv(csv_path: Path = DEFAULT_SAMPLE_CSV) -> list[schemas.I
             )
         )
     return records
+
+
+def load_streams_from_csv(csv_path: Path = DEFAULT_SAMPLE_CSV) -> list[schemas.IndustrialStreamCreate]:
+    """Load stream records from a CSV path."""
+    if not csv_path.exists():
+        raise FileNotFoundError(f"CSV file not found: {csv_path}")
+
+    df = pd.read_csv(csv_path)
+    return _dataframe_to_streams(df)
+
+
+def load_streams_from_upload_bytes(file_bytes: bytes) -> list[schemas.IndustrialStreamCreate]:
+    """Load stream records from uploaded CSV bytes."""
+    if not file_bytes:
+        raise ValueError("Uploaded CSV file is empty.")
+
+    df = pd.read_csv(BytesIO(file_bytes))
+    return _dataframe_to_streams(df)

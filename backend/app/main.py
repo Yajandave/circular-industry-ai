@@ -21,7 +21,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="Circular Industry AI API",
     description="Backend API for industrial circular economy material stream analysis.",
-    version="0.4.0",
+    version="0.5.0",
     lifespan=lifespan,
 )
 

@@ -140,3 +140,15 @@ GET /api/agent/action-plan
 ```
 
 The agentic layer includes specialist reviewers for evidence, risk, procurement, industrial symbiosis, resource efficiency and executive synthesis. The rules engine remains the source of truth. The agentic layer cannot lower risk, remove human-review flags or override the rule applied.
+
+## Milestone 5 additions
+
+Milestone 5 adds a frontend-facing CSV upload route:
+
+```text
+POST /api/streams/upload-csv
+```
+
+This endpoint accepts a custom CSV file matching `data/data_dictionary.md`, validates required columns, normalises hazard status, replaces existing stream rows, and returns the number of rows loaded.
+
+The frontend uses this route for user-uploaded industrial stream datasets while retaining the sample loader for demonstrations.
