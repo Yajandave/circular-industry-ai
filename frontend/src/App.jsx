@@ -4,6 +4,7 @@ import ActionPlan from './components/ActionPlan.jsx';
 import Controls from './components/Controls.jsx';
 import Dashboard from './components/Dashboard.jsx';
 import FiltersPanel from './components/FiltersPanel.jsx';
+import PortfolioSnapshot from './components/PortfolioSnapshot.jsx';
 import RecommendationsTable from './components/RecommendationsTable.jsx';
 import ReviewPackPanel from './components/ReviewPackPanel.jsx';
 import StatusPanel from './components/StatusPanel.jsx';
@@ -164,8 +165,8 @@ export default function App() {
           </p>
         </div>
         <div className="hero-note">
-          <strong>Milestone 6</strong>
-          <span>Dashboard, filters and prioritisation layer</span>
+          <strong>Milestone 6B</strong>
+          <span>Portfolio-ready UI polish and print-safe reporting layer</span>
         </div>
       </header>
 
@@ -179,6 +180,7 @@ export default function App() {
       />
       <SummaryCards streamSummary={streamSummary} recommendationSummary={recommendationSummary} agentSummary={agentSummary} />
       <Dashboard dashboardData={dashboardData} agentSummary={agentSummary} onSelectReviewPack={openReviewPack} />
+      <PortfolioSnapshot dashboardData={dashboardData} agentSummary={agentSummary} />
       <FiltersPanel
         filters={filters}
         onChange={setFilters}

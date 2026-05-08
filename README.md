@@ -311,6 +311,7 @@ http://127.0.0.1:5173
 - Milestone 4: controlled agentic decision-support layer — complete.
 - Milestone 5: React frontend recommendation review interface — complete.
 - Milestone 6: dashboard and advanced recommendation filters — complete.
+- Milestone 6B: UI polish and portfolio screenshot readiness — complete.
 
 
 ## Milestone 6 dashboard features
@@ -318,3 +319,25 @@ http://127.0.0.1:5173
 The frontend now includes a decision dashboard with strategy, risk, priority and material-quantity breakdowns. Users can search and filter by material, circular strategy, risk level, human-review status, priority band, confidence and evidence quality. Recommendations can also be sorted by priority score, annual cost exposure, diversion potential, risk severity, confidence or evidence maturity.
 
 The dashboard is a prioritisation and screening layer only. It does not override the rules engine and does not convert estimated values into verified savings or verified environmental impact.
+
+
+## Milestone 6B: UI polish and portfolio screenshot readiness
+
+Milestone 6B improves the presentation layer after reviewing a browser/PDF export of the Milestone 6 interface.
+
+The update adds:
+
+- a portfolio snapshot section for recruiter-ready screenshots
+- a cleaner recommendation table with fewer columns and better wrapping
+- clearer priority, risk, evidence and screened-exposure grouping
+- print/PDF-specific styling that hides interactive controls and large raw tables
+- improved spacing to avoid clipped labels in exported views
+- a stronger governance note for screening estimates versus verified impact
+
+This milestone does not change the rules engine, scoring method or agentic controls. It only improves usability and presentation so the advanced decision-support workflow is easier for a non-technical user to understand.
+
+### Suggested commit message
+
+```text
+style: polish dashboard UI for portfolio screenshots
+```

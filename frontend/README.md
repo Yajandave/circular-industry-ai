@@ -4,7 +4,7 @@ React + Vite interface for the Industrial Circular Economy AI Agent portfolio pr
 
 ## Current milestone
 
-Milestone 6: dashboard and advanced recommendation filters.
+Milestone 6B: portfolio-ready UI polish for the dashboard, recommendation table and print/PDF view.
 
 ## What the frontend does
 
@@ -49,3 +49,18 @@ Then delete `node_modules` and `package-lock.json`, reinstall, and run the front
 ## Governance note
 
 Dashboard figures are screening outputs. They should not be presented as verified savings, verified diversion or verified environmental benefit until actions are completed and evidenced.
+
+
+## Milestone 6B polish
+
+This frontend now includes a portfolio snapshot section and print-safe styling. Use the browser print dialog or screenshot tools to capture the dashboard without the full 50-row table overwhelming the output.
+
+The screen interface still keeps the detailed recommendation and stream tables for operational review, while the print view prioritises:
+
+- project title and governance statement
+- summary metrics
+- decision dashboard
+- portfolio snapshot
+- quick-win and controlled-review examples
+
+This keeps the user experience simple while preserving the advanced controlled-agentic workflow underneath.
