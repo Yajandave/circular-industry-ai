@@ -1,0 +1,116 @@
+
+/* Milestone 8B: Site-wide AI Copilot panel */
+.ai-copilot-panel {
+  margin-top: 22px;
+  padding: 24px;
+  border-radius: 24px;
+  background: #ffffff;
+  border: 1px solid #dfe7e2;
+  box-shadow: 0 10px 30px rgba(36, 51, 44, 0.08);
+}
+
+.ai-copilot-panel.empty {
+  background: #fbfdfb;
+}
+
+.copilot-status-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.copilot-status-grid article,
+.copilot-grid article,
+.copilot-list-block,
+.copilot-executive-card,
+.copilot-claim-card,
+.copilot-warning-card {
+  border: 1px solid #dfe7e2;
+  border-radius: 20px;
+  background: #fbfdfb;
+  padding: 18px;
+}
+
+.copilot-status-grid span {
+  display: block;
+  color: #60716a;
+  font-weight: 800;
+  font-size: 0.82rem;
+  margin-bottom: 8px;
+}
+
+.copilot-status-grid strong {
+  display: block;
+  color: #20342c;
+  line-height: 1.35;
+}
+
+.copilot-executive-card {
+  margin-top: 16px;
+  background: #f4f7f5;
+}
+
+.copilot-executive-card h3,
+.copilot-grid h3,
+.copilot-list-block h3,
+.copilot-claim-card h3,
+.copilot-warning-card h3 {
+  margin: 0 0 10px;
+}
+
+.copilot-executive-card p,
+.copilot-grid p,
+.copilot-claim-card p {
+  margin: 0;
+  line-height: 1.65;
+  color: #2f4139;
+}
+
+.copilot-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.copilot-grid.lower {
+  align-items: start;
+}
+
+.copilot-list-block ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.copilot-list-block li {
+  padding: 7px 0;
+  line-height: 1.55;
+}
+
+.copilot-claim-card {
+  margin-top: 16px;
+  background: #fff8e8;
+  border-color: #eed9a7;
+}
+
+.copilot-warning-card {
+  margin-top: 16px;
+  background: #fbe5e2;
+  border-color: #efc7c2;
+}
+
+@media (max-width: 1000px) {
+  .copilot-status-grid,
+  .copilot-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media print {
+  .ai-copilot-panel {
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    break-inside: avoid;
+  }
+}

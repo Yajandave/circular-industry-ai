@@ -11,6 +11,11 @@ const TABS = [
   },
 
   {
+    id: 'ai-copilot',
+    label: 'AI Copilot',
+    helper: 'Site-wide briefing for risk, evidence gaps, supplier actions and next steps',
+  },
+  {
     id: 'ai-reasoning',
     label: 'AI reasoning',
     helper: 'Optional LLM narrative with rules locked and guardrails active',
@@ -25,6 +30,12 @@ const TABS = [
     id: 'playbooks',
     label: 'Material playbooks',
     helper: 'Material-specific CE patterns, red flags and evidence tests',
+  },
+
+  {
+    id: 'supplier-loops',
+    label: 'Supplier loops',
+    helper: 'Circular procurement, take-back, reverse logistics and contract evidence',
   },
   {
     id: 'review',
@@ -54,7 +65,7 @@ export default function WorkflowNav({ activeView, onChange, recommendationCount,
       <div className="section-heading compact-heading">
         <div>
           <h2>Decision workflow</h2>
-          <p>Use the dashboard first, then drill into recommendations, resolution plans, AI reasoning, evidence and raw data only when needed.</p>
+          <p>Use the dashboard first, then drill into recommendations, resolution plans, supplier loops, AI reasoning, evidence and raw data only when needed.</p>
         </div>
         <span>{recommendationCount || 0} recommendations</span>
       </div>
@@ -76,3 +87,4 @@ export default function WorkflowNav({ activeView, onChange, recommendationCount,
     </section>
   );
 }
+

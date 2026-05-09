@@ -12,8 +12,10 @@ import PortfolioSnapshot from './components/PortfolioSnapshot.jsx';
 import RecommendationsTable from './components/RecommendationsTable.jsx';
 import ReviewPackPanel from './components/ReviewPackPanel.jsx';
 import StatusPanel from './components/StatusPanel.jsx';
+import SiteAICopilotPanel from './components/SiteAICopilotPanel.jsx';
 import StreamsTable from './components/StreamsTable.jsx';
 import SummaryCards from './components/SummaryCards.jsx';
+import SupplierLoopIntelligence from './components/SupplierLoopIntelligence.jsx';
 import WorkflowNav from './components/WorkflowNav.jsx';
 import { applyRecommendationFilters, buildDashboardData, sortRecommendations } from './utils/analytics.js';
 
@@ -47,8 +49,11 @@ export default function App() {
   const [resolutionSummary, setResolutionSummary] = useState(null);
   const [aiStatus, setAiStatus] = useState(null);
   const [aiReasoning, setAiReasoning] = useState(null);
+  const [siteCopilotSummary, setSiteCopilotSummary] = useState(null);
   const [materialPlaybooks, setMaterialPlaybooks] = useState([]);
   const [materialPlaybookSummary, setMaterialPlaybookSummary] = useState(null);
+  const [supplierLoopPlans, setSupplierLoopPlans] = useState([]);
+  const [supplierLoopSummary, setSupplierLoopSummary] = useState(null);
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
   const [activeView, setActiveView] = useState('dashboard');
 
@@ -76,7 +81,7 @@ export default function App() {
     setStreams(loadedStreams);
     setStreamSummary(loadedStreamSummary);
 
-    const [loadedRecs, recSummary, mgmtSummary, plan, evidence, evSummary, resolutions, resSummary, aiMode, playbooks, playbookSummary] = await Promise.all([
+    const [loadedRecs, recSummary, mgmtSummary, plan, evidence, evSummary, resolutions, resSummary, aiMode, playbooks, playbookSummary, supplierLoops, supplierLoopsSummary] = await Promise.all([
       api.listRecommendations().catch(() => []),
       api.recommendationSummary().catch(() => null),
       api.managementSummary().catch(() => null),
@@ -88,6 +93,8 @@ export default function App() {
       api.aiReasoningStatus().catch(() => null),
       api.materialPlaybooks().catch(() => []),
       api.materialPlaybookSummary().catch(() => null),
+      api.supplierLoopPlans().catch(() => []),
+      api.supplierLoopSummary().catch(() => null),
     ]);
     setRecommendations(loadedRecs);
     setRecommendationSummary(recSummary);
@@ -100,6 +107,8 @@ export default function App() {
     setAiStatus(aiMode);
     setMaterialPlaybooks(playbooks);
     setMaterialPlaybookSummary(playbookSummary);
+    setSupplierLoopPlans(supplierLoops);
+    setSupplierLoopSummary(supplierLoopsSummary);
   }
 
   async function loadSample() {
@@ -113,8 +122,11 @@ export default function App() {
       setEvidenceSummary(null);
       setResolutionPlans([]);
       setResolutionSummary(null);
+      setSupplierLoopPlans([]);
+      setSupplierLoopSummary(null);
       setReviewPack(null);
       setAiReasoning(null);
+      setSiteCopilotSummary(null);
       setFilters(DEFAULT_FILTERS);
       setActiveView('dashboard');
       await refreshData();
@@ -133,8 +145,11 @@ export default function App() {
       setEvidenceSummary(null);
       setResolutionPlans([]);
       setResolutionSummary(null);
+      setSupplierLoopPlans([]);
+      setSupplierLoopSummary(null);
       setReviewPack(null);
       setAiReasoning(null);
+      setSiteCopilotSummary(null);
       setFilters(DEFAULT_FILTERS);
       setActiveView('dashboard');
       await refreshData();
@@ -145,11 +160,19 @@ export default function App() {
     await safeRun('Rules engine, dashboard metrics and agentic portfolio outputs refreshed.', async () => {
       await api.runRecommendations();
       await api.runResolutions().catch(() => null);
+      await api.runSupplierLoops().catch(() => null);
       await refreshData();
       setActiveView('dashboard');
     });
   }
 
+  async function refreshSiteCopilot() {
+    await safeRun('Site-wide AI copilot summary refreshed.', async () => {
+      const result = await api.siteAICopilotSummary();
+      setSiteCopilotSummary(result);
+      setActiveView('ai-copilot');
+    });
+  }
   async function generateAiReasoning(streamId) {
     await safeRun(`AI reasoning generated for ${streamId}.`, async () => {
       const result = await api.generateAiReasoning(streamId);
@@ -219,8 +242,8 @@ export default function App() {
           </p>
         </div>
         <div className="hero-note">
-          <strong>Milestone 7D</strong>
-          <span>Material-specific circular playbooks and intervention knowledge layer</span>
+          <strong>Milestone 8B</strong>
+          <span>Site-wide AI copilot panel connected to the locked backend summary endpoint</span>
         </div>
       </header>
 
@@ -263,6 +286,15 @@ export default function App() {
       )}
 
 
+      {activeView === 'ai-copilot' && (
+        <section className="workflow-panel ai-copilot-view" id="site-ai-copilot-panel">
+          <SiteAICopilotPanel
+            summary={siteCopilotSummary}
+            onRefresh={refreshSiteCopilot}
+            busy={busy}
+          />
+        </section>
+      )}
       {activeView === 'ai-reasoning' && (
         <section className="workflow-panel ai-reasoning-view" id="ai-reasoning-panel">
           <AIReasoningPanel
@@ -287,6 +319,13 @@ export default function App() {
       {activeView === 'playbooks' && (
         <section className="workflow-panel playbooks-view">
           <MaterialPlaybooks playbooks={materialPlaybooks} summary={materialPlaybookSummary} />
+        </section>
+      )}
+
+
+      {activeView === 'supplier-loops' && (
+        <section className="workflow-panel supplier-loops-view">
+          <SupplierLoopIntelligence plans={supplierLoopPlans} summary={supplierLoopSummary} />
         </section>
       )}
 
@@ -316,3 +355,4 @@ export default function App() {
     </main>
   );
 }
+

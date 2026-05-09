@@ -123,3 +123,12 @@ The LLM is rules-locked: it can explain, draft supplier questions and summarise 
 ## Milestone 7D UI
 
 The workflow includes a **Material playbooks** tab. It shows material-specific circular economy patterns, evidence tests, red flags, pilot ideas and claim controls. This keeps the interface usable while giving the agent a stronger circular economy knowledge layer.
+
+
+## Milestone 7E: Circular procurement and supplier-loop intelligence
+
+Milestone 7E adds supplier-facing circular procurement logic. The system now converts locked circular recommendations and resolution plans into supplier-loop plans with reverse-logistics models, contract levers, supplier questions, acceptance criteria, evidence requests, commercial checks, operational checks, pilot scopes and fallback positions.
+
+This layer is designed for procurement sustainability and circular supply-chain use cases. It does not verify supplier compliance or legal waste status. Controlled and hazardous streams remain blocked until evidence and review gates are resolved.
+
+New endpoints include `/api/procurement/run`, `/api/procurement/supplier-loops`, `/api/procurement/supplier-loops/summary`, `/api/procurement/supplier-loops/{stream_id}` and `/api/export/supplier-loop-plans.csv`.
