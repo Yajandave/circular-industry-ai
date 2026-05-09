@@ -12,7 +12,8 @@ from sqlalchemy.orm import Session
 
 from app import crud, schemas
 from app.database import get_db
-from app.evidence_register import build_evidence_register, build_evidence_summary
+from app.evidence_explainer.service import generate_evidence_gap_explanation
+from app.evidence_register import build_evidence_record, build_evidence_register, build_evidence_summary
 
 router = APIRouter(prefix="/api", tags=["evidence and exports"])
 
@@ -57,6 +58,18 @@ def evidence_register_summary(db: Session = Depends(get_db)):
     return build_evidence_summary(records)
 
 
+
+@router.post("/evidence-register/{stream_id}/ai-explainer", response_model=schemas.AIEvidenceGapExplanation)
+def explain_evidence_gap(stream_id: str, db: Session = Depends(get_db)):
+    """Generate an advisory evidence-gap explanation for one locked recommendation."""
+    stream = crud.get_stream_by_stream_id(db, stream_id)
+    recommendation = crud.get_recommendation_by_stream_id(db, stream_id)
+    if not stream:
+        raise HTTPException(status_code=404, detail=f"No stream found for stream ID {stream_id}.")
+    if not recommendation:
+        raise HTTPException(status_code=404, detail="No recommendation found. Run POST /api/recommendations/run first.")
+    evidence = build_evidence_record(stream, recommendation)
+    return generate_evidence_gap_explanation(stream, recommendation, evidence)
 @router.get("/export/evidence-register.csv")
 def export_evidence_register(db: Session = Depends(get_db)):
     """Export the evidence register as CSV."""
@@ -92,3 +105,5 @@ def export_recommendations(db: Session = Depends(get_db)):
         for rec in recommendations
     ]
     return _csv_response(rows, "circular-industry-ai-recommendations.csv")
+
+
