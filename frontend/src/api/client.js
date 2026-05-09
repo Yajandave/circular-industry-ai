@@ -41,6 +41,7 @@ export const api = {
   materialPlaybooks: () => request('/api/playbooks'),
   materialPlaybookSummary: () => request('/api/playbooks/summary'),
   siteAICopilotSummary: () => request('/api/ai-copilot/site-summary'),
+  generateCircularActionReport: (streamId) => request(`/api/reports/streams/${encodeURIComponent(streamId)}/circular-action-report`, { method: 'POST' }),
   runSupplierLoops: () => request('/api/procurement/run', { method: 'POST' }),
   supplierLoopPlans: () => request('/api/procurement/supplier-loops'),
   supplierLoopSummary: () => request('/api/procurement/supplier-loops/summary'),
@@ -48,6 +49,7 @@ export const api = {
 };
 
 export { API_BASE_URL };
+
 
 
 

@@ -1,0 +1,283 @@
+
+/* Milestone 8F: frontend circular action report panel */
+.circular-action-report-page {
+  margin-top: 22px;
+  padding: 24px;
+  border-radius: 24px;
+  background: #ffffff;
+  border: 1px solid #dfe7e2;
+  box-shadow: 0 10px 30px rgba(36, 51, 44, 0.08);
+}
+
+.action-report-candidate-panel {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.55fr) minmax(0, 1.45fr);
+  gap: 18px;
+  align-items: start;
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid #dfe7e2;
+  border-radius: 1.25rem;
+  background: #fbfdfb;
+}
+
+.action-report-candidate-panel h3 {
+  margin: 0 0 0.5rem;
+}
+
+.action-report-candidate-panel p {
+  margin: 0;
+  line-height: 1.55;
+  color: #60716a;
+}
+
+.action-report-candidate-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.action-report-candidate {
+  text-align: left;
+  border: 1px solid #d7e3dc;
+  border-radius: 1rem;
+  background: #ffffff;
+  color: #20342c;
+  box-shadow: none;
+  padding: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.action-report-candidate span {
+  color: #1f5b43;
+  font-weight: 900;
+  font-size: 0.8rem;
+}
+
+.action-report-candidate strong {
+  line-height: 1.25;
+}
+
+.action-report-candidate small {
+  color: #60716a;
+  line-height: 1.35;
+}
+
+.action-report-empty {
+  margin-top: 1rem;
+}
+
+.circular-action-report {
+  margin-top: 1.25rem;
+  border: 1px solid #d7e3dc;
+  border-radius: 1.5rem;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.action-report-cover {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 260px;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #183429, #25513f);
+  color: #ffffff;
+}
+
+.action-report-cover h2 {
+  margin: 0.45rem 0 0.75rem;
+  font-size: clamp(1.6rem, 3vw, 2.6rem);
+  line-height: 1.05;
+}
+
+.action-report-cover p {
+  margin: 0;
+  color: #d6efe1;
+  line-height: 1.65;
+}
+
+.action-report-cover-meta {
+  border: 1px solid rgba(255,255,255,0.22);
+  border-radius: 1.25rem;
+  padding: 1rem;
+  background: rgba(255,255,255,0.08);
+  display: flex;
+  flex-direction: column;
+  justify-content: end;
+  gap: 0.45rem;
+}
+
+.action-report-cover-meta span,
+.action-report-cover-meta small {
+  color: #d6efe1;
+  line-height: 1.4;
+}
+
+.action-report-cover-meta strong {
+  font-size: 2rem;
+}
+
+.action-report-lock-grid,
+.action-report-section-grid,
+.action-report-list-grid {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.action-report-lock-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.action-report-section-grid,
+.action-report-list-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding-top: 0;
+}
+
+.action-report-lock-grid article,
+.action-report-section-card,
+.action-report-list-card,
+.action-report-claim-card,
+.action-report-warning {
+  border: 1px solid #dfe7e2;
+  border-radius: 1.25rem;
+  background: #fbfdfb;
+  padding: 1rem;
+}
+
+.action-report-lock-grid span {
+  display: block;
+  color: #60716a;
+  font-weight: 800;
+  font-size: 0.8rem;
+  margin-bottom: 0.45rem;
+}
+
+.action-report-lock-grid strong {
+  display: block;
+  color: #20342c;
+  line-height: 1.35;
+}
+
+.action-report-section-card h4,
+.action-report-list-card h4,
+.action-report-claim-card h4,
+.action-report-warning h4 {
+  margin: 0 0 0.65rem;
+}
+
+.action-report-section-card p,
+.action-report-claim-card p {
+  margin: 0;
+  line-height: 1.6;
+  color: #2f4139;
+}
+
+.action-report-list-card ul {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.action-report-list-card li {
+  padding: 0.35rem 0;
+  line-height: 1.55;
+}
+
+.action-report-claim-card {
+  margin: 0 1rem 1rem;
+  background: #fff8e8;
+  border-color: #eed9a7;
+}
+
+.action-report-warning {
+  margin: 1rem;
+  background: #fbe5e2;
+  border-color: #efc7c2;
+}
+
+.action-report-print-note {
+  margin: 0 1rem 1rem;
+  color: #60716a;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 1100px) {
+  .action-report-candidate-panel,
+  .action-report-cover,
+  .action-report-lock-grid,
+  .action-report-section-grid,
+  .action-report-list-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .action-report-candidate-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .action-report-candidate-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media print {
+  .workflow-shell,
+  .status-panel,
+  .controls-card,
+  .summary-grid,
+  .action-report-candidate-panel,
+  .action-report-empty {
+    display: none !important;
+  }
+
+  .circular-action-report-page,
+  .circular-action-report {
+    margin: 0;
+    padding: 0;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    border: 0 !important;
+  }
+
+  .action-report-cover {
+    color: #111;
+    background: #ffffff;
+    border-bottom: 2px solid #1f5b43;
+    padding: 12mm;
+  }
+
+  .action-report-cover p,
+  .action-report-cover-meta span,
+  .action-report-cover-meta small {
+    color: #333;
+  }
+
+  .action-report-cover-meta {
+    background: #f4f7f5;
+    border: 1px solid #cfdcd4;
+    border-radius: 0;
+  }
+
+  .action-report-lock-grid,
+  .action-report-section-grid,
+  .action-report-list-grid {
+    grid-template-columns: repeat(2, 1fr);
+    padding: 6mm;
+  }
+
+  .action-report-lock-grid article,
+  .action-report-section-card,
+  .action-report-list-card,
+  .action-report-claim-card {
+    break-inside: avoid;
+    border-radius: 0;
+  }
+
+  .action-report-print-note {
+    display: none;
+  }
+}
