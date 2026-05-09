@@ -12,7 +12,9 @@ from sqlalchemy.orm import Session
 
 from app import crud, schemas
 from app.database import get_db
+from app.evidence_register import build_evidence_record
 from app.procurement.supplier_loop_engine import build_supplier_loop_plans, build_supplier_loop_summary
+from app.supplier_drafting.service import generate_supplier_email_draft
 
 router = APIRouter(prefix="/api", tags=["circular procurement and supplier loops"])
 
@@ -77,7 +79,31 @@ def get_supplier_loop_plan(stream_id: str, db: Session = Depends(get_db)):
     raise HTTPException(status_code=404, detail=f"No supplier-loop plan found for stream ID {stream_id}.")
 
 
+
+@router.post("/procurement/supplier-loops/{stream_id}/email-draft", response_model=schemas.SupplierEvidenceEmailDraft)
+def draft_supplier_evidence_email(stream_id: str, db: Session = Depends(get_db)):
+    """Draft a supplier evidence request email from locked supplier-loop and evidence data."""
+    stream = crud.get_stream_by_stream_id(db, stream_id)
+    recommendation = crud.get_recommendation_by_stream_id(db, stream_id)
+    if not stream:
+        raise HTTPException(status_code=404, detail=f"No stream found for stream ID {stream_id}.")
+    if not recommendation:
+        raise HTTPException(status_code=404, detail="No recommendation found. Run POST /api/recommendations/run first.")
+
+    supplier_plan = None
+    for plan in _require_supplier_loop_plans(db):
+        if plan["stream_id"] == stream_id:
+            supplier_plan = plan
+            break
+
+    if supplier_plan is None:
+        raise HTTPException(status_code=404, detail=f"No supplier-loop plan found for stream ID {stream_id}.")
+
+    evidence = build_evidence_record(stream, recommendation)
+    return generate_supplier_email_draft(stream, recommendation, supplier_plan, evidence)
 @router.get("/export/supplier-loop-plans.csv")
 def export_supplier_loop_plans(db: Session = Depends(get_db)):
     """Export supplier-loop and circular procurement plans as CSV."""
     return _csv_response(_require_supplier_loop_plans(db), "circular-industry-ai-supplier-loop-plans.csv")
+
+

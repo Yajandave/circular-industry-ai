@@ -44,8 +44,10 @@ export const api = {
   runSupplierLoops: () => request('/api/procurement/run', { method: 'POST' }),
   supplierLoopPlans: () => request('/api/procurement/supplier-loops'),
   supplierLoopSummary: () => request('/api/procurement/supplier-loops/summary'),
+  generateSupplierEmailDraft: (streamId) => request(`/api/procurement/supplier-loops/${encodeURIComponent(streamId)}/email-draft`, { method: 'POST' }),
 };
 
 export { API_BASE_URL };
+
 
 

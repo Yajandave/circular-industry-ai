@@ -1610,3 +1610,102 @@ td p,
   .evidence-explainer-grid { grid-template-columns: 1fr; }
 }
 
+
+
+/* Milestone 8D: supplier evidence request drafting */
+.supplier-email-draft-panel {
+  margin: 1rem 0;
+  padding: 1.25rem;
+  border: 1px solid #d7e3dc;
+  border-radius: 1.5rem;
+  background: #f8faf9;
+}
+
+.supplier-email-lock-grid,
+.supplier-email-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.supplier-email-lock-grid article,
+.supplier-email-grid .supplier-list-block,
+.supplier-email-body-card,
+.supplier-email-claim-card,
+.supplier-email-warning {
+  border: 1px solid #dfe7e2;
+  border-radius: 1.25rem;
+  background: #ffffff;
+  padding: 1rem;
+}
+
+.supplier-email-lock-grid span {
+  display: block;
+  color: #60716a;
+  font-weight: 800;
+  font-size: 0.82rem;
+  margin-bottom: 0.45rem;
+}
+
+.supplier-email-lock-grid strong {
+  display: block;
+  color: #20342c;
+  line-height: 1.35;
+}
+
+.supplier-email-body-card {
+  margin-top: 1rem;
+}
+
+.supplier-email-body-card h4,
+.supplier-email-claim-card h4,
+.supplier-email-warning h4 {
+  margin: 0.75rem 0 0.5rem;
+}
+
+.supplier-email-body-card h4:first-child {
+  margin-top: 0;
+}
+
+.supplier-email-subject {
+  font-weight: 800;
+  color: #20342c;
+}
+
+.supplier-email-body-card pre {
+  white-space: pre-wrap;
+  margin: 0;
+  padding: 1rem;
+  border-radius: 1rem;
+  background: #f4f7f5;
+  color: #20342c;
+  line-height: 1.6;
+  font-family: inherit;
+}
+
+.supplier-email-claim-card {
+  margin-top: 1rem;
+  background: #fff8e8;
+  border-color: #eed9a7;
+}
+
+.supplier-email-warning {
+  margin-top: 1rem;
+  background: #fbe5e2;
+  border-color: #efc7c2;
+}
+
+.supplier-email-button {
+  margin-top: 0.75rem;
+  width: 100%;
+  justify-content: center;
+}
+
+@media (max-width: 1000px) {
+  .supplier-email-lock-grid,
+  .supplier-email-grid {
+    grid-template-columns: 1fr;
+  }
+}
+

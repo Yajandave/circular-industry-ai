@@ -351,3 +351,28 @@ class AIEvidenceGapExplanation(BaseModel):
     locked_human_review_required: bool | None = None
     locked_claim_readiness: str | None = None
     locked_review_gate: str | None = None
+
+# Milestone 8D: supplier evidence request drafting schemas
+
+class SupplierEvidenceEmailDraft(BaseModel):
+    generation_mode: str
+    model_name: str
+    stream_id: str
+    stream_name: str
+    supplier: str
+    decision_lock_status: str
+    draft_type: str
+    subject: str
+    email_body: str
+    evidence_request_summary: list[str]
+    attachments_or_documents_to_request: list[str]
+    internal_follow_up_actions: list[str]
+    claim_safety_note: str
+    governance_note: str
+    validation_warnings: list[str]
+    locked_rule_applied: str | None = None
+    locked_risk_level: str | None = None
+    locked_human_review_required: bool | None = None
+    locked_claim_readiness: str | None = None
+    locked_procurement_route: str | None = None
+    locked_review_gate: str | None = None
