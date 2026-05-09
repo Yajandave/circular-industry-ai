@@ -405,3 +405,37 @@ This milestone makes the project more clearly circular economy focused by moving
 ## Milestone 7C: Rules-locked LLM reasoning and UI QA
 
 This milestone adds an optional LLM reasoning layer that writes stream-specific explanations, supplier questions, evidence-gap summaries and pilot guidance from locked rules, evidence and resolution-plan context. It also improves table wrapping, badge layout and page readability. The LLM cannot override risk, human-review gates, rule applied or claim boundaries. If no API key is configured, the app uses deterministic fallback reasoning.
+
+
+## Gemini free-tier LLM setup
+
+The optional Milestone 7C LLM reasoning layer can run through Gemini Developer API. Keep it off by default for safe local demos, then enable it in `backend/.env` when you have a Gemini API key:
+
+```env
+AI_REASONING_ENABLED=true
+LLM_PROVIDER=gemini
+GEMINI_API_KEY=your_gemini_api_key_here
+OPENAI_MODEL=gemini-2.5-flash
+GEMINI_API_BASE_URL=https://generativelanguage.googleapis.com/v1beta
+```
+
+The LLM is rules-locked: it can explain, draft supplier questions and summarise evidence gaps, but it cannot change the rule, risk level, human-review flag or claim boundary.
+
+
+## Milestone 7D: Material-Specific Circular Playbooks
+
+Milestone 7D adds material-family circular economy playbooks to make the agent less generic and more useful for industrial material-stream decision support. The playbooks cover metals, plastics, packaging, wood/pallets, chemicals/solvents, textiles, glass, rubber, WEEE/electronics, organic residues, process water, waste heat and mineral residues.
+
+The playbook layer supports:
+
+- specific circular intervention patterns
+- prevention and design levers
+- supplier/procurement levers
+- industrial symbiosis partner types
+- material-specific evidence tests
+- red flags and routes to avoid
+- pilot patterns and KPIs
+- ESRS E5 mapping and CTI-style screening metrics
+- claim controls and fallback routes
+
+The playbooks do not replace the rules engine. They provide domain context for the Circular Resolution Engine and optional LLM reasoning layer.

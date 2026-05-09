@@ -20,6 +20,12 @@ const TABS = [
     label: 'Resolution plans',
     helper: 'Specific circular interventions, pilots, KPIs and claim boundaries',
   },
+
+  {
+    id: 'playbooks',
+    label: 'Material playbooks',
+    helper: 'Material-specific CE patterns, red flags and evidence tests',
+  },
   {
     id: 'review',
     label: 'Review pack',

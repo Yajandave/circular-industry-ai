@@ -64,7 +64,8 @@ export default function AIReasoningPanel({
         <div className="ai-status-card">
           <span>Current mode</span>
           <strong>{status?.mode || 'checking'}</strong>
-          <small>{status?.configured_model ? `Model setting: ${status.configured_model}` : 'Model setting unavailable'}</small>
+          <small>{status?.llm_provider ? `Provider: ${status.llm_provider}` : 'Provider unavailable'}</small>
+          <small>{status?.configured_model ? `Model: ${status.configured_model}` : 'Model setting unavailable'}</small>
         </div>
       </div>
 

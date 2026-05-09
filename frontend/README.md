@@ -103,3 +103,23 @@ Export resolution plans CSV
 ## Milestone 7C: Rules-locked LLM reasoning and UI QA
 
 This milestone adds an optional LLM reasoning layer that writes stream-specific explanations, supplier questions, evidence-gap summaries and pilot guidance from locked rules, evidence and resolution-plan context. It also improves table wrapping, badge layout and page readability. The LLM cannot override risk, human-review gates, rule applied or claim boundaries. If no API key is configured, the app uses deterministic fallback reasoning.
+
+
+## Gemini free-tier LLM setup
+
+The optional Milestone 7C LLM reasoning layer can run through Gemini Developer API. Keep it off by default for safe local demos, then enable it in `backend/.env` when you have a Gemini API key:
+
+```env
+AI_REASONING_ENABLED=true
+LLM_PROVIDER=gemini
+GEMINI_API_KEY=your_gemini_api_key_here
+OPENAI_MODEL=gemini-2.5-flash
+GEMINI_API_BASE_URL=https://generativelanguage.googleapis.com/v1beta
+```
+
+The LLM is rules-locked: it can explain, draft supplier questions and summarise evidence gaps, but it cannot change the rule, risk level, human-review flag or claim boundary.
+
+
+## Milestone 7D UI
+
+The workflow includes a **Material playbooks** tab. It shows material-specific circular economy patterns, evidence tests, red flags, pilot ideas and claim controls. This keeps the interface usable while giving the agent a stronger circular economy knowledge layer.

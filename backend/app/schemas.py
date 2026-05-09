@@ -194,6 +194,18 @@ class CircularResolutionPlan(BaseModel):
     human_review_required: bool
     rule_applied: str
     material_playbook_focus: str
+    material_cycle: str | None = None
+    core_circularity_question: str | None = None
+    high_value_intervention_patterns: list[str] = []
+    prevention_and_design_levers: list[str] = []
+    routes_to_avoid: list[str] = []
+    material_specific_evidence_tests: list[str] = []
+    material_specific_red_flags: list[str] = []
+    playbook_supplier_questions: list[str] = []
+    playbook_process_questions: list[str] = []
+    playbook_claim_controls: list[str] = []
+    esrs_e5_mapping: list[str] = []
+    cti_style_metrics: list[str] = []
     circular_problem: str
     specific_resolution_idea: str
     why_this_is_circular_economy: str
@@ -229,6 +241,39 @@ class RunCircularResolutionsResponse(BaseModel):
     controlled_review_plans: int
     claim_blocked_or_not_ready: int
     message: str
+
+
+# Milestone 7D: advanced material-specific circular playbooks
+
+class AdvancedMaterialPlaybook(BaseModel):
+    material_family: str
+    material_cycle: str
+    core_circularity_question: str
+    best_fit_streams: list[str]
+    high_value_intervention_patterns: list[str]
+    prevention_and_design_levers: list[str]
+    value_retention_levers: list[str]
+    supplier_and_procurement_levers: list[str]
+    industrial_symbiosis_partner_types: list[str]
+    evidence_tests: list[str]
+    red_flags: list[str]
+    routes_to_avoid: list[str]
+    pilot_patterns: list[str]
+    kpis: list[str]
+    claim_controls: list[str]
+    esrs_e5_mapping: list[str]
+    cti_style_metrics: list[str]
+    circular_design_questions: list[str]
+    fallback_controls: list[str]
+    example_resolution_prompt: str
+
+
+class MaterialPlaybookSummary(BaseModel):
+    total_playbooks: int
+    material_families: list[str]
+    technical_cycle_count: int
+    biological_or_water_energy_count: int
+    coverage_note: str
 
 
 # Milestone 7C: optional rules-locked LLM reasoning schemas

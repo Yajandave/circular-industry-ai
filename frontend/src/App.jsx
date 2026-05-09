@@ -7,6 +7,7 @@ import CircularResolutionPlans from './components/CircularResolutionPlans.jsx';
 import Dashboard from './components/Dashboard.jsx';
 import EvidenceRegister from './components/EvidenceRegister.jsx';
 import FiltersPanel from './components/FiltersPanel.jsx';
+import MaterialPlaybooks from './components/MaterialPlaybooks.jsx';
 import PortfolioSnapshot from './components/PortfolioSnapshot.jsx';
 import RecommendationsTable from './components/RecommendationsTable.jsx';
 import ReviewPackPanel from './components/ReviewPackPanel.jsx';
@@ -46,6 +47,8 @@ export default function App() {
   const [resolutionSummary, setResolutionSummary] = useState(null);
   const [aiStatus, setAiStatus] = useState(null);
   const [aiReasoning, setAiReasoning] = useState(null);
+  const [materialPlaybooks, setMaterialPlaybooks] = useState([]);
+  const [materialPlaybookSummary, setMaterialPlaybookSummary] = useState(null);
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
   const [activeView, setActiveView] = useState('dashboard');
 
@@ -73,7 +76,7 @@ export default function App() {
     setStreams(loadedStreams);
     setStreamSummary(loadedStreamSummary);
 
-    const [loadedRecs, recSummary, mgmtSummary, plan, evidence, evSummary, resolutions, resSummary, aiMode] = await Promise.all([
+    const [loadedRecs, recSummary, mgmtSummary, plan, evidence, evSummary, resolutions, resSummary, aiMode, playbooks, playbookSummary] = await Promise.all([
       api.listRecommendations().catch(() => []),
       api.recommendationSummary().catch(() => null),
       api.managementSummary().catch(() => null),
@@ -83,6 +86,8 @@ export default function App() {
       api.resolutionPlans().catch(() => []),
       api.resolutionSummary().catch(() => null),
       api.aiReasoningStatus().catch(() => null),
+      api.materialPlaybooks().catch(() => []),
+      api.materialPlaybookSummary().catch(() => null),
     ]);
     setRecommendations(loadedRecs);
     setRecommendationSummary(recSummary);
@@ -93,6 +98,8 @@ export default function App() {
     setResolutionPlans(resolutions);
     setResolutionSummary(resSummary);
     setAiStatus(aiMode);
+    setMaterialPlaybooks(playbooks);
+    setMaterialPlaybookSummary(playbookSummary);
   }
 
   async function loadSample() {
@@ -212,8 +219,8 @@ export default function App() {
           </p>
         </div>
         <div className="hero-note">
-          <strong>Milestone 7C</strong>
-          <span>Rules-locked LLM reasoning layer and table-formatting QA</span>
+          <strong>Milestone 7D</strong>
+          <span>Material-specific circular playbooks and intervention knowledge layer</span>
         </div>
       </header>
 
@@ -272,6 +279,14 @@ export default function App() {
       {activeView === 'resolutions' && (
         <section className="workflow-panel resolution-view">
           <CircularResolutionPlans plans={resolutionPlans} summary={resolutionSummary} />
+        </section>
+      )}
+
+
+
+      {activeView === 'playbooks' && (
+        <section className="workflow-panel playbooks-view">
+          <MaterialPlaybooks playbooks={materialPlaybooks} summary={materialPlaybookSummary} />
         </section>
       )}
 

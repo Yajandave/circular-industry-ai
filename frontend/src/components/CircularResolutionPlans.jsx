@@ -41,6 +41,13 @@ function ResolutionPlanCard({ plan }) {
         </div>
       </div>
 
+      {plan.core_circularity_question && (
+        <div className="playbook-context-box">
+          <span>{plan.material_cycle}</span>
+          <strong>{plan.core_circularity_question}</strong>
+        </div>
+      )}
+
       <div className="resolution-body-grid">
         <section>
           <h4>Circular problem</h4>
@@ -65,6 +72,15 @@ function ResolutionPlanCard({ plan }) {
         <ListBlock title="KPIs" items={plan.kpis} />
         <ListBlock title="Evidence required" items={plan.evidence_required} />
         <ListBlock title="Decision gates" items={plan.decision_gates} />
+      </div>
+
+      <div className="resolution-detail-grid advanced-resolution-grid">
+        <ListBlock title="Material-specific intervention patterns" items={plan.high_value_intervention_patterns} />
+        <ListBlock title="Prevention and design levers" items={plan.prevention_and_design_levers} />
+        <ListBlock title="Routes to avoid" items={plan.routes_to_avoid} />
+        <ListBlock title="Material-specific evidence tests" items={plan.material_specific_evidence_tests} />
+        <ListBlock title="Material red flags" items={plan.material_specific_red_flags} />
+        <ListBlock title="Claim controls" items={plan.playbook_claim_controls} />
       </div>
 
       <div className="resolution-actions-grid">

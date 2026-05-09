@@ -12,6 +12,7 @@ from typing import Any
 
 from app import models
 from app.circular_resolution.playbook import MaterialPlaybook, get_playbook
+from app.circular_resolution.advanced_playbooks import get_advanced_playbook
 from app.circular_resolution.quality_gates import claim_boundary_for, confidence_notes, decision_gates_for, route_strength
 
 
@@ -207,6 +208,7 @@ def build_resolution_plan(
     recommendation: models.CircularRecommendation,
 ) -> dict[str, Any]:
     playbook = get_playbook(stream.material)
+    advanced_playbook = get_advanced_playbook(stream.material)
     evidence_required = list(dict.fromkeys(playbook.evidence_required + [item.strip() for item in recommendation.missing_data.split(";") if item.strip() and item.strip() not in {"none recorded", "none identified for MVP fields"}]))
 
     return {
@@ -221,6 +223,18 @@ def build_resolution_plan(
         "human_review_required": recommendation.human_review_required,
         "rule_applied": recommendation.rule_applied,
         "material_playbook_focus": playbook.focus,
+        "material_cycle": advanced_playbook.material_cycle,
+        "core_circularity_question": advanced_playbook.core_circularity_question,
+        "high_value_intervention_patterns": advanced_playbook.high_value_intervention_patterns,
+        "prevention_and_design_levers": advanced_playbook.prevention_and_design_levers,
+        "routes_to_avoid": advanced_playbook.routes_to_avoid,
+        "material_specific_evidence_tests": advanced_playbook.evidence_tests,
+        "material_specific_red_flags": advanced_playbook.red_flags,
+        "playbook_supplier_questions": advanced_playbook.supplier_and_procurement_levers,
+        "playbook_process_questions": advanced_playbook.circular_design_questions,
+        "playbook_claim_controls": advanced_playbook.claim_controls,
+        "esrs_e5_mapping": advanced_playbook.esrs_e5_mapping,
+        "cti_style_metrics": advanced_playbook.cti_style_metrics,
         "circular_problem": _circular_problem(stream, recommendation, playbook),
         "specific_resolution_idea": _resolution_idea(stream, recommendation, playbook),
         "why_this_is_circular_economy": playbook.circular_economy_reason,
