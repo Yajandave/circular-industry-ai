@@ -53,6 +53,11 @@ const TABS = [
     helper: 'Audit trail, missing data, claim boundaries and exports',
   },
   {
+    id: 'action-report',
+    label: 'Action report',
+    helper: 'Consultant-style circular action report for one selected stream',
+  },
+  {
     id: 'raw-data',
     label: 'Raw data',
     helper: 'Underlying industrial stream dataset',
@@ -87,4 +92,5 @@ export default function WorkflowNav({ activeView, onChange, recommendationCount,
     </section>
   );
 }
+
 

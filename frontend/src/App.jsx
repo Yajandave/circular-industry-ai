@@ -4,6 +4,7 @@ import ActionPlan from './components/ActionPlan.jsx';
 import AIReasoningPanel from './components/AIReasoningPanel.jsx';
 import Controls from './components/Controls.jsx';
 import CircularResolutionPlans from './components/CircularResolutionPlans.jsx';
+import CircularActionReportPanel from './components/CircularActionReportPanel.jsx';
 import Dashboard from './components/Dashboard.jsx';
 import EvidenceRegister from './components/EvidenceRegister.jsx';
 import FiltersPanel from './components/FiltersPanel.jsx';
@@ -128,6 +129,7 @@ export default function App() {
       setSupplierLoopPlans([]);
       setSupplierLoopSummary(null);
       setSupplierEmailDraft(null);
+      setCircularActionReport(null);
       setReviewPack(null);
       setAiReasoning(null);
       setSiteCopilotSummary(null);
@@ -153,6 +155,7 @@ export default function App() {
       setSupplierLoopPlans([]);
       setSupplierLoopSummary(null);
       setSupplierEmailDraft(null);
+      setCircularActionReport(null);
       setReviewPack(null);
       setAiReasoning(null);
       setSiteCopilotSummary(null);
@@ -172,6 +175,16 @@ export default function App() {
     });
   }
 
+  async function generateCircularActionReport(streamId) {
+    await safeRun(`Circular action report generated for ${streamId}.`, async () => {
+      const result = await api.generateCircularActionReport(streamId);
+      setCircularActionReport(result);
+      setActiveView('action-report');
+      setTimeout(() => {
+        document.getElementById('circular-action-report')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 50);
+    });
+  }
   async function draftSupplierEmail(streamId) {
     await safeRun(`Supplier evidence request draft generated for ${streamId}.`, async () => {
       const result = await api.generateSupplierEmailDraft(streamId);
@@ -268,8 +281,8 @@ export default function App() {
           </p>
         </div>
         <div className="hero-note">
-          <strong>Milestone 8D</strong>
-          <span>AI supplier evidence request drafting from locked supplier-loop and evidence data</span>
+          <strong>Milestone 8F</strong>
+          <span>Frontend circular action report panel with print-ready consultant-style output</span>
         </div>
       </header>
 
@@ -349,6 +362,17 @@ export default function App() {
       )}
 
 
+      {activeView === 'action-report' && (
+        <section className="workflow-panel action-report-view">
+          <CircularActionReportPanel
+            streams={streams}
+            recommendations={recommendations}
+            report={circularActionReport}
+            onGenerate={generateCircularActionReport}
+            busy={busy}
+          />
+        </section>
+      )}
       {activeView === 'supplier-loops' && (
         <section className="workflow-panel supplier-loops-view">
           <SupplierLoopIntelligence
@@ -393,6 +417,7 @@ export default function App() {
     </main>
   );
 }
+
 
 
 
