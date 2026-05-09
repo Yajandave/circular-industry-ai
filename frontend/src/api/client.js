@@ -29,6 +29,8 @@ export const api = {
   reviewPack: (streamId) => request(`/api/agent/review-pack/${encodeURIComponent(streamId)}`),
   managementSummary: () => request('/api/agent/management-summary'),
   actionPlan: (limit = 12) => request(`/api/agent/action-plan?limit=${limit}`),
+  evidenceRegister: () => request('/api/evidence-register'),
+  evidenceSummary: () => request('/api/evidence-register/summary'),
 };
 
 export { API_BASE_URL };

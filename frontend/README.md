@@ -4,7 +4,7 @@ React + Vite interface for the Industrial Circular Economy AI Agent portfolio pr
 
 ## Current milestone
 
-Milestone 6C: workflow layout, progressive disclosure and domain-specific review polish.
+Milestone 7: evidence register, audit trail and export workflow.
 
 ## What the frontend does
 
@@ -18,6 +18,7 @@ Milestone 6C: workflow layout, progressive disclosure and domain-specific review
 - Sorts recommendations by priority, annual cost exposure, diversion potential, risk, confidence or evidence maturity.
 - Opens controlled agentic review packs for evidence, risk, procurement, industrial symbiosis and resource-efficiency context.
 - Shows a ranked action plan while keeping the rules engine as the locked decision source.
+- Provides an Evidence Register tab with missing data, review gates, claim boundaries and CSV exports.
 
 ## Run locally
 
@@ -79,3 +80,8 @@ Milestone 6C changes the interface from one long data-heavy page into a staged d
 The aim is industrial-grade capability with progressive disclosure: summary first, drill-down only when the user needs it.
 
 Milestone 6C also improves domain-specific review-pack wording for streams such as grease trap waste, process water, waste heat, chemical residues, batteries, electronics and returnable containers. This avoids generic manufacturing-scrap language being applied to streams where it does not fit.
+
+
+## Milestone 7 evidence workflow
+
+The frontend now includes an Evidence Register tab. It shows evidence maturity, human-review gates, missing data, claim boundaries and export controls for recommendations and evidence-register CSV files.

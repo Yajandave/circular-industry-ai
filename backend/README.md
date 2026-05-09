@@ -152,3 +152,22 @@ POST /api/streams/upload-csv
 This endpoint accepts a custom CSV file matching `data/data_dictionary.md`, validates required columns, normalises hazard status, replaces existing stream rows, and returns the number of rows loaded.
 
 The frontend uses this route for user-uploaded industrial stream datasets while retaining the sample loader for demonstrations.
+
+## Milestone 7: evidence register and export workflow
+
+Milestone 7 adds audit-focused evidence and export endpoints:
+
+```text
+GET /api/evidence-register
+GET /api/evidence-register/summary
+GET /api/export/evidence-register.csv
+GET /api/export/recommendations.csv
+```
+
+The evidence register is derived from the locked rules-engine recommendation and the uploaded stream record. It separates measured data, estimated calculations, assumptions, missing data, review gates and claim boundaries. It does not create a new recommendation or override risk controls.
+
+Suggested commit message:
+
+```text
+feat: add evidence register and export workflow
+```

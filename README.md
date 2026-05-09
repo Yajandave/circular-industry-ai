@@ -313,6 +313,7 @@ http://127.0.0.1:5173
 - Milestone 6: dashboard and advanced recommendation filters — complete.
 - Milestone 6B: UI polish and portfolio screenshot readiness — complete.
 - Milestone 6C: workflow layout, progressive disclosure and domain-specific review wording — complete.
+- Milestone 7: evidence register and export workflow — complete.
 
 
 ## Milestone 6 dashboard features
@@ -361,3 +362,17 @@ Milestone 6C improves the usability of the frontend without changing the locked 
 The agentic review layer now avoids applying generic scrap-reduction language to every stream. It includes more appropriate review prompts for grease trap waste, process water, waste heat, chemical residues, batteries, electronics, returnable containers and controlled textile/PPE-type streams.
 
 This keeps the user experience cleaner while making the review packs more credible for industrial circular economy, EHS and procurement contexts.
+
+
+## Milestone 7: Evidence register and export workflow
+
+Milestone 7 adds an auditable evidence register and CSV export workflow. The register separates measured data, estimated calculations, assumptions, missing evidence, review gates and claim boundaries for each recommendation. This strengthens the project as an evidence-led circular economy decision-support tool rather than a generic AI dashboard.
+
+New outputs include:
+
+- evidence register API endpoint
+- evidence maturity summary
+- recommendations CSV export
+- evidence register CSV export
+- frontend Evidence Register workflow tab
+- claim-readiness and anti-greenwashing controls

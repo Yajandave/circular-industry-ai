@@ -20,6 +20,11 @@ const TABS = [
     helper: 'Prioritised validation and implementation phases',
   },
   {
+    id: 'evidence',
+    label: 'Evidence register',
+    helper: 'Audit trail, missing data, claim boundaries and exports',
+  },
+  {
     id: 'raw-data',
     label: 'Raw data',
     helper: 'Underlying industrial stream dataset',

@@ -137,3 +137,44 @@ class AgenticActionPlan(BaseModel):
     ranking_method: str
     phases: dict
     governance_note: str
+
+
+# Milestone 7: evidence register and export schemas
+
+class EvidenceRegisterRecord(BaseModel):
+    stream_id: str
+    stream_name: str
+    material: str
+    department: str
+    supplier: str
+    recommended_circular_action: str
+    circular_strategy_category: str
+    rule_applied: str
+    risk_level: str
+    human_review_required: bool
+    confidence_score: int
+    evidence_quality_score: int
+    evidence_status: str
+    review_gate: str
+    claim_readiness: str
+    measured_data: str
+    estimated_data: str
+    assumptions: str
+    missing_data: str
+    risk_triggers: str
+    review_gates: str
+    claim_boundary: str
+    next_action: str
+    estimated_annual_waste_diverted_kg: float
+    estimated_annual_disposal_cost_avoided: float
+
+
+class EvidenceRegisterSummary(BaseModel):
+    total_records: int
+    human_review_required: int
+    low_evidence_records: int
+    strong_evidence_records: int
+    records_with_missing_data: int
+    evidence_status_breakdown: dict
+    claim_readiness_breakdown: dict
+    governance_note: str

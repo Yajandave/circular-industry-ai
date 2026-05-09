@@ -3,6 +3,7 @@ import { api } from './api/client.js';
 import ActionPlan from './components/ActionPlan.jsx';
 import Controls from './components/Controls.jsx';
 import Dashboard from './components/Dashboard.jsx';
+import EvidenceRegister from './components/EvidenceRegister.jsx';
 import FiltersPanel from './components/FiltersPanel.jsx';
 import PortfolioSnapshot from './components/PortfolioSnapshot.jsx';
 import RecommendationsTable from './components/RecommendationsTable.jsx';
@@ -37,6 +38,8 @@ export default function App() {
   const [agentSummary, setAgentSummary] = useState(null);
   const [actionPlan, setActionPlan] = useState(null);
   const [reviewPack, setReviewPack] = useState(null);
+  const [evidenceRecords, setEvidenceRecords] = useState([]);
+  const [evidenceSummary, setEvidenceSummary] = useState(null);
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
   const [activeView, setActiveView] = useState('dashboard');
 
@@ -64,16 +67,20 @@ export default function App() {
     setStreams(loadedStreams);
     setStreamSummary(loadedStreamSummary);
 
-    const [loadedRecs, recSummary, mgmtSummary, plan] = await Promise.all([
+    const [loadedRecs, recSummary, mgmtSummary, plan, evidence, evSummary] = await Promise.all([
       api.listRecommendations().catch(() => []),
       api.recommendationSummary().catch(() => null),
       api.managementSummary().catch(() => null),
       api.actionPlan(12).catch(() => null),
+      api.evidenceRegister().catch(() => []),
+      api.evidenceSummary().catch(() => null),
     ]);
     setRecommendations(loadedRecs);
     setRecommendationSummary(recSummary);
     setAgentSummary(mgmtSummary);
     setActionPlan(plan);
+    setEvidenceRecords(evidence);
+    setEvidenceSummary(evSummary);
   }
 
   async function loadSample() {
@@ -83,6 +90,8 @@ export default function App() {
       setRecommendationSummary(null);
       setAgentSummary(null);
       setActionPlan(null);
+      setEvidenceRecords([]);
+      setEvidenceSummary(null);
       setReviewPack(null);
       setFilters(DEFAULT_FILTERS);
       setActiveView('dashboard');
@@ -98,6 +107,8 @@ export default function App() {
       setRecommendationSummary(null);
       setAgentSummary(null);
       setActionPlan(null);
+      setEvidenceRecords([]);
+      setEvidenceSummary(null);
       setReviewPack(null);
       setFilters(DEFAULT_FILTERS);
       setActiveView('dashboard');
@@ -171,8 +182,8 @@ export default function App() {
           </p>
         </div>
         <div className="hero-note">
-          <strong>Milestone 6C</strong>
-          <span>Workflow layout, progressive disclosure and domain-specific review polish</span>
+          <strong>Milestone 7</strong>
+          <span>Evidence register, audit trail and export workflow</span>
         </div>
       </header>
 
@@ -223,6 +234,12 @@ export default function App() {
       {activeView === 'action-plan' && (
         <section className="workflow-panel action-view">
           <ActionPlan actionPlan={actionPlan} />
+        </section>
+      )}
+
+      {activeView === 'evidence' && (
+        <section className="workflow-panel evidence-view">
+          <EvidenceRegister records={evidenceRecords} summary={evidenceSummary} />
         </section>
       )}
 
