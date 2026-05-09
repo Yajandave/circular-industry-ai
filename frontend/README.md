@@ -98,3 +98,8 @@ Run recommendations
 Open Resolution plans
 Export resolution plans CSV
 ```
+
+
+## Milestone 7C: Rules-locked LLM reasoning and UI QA
+
+This milestone adds an optional LLM reasoning layer that writes stream-specific explanations, supplier questions, evidence-gap summaries and pilot guidance from locked rules, evidence and resolution-plan context. It also improves table wrapping, badge layout and page readability. The LLM cannot override risk, human-review gates, rule applied or claim boundaries. If no API key is configured, the app uses deterministic fallback reasoning.

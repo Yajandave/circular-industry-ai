@@ -400,3 +400,8 @@ Resolution plans
 ```
 
 This milestone makes the project more clearly circular economy focused by moving beyond waste-route classification into prevention, value retention, supplier loops, process redesign, by-product valorisation, pilot planning and claim-readiness control.
+
+
+## Milestone 7C: Rules-locked LLM reasoning and UI QA
+
+This milestone adds an optional LLM reasoning layer that writes stream-specific explanations, supplier questions, evidence-gap summaries and pilot guidance from locked rules, evidence and resolution-plan context. It also improves table wrapping, badge layout and page readability. The LLM cannot override risk, human-review gates, rule applied or claim boundaries. If no API key is configured, the app uses deterministic fallback reasoning.

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { api } from './api/client.js';
 import ActionPlan from './components/ActionPlan.jsx';
+import AIReasoningPanel from './components/AIReasoningPanel.jsx';
 import Controls from './components/Controls.jsx';
 import CircularResolutionPlans from './components/CircularResolutionPlans.jsx';
 import Dashboard from './components/Dashboard.jsx';
@@ -43,6 +44,8 @@ export default function App() {
   const [evidenceSummary, setEvidenceSummary] = useState(null);
   const [resolutionPlans, setResolutionPlans] = useState([]);
   const [resolutionSummary, setResolutionSummary] = useState(null);
+  const [aiStatus, setAiStatus] = useState(null);
+  const [aiReasoning, setAiReasoning] = useState(null);
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
   const [activeView, setActiveView] = useState('dashboard');
 
@@ -70,7 +73,7 @@ export default function App() {
     setStreams(loadedStreams);
     setStreamSummary(loadedStreamSummary);
 
-    const [loadedRecs, recSummary, mgmtSummary, plan, evidence, evSummary, resolutions, resSummary] = await Promise.all([
+    const [loadedRecs, recSummary, mgmtSummary, plan, evidence, evSummary, resolutions, resSummary, aiMode] = await Promise.all([
       api.listRecommendations().catch(() => []),
       api.recommendationSummary().catch(() => null),
       api.managementSummary().catch(() => null),
@@ -79,6 +82,7 @@ export default function App() {
       api.evidenceSummary().catch(() => null),
       api.resolutionPlans().catch(() => []),
       api.resolutionSummary().catch(() => null),
+      api.aiReasoningStatus().catch(() => null),
     ]);
     setRecommendations(loadedRecs);
     setRecommendationSummary(recSummary);
@@ -88,6 +92,7 @@ export default function App() {
     setEvidenceSummary(evSummary);
     setResolutionPlans(resolutions);
     setResolutionSummary(resSummary);
+    setAiStatus(aiMode);
   }
 
   async function loadSample() {
@@ -102,6 +107,7 @@ export default function App() {
       setResolutionPlans([]);
       setResolutionSummary(null);
       setReviewPack(null);
+      setAiReasoning(null);
       setFilters(DEFAULT_FILTERS);
       setActiveView('dashboard');
       await refreshData();
@@ -121,6 +127,7 @@ export default function App() {
       setResolutionPlans([]);
       setResolutionSummary(null);
       setReviewPack(null);
+      setAiReasoning(null);
       setFilters(DEFAULT_FILTERS);
       setActiveView('dashboard');
       await refreshData();
@@ -133,6 +140,17 @@ export default function App() {
       await api.runResolutions().catch(() => null);
       await refreshData();
       setActiveView('dashboard');
+    });
+  }
+
+  async function generateAiReasoning(streamId) {
+    await safeRun(`AI reasoning generated for ${streamId}.`, async () => {
+      const result = await api.generateAiReasoning(streamId);
+      setAiReasoning(result);
+      setActiveView('ai-reasoning');
+      setTimeout(() => {
+        document.getElementById('ai-reasoning-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 50);
     });
   }
 
@@ -194,8 +212,8 @@ export default function App() {
           </p>
         </div>
         <div className="hero-note">
-          <strong>Milestone 7B</strong>
-          <span>Circular resolution engine and intervention design layer</span>
+          <strong>Milestone 7C</strong>
+          <span>Rules-locked LLM reasoning layer and table-formatting QA</span>
         </div>
       </header>
 
@@ -237,6 +255,19 @@ export default function App() {
         </section>
       )}
 
+
+      {activeView === 'ai-reasoning' && (
+        <section className="workflow-panel ai-reasoning-view" id="ai-reasoning-panel">
+          <AIReasoningPanel
+            plans={resolutionPlans}
+            recommendations={recommendations}
+            status={aiStatus}
+            reasoning={aiReasoning}
+            onGenerate={generateAiReasoning}
+            busy={busy}
+          />
+        </section>
+      )}
 
       {activeView === 'resolutions' && (
         <section className="workflow-panel resolution-view">

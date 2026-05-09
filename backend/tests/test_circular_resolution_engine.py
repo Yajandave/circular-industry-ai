@@ -1,5 +1,5 @@
 from app.circular_resolution.resolution_engine import build_resolution_plan, build_resolution_plans, build_resolution_summary
-from app.rules_engine import analyse_stream
+from app.rules_engine import recommend_for_stream
 from app import schemas
 
 
@@ -26,7 +26,7 @@ def make_stream(**overrides):
 
 def test_resolution_plan_is_specific_for_clean_metal():
     stream = make_stream()
-    rec = analyse_stream(stream)
+    rec = recommend_for_stream(stream)
     plan = build_resolution_plan(stream, rec)
     assert plan["stream_id"] == "T001"
     assert "alloy" in " ".join(plan["evidence_required"]).lower()
@@ -46,7 +46,7 @@ def test_resolution_plan_blocks_hazardous_grease_trap_stream():
         supplier="WasteCare Services",
         notes="FOG stream requiring contractor classification",
     )
-    rec = analyse_stream(stream)
+    rec = recommend_for_stream(stream)
     plan = build_resolution_plan(stream, rec)
     assert plan["human_review_required"] is True
     assert "FOG" in plan["specific_resolution_idea"] or "grease" in plan["specific_resolution_idea"].lower()
@@ -67,7 +67,7 @@ def test_resolution_summary_counts_controlled_plans():
             supplier="PowerCell Systems",
         ),
     ]
-    recs = [analyse_stream(stream) for stream in streams]
+    recs = [recommend_for_stream(stream) for stream in streams]
     plans = build_resolution_plans(streams, recs)
     summary = build_resolution_summary(plans)
     assert summary["total_plans"] == 2

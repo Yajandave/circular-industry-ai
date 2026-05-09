@@ -35,6 +35,8 @@ export const api = {
   resolutionPlans: () => request('/api/resolutions'),
   resolutionSummary: () => request('/api/resolutions/summary'),
   resolutionPlan: (streamId) => request(`/api/resolutions/${encodeURIComponent(streamId)}`),
+  aiReasoningStatus: () => request('/api/ai-reasoning/status'),
+  generateAiReasoning: (streamId) => request(`/api/ai-reasoning/${encodeURIComponent(streamId)}`, { method: 'POST' }),
 };
 
 export { API_BASE_URL };

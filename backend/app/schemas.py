@@ -229,3 +229,38 @@ class RunCircularResolutionsResponse(BaseModel):
     controlled_review_plans: int
     claim_blocked_or_not_ready: int
     message: str
+
+
+# Milestone 7C: optional rules-locked LLM reasoning schemas
+
+class AIReasoningStatus(BaseModel):
+    ai_reasoning_enabled: bool
+    openai_api_key_configured: bool
+    llm_provider: str | None = None
+    api_key_configured: bool | None = None
+    configured_model: str
+    configured_base_url: str | None = None
+    mode: str
+    guardrail_summary: str
+
+
+class AIReasoningNarrative(BaseModel):
+    stream_id: str
+    stream_name: str
+    generation_mode: str
+    model_name: str
+    decision_lock_status: str
+    executive_summary: str
+    circular_economy_reasoning: str
+    evidence_gap_explanation: str
+    supplier_questions: list[str]
+    pilot_guidance: str
+    claim_safety_note: str
+    human_review_note: str
+    implementation_risks: list[str]
+    validation_warnings: list[str]
+    locked_rule_applied: str | None = None
+    locked_risk_level: str | None = None
+    locked_human_review_required: bool | None = None
+    locked_recommendation: str | None = None
+    claim_boundary: str | None = None

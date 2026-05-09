@@ -8,7 +8,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.database import init_db
-from app.routers import agent, evidence, recommendations, resolutions, streams
+from app.routers import agent, ai_reasoning, evidence, recommendations, resolutions, streams
 
 
 @asynccontextmanager
@@ -21,7 +21,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="Circular Industry AI API",
     description="Backend API for industrial circular economy material stream analysis.",
-    version="0.7.1",
+    version="0.7.2",
     lifespan=lifespan,
 )
 
@@ -44,3 +44,4 @@ app.include_router(recommendations.router)
 app.include_router(agent.router)
 app.include_router(evidence.router)
 app.include_router(resolutions.router)
+app.include_router(ai_reasoning.router)

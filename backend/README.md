@@ -187,3 +187,8 @@ GET  /api/export/resolution-plans.csv
 ```
 
 The engine uses material-specific playbooks and quality gates. It does not persist a separate decision table and does not override risk, human review or rule-applied fields.
+
+
+## Milestone 7C: Rules-locked LLM reasoning and UI QA
+
+This milestone adds an optional LLM reasoning layer that writes stream-specific explanations, supplier questions, evidence-gap summaries and pilot guidance from locked rules, evidence and resolution-plan context. It also improves table wrapping, badge layout and page readability. The LLM cannot override risk, human-review gates, rule applied or claim boundaries. If no API key is configured, the app uses deterministic fallback reasoning.

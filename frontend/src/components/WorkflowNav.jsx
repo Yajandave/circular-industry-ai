@@ -11,6 +11,11 @@ const TABS = [
   },
 
   {
+    id: 'ai-reasoning',
+    label: 'AI reasoning',
+    helper: 'Optional LLM narrative with rules locked and guardrails active',
+  },
+  {
     id: 'resolutions',
     label: 'Resolution plans',
     helper: 'Specific circular interventions, pilots, KPIs and claim boundaries',
@@ -43,7 +48,7 @@ export default function WorkflowNav({ activeView, onChange, recommendationCount,
       <div className="section-heading compact-heading">
         <div>
           <h2>Decision workflow</h2>
-          <p>Use the dashboard first, then drill into recommendations, review packs, action planning and raw data only when needed.</p>
+          <p>Use the dashboard first, then drill into recommendations, resolution plans, AI reasoning, evidence and raw data only when needed.</p>
         </div>
         <span>{recommendationCount || 0} recommendations</span>
       </div>
