@@ -405,3 +405,78 @@ class CircularActionReport(BaseModel):
     locked_claim_readiness: str | None = None
     locked_review_gate: str | None = None
     locked_procurement_route: str | None = None
+
+# Milestone 9A: product workflow readiness schemas
+
+class ProductWorkflowStep(BaseModel):
+    name: str
+    status: str
+    detail: str
+    required_next_action: str
+
+
+class ProductWorkflowReadiness(BaseModel):
+    product_stage: str
+    backend_status: str
+    alpha_exit_status: str
+    total_streams: int
+    total_recommendations: int
+    ready_for_full_demo: bool
+    evidence_summary: dict | None = None
+    supplier_loop_summary: dict | None = None
+    steps: list[ProductWorkflowStep]
+    governance_note: str
+
+# Milestone 7E / 9A: supplier-loop response schemas
+
+class SupplierLoopPlan(BaseModel):
+    stream_id: str
+    stream_name: str
+    material: str
+    department: str
+    supplier: str
+    locked_recommendation: str
+    risk_level: str
+    human_review_required: bool
+    rule_applied: str
+    procurement_route: str
+    supplier_loop_opportunity: str
+    supplier_relationship_type: str
+    reverse_logistics_model: str
+    contract_levers: list[str]
+    supplier_questions: list[str]
+    supplier_evidence_required: list[str]
+    acceptance_criteria: list[str]
+    commercial_checks: list[str]
+    operational_checks: list[str]
+    data_requests: list[str]
+    negotiation_position: str
+    circular_procurement_clause: str
+    procurement_priority: str
+    pilot_scope: str
+    review_gate: str
+    claim_boundary: str
+    fallback_position: str
+    linked_esrs_e5_area: list[str]
+    cti_procurement_metrics: list[str]
+    material_playbook_supplier_levers: list[str]
+    estimated_annual_value_at_stake: float
+
+
+class SupplierLoopSummary(BaseModel):
+    total_plans: int
+    supplier_loop_candidates: int
+    reverse_logistics_candidates: int
+    contract_review_required: int
+    controlled_supplier_reviews: int
+    procurement_priority_breakdown: dict
+    procurement_route_breakdown: dict
+    top_supplier_actions: list[dict]
+    method_note: str
+
+
+class RunSupplierLoopsResponse(BaseModel):
+    generated_plans: int
+    supplier_loop_candidates: int
+    controlled_supplier_reviews: int
+    message: str
