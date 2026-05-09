@@ -55,6 +55,7 @@ export default function App() {
   const [materialPlaybookSummary, setMaterialPlaybookSummary] = useState(null);
   const [supplierLoopPlans, setSupplierLoopPlans] = useState([]);
   const [supplierLoopSummary, setSupplierLoopSummary] = useState(null);
+  const [supplierEmailDraft, setSupplierEmailDraft] = useState(null);
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
   const [activeView, setActiveView] = useState('dashboard');
 
@@ -126,6 +127,7 @@ export default function App() {
       setResolutionSummary(null);
       setSupplierLoopPlans([]);
       setSupplierLoopSummary(null);
+      setSupplierEmailDraft(null);
       setReviewPack(null);
       setAiReasoning(null);
       setSiteCopilotSummary(null);
@@ -150,6 +152,7 @@ export default function App() {
       setResolutionSummary(null);
       setSupplierLoopPlans([]);
       setSupplierLoopSummary(null);
+      setSupplierEmailDraft(null);
       setReviewPack(null);
       setAiReasoning(null);
       setSiteCopilotSummary(null);
@@ -169,6 +172,16 @@ export default function App() {
     });
   }
 
+  async function draftSupplierEmail(streamId) {
+    await safeRun(`Supplier evidence request draft generated for ${streamId}.`, async () => {
+      const result = await api.generateSupplierEmailDraft(streamId);
+      setSupplierEmailDraft(result);
+      setActiveView('supplier-loops');
+      setTimeout(() => {
+        document.getElementById('supplier-email-draft-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 50);
+    });
+  }
   async function explainEvidenceGap(streamId) {
     await safeRun(`AI evidence gap explanation generated for ${streamId}.`, async () => {
       const result = await api.generateEvidenceGapExplanation(streamId);
@@ -255,8 +268,8 @@ export default function App() {
           </p>
         </div>
         <div className="hero-note">
-          <strong>Milestone 8C</strong>
-          <span>AI evidence gap explainer for claim-readiness and audit-focused evidence planning</span>
+          <strong>Milestone 8D</strong>
+          <span>AI supplier evidence request drafting from locked supplier-loop and evidence data</span>
         </div>
       </header>
 
@@ -338,7 +351,13 @@ export default function App() {
 
       {activeView === 'supplier-loops' && (
         <section className="workflow-panel supplier-loops-view">
-          <SupplierLoopIntelligence plans={supplierLoopPlans} summary={supplierLoopSummary} />
+          <SupplierLoopIntelligence
+            plans={supplierLoopPlans}
+            summary={supplierLoopSummary}
+            emailDraft={supplierEmailDraft}
+            onDraftEmail={draftSupplierEmail}
+            busy={busy}
+          />
         </section>
       )}
 
@@ -374,6 +393,8 @@ export default function App() {
     </main>
   );
 }
+
+
 
 
 

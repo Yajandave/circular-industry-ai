@@ -42,7 +42,74 @@ function BreakdownCard({ title, data }) {
   );
 }
 
-function SupplierPlanCard({ plan }) {
+function SupplierEmailDraftPanel({ draft }) {
+  if (!draft) return null;
+
+  return (
+    <section className="supplier-email-draft-panel" id="supplier-email-draft-panel">
+      <div className="section-heading compact-heading">
+        <div>
+          <span className="eyebrow">Milestone 8D</span>
+          <h3>Supplier evidence request draft: {draft.stream_id}</h3>
+          <p>
+            AI-assisted supplier communication generated from locked procurement, recommendation and evidence-register data.
+          </p>
+        </div>
+        <span>{draft.generation_mode?.replaceAll('_', ' ')}</span>
+      </div>
+
+      <div className="supplier-email-lock-grid">
+        <article>
+          <span>Supplier</span>
+          <strong>{draft.supplier}</strong>
+        </article>
+        <article>
+          <span>Risk / review</span>
+          <strong>{draft.locked_risk_level} · review {String(draft.locked_human_review_required)}</strong>
+        </article>
+        <article>
+          <span>Procurement route</span>
+          <strong>{draft.locked_procurement_route}</strong>
+        </article>
+      </div>
+
+      <article className="supplier-email-body-card">
+        <h4>Subject</h4>
+        <p className="supplier-email-subject">{draft.subject}</p>
+        <h4>Email body</h4>
+        <pre>{draft.email_body}</pre>
+      </article>
+
+      <div className="supplier-email-grid">
+        <ListBlock title="Evidence request summary" items={draft.evidence_request_summary} />
+        <ListBlock title="Documents to request" items={draft.attachments_or_documents_to_request} />
+        <ListBlock title="Internal follow-up actions" items={draft.internal_follow_up_actions} />
+      </div>
+
+      <div className="supplier-email-claim-card">
+        <h4>Claim safety note</h4>
+        <p>{draft.claim_safety_note}</p>
+      </div>
+
+      <div className="governance-strip">
+        {draft.governance_note}
+      </div>
+
+      {!!draft.validation_warnings?.length && (
+        <div className="supplier-email-warning">
+          <h4>Validation warnings</h4>
+          <ul>
+            {draft.validation_warnings.map((warning, index) => (
+              <li key={`supplier-email-warning-${index}`}>{warning}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function SupplierPlanCard({ plan, onDraftEmail, busy }) {
   return (
     <article className={`supplier-loop-card ${plan.human_review_required ? 'controlled' : 'candidate'}`}>
       <div className="supplier-loop-header">
@@ -54,6 +121,16 @@ function SupplierPlanCard({ plan }) {
         <div className="supplier-loop-priority">
           <strong>{plan.procurement_priority}</strong>
           <small>{plan.human_review_required ? 'Controlled review' : 'Supplier action candidate'}</small>
+          {onDraftEmail && (
+            <button
+              type="button"
+              className="secondary-button supplier-email-button"
+              onClick={() => onDraftEmail(plan.stream_id)}
+              disabled={busy}
+            >
+              Draft supplier email
+            </button>
+          )}
         </div>
       </div>
 
@@ -114,7 +191,13 @@ function SupplierPlanCard({ plan }) {
   );
 }
 
-export default function SupplierLoopIntelligence({ plans = [], summary = null }) {
+export default function SupplierLoopIntelligence({
+  plans = [],
+  summary = null,
+  emailDraft = null,
+  onDraftEmail = null,
+  busy = false,
+}) {
   const supplierCandidates = plans
     .filter((plan) => !plan.human_review_required)
     .slice(0, 8);
@@ -167,6 +250,8 @@ export default function SupplierLoopIntelligence({ plans = [], summary = null })
         </div>
       )}
 
+      <SupplierEmailDraftPanel draft={emailDraft} />
+
       <div className="resolution-overview-grid">
         <BreakdownCard title="Procurement priority breakdown" data={summary?.procurement_priority_breakdown} />
         <BreakdownCard title="Procurement route breakdown" data={summary?.procurement_route_breakdown} />
@@ -185,6 +270,16 @@ export default function SupplierLoopIntelligence({ plans = [], summary = null })
             <span>{action.supplier} · {action.procurement_route}</span>
             <p>{action.supplier_question}</p>
             <small>{formatCurrency(action.estimated_annual_value_at_stake)} screened value at stake</small>
+            {onDraftEmail && (
+              <button
+                type="button"
+                className="link-button compact"
+                onClick={() => onDraftEmail(action.stream_id)}
+                disabled={busy}
+              >
+                Draft supplier email
+              </button>
+            )}
           </div>
         ))}
       </div>
@@ -196,7 +291,14 @@ export default function SupplierLoopIntelligence({ plans = [], summary = null })
         </div>
       </div>
       <div className="supplier-loop-card-stack">
-        {supplierCandidates.map((plan) => <SupplierPlanCard key={plan.stream_id} plan={plan} />)}
+        {supplierCandidates.map((plan) => (
+          <SupplierPlanCard
+            key={plan.stream_id}
+            plan={plan}
+            onDraftEmail={onDraftEmail}
+            busy={busy}
+          />
+        ))}
       </div>
 
       {controlled.length > 0 && (
@@ -204,7 +306,14 @@ export default function SupplierLoopIntelligence({ plans = [], summary = null })
           <h3>Controlled supplier / contractor reviews</h3>
           <p>These records must stay in evidence and compliance review before any supplier-loop or recovery claim is made.</p>
           <div className="supplier-loop-card-stack compact">
-            {controlled.map((plan) => <SupplierPlanCard key={`controlled-${plan.stream_id}`} plan={plan} />)}
+            {controlled.map((plan) => (
+              <SupplierPlanCard
+                key={`controlled-${plan.stream_id}`}
+                plan={plan}
+                onDraftEmail={onDraftEmail}
+                busy={busy}
+              />
+            ))}
           </div>
         </div>
       )}
