@@ -1,0 +1,50 @@
+/* Milestone 8C: AI evidence gap explainer */
+.evidence-gap-explainer {
+  margin-top: 1rem;
+  padding: 1.25rem;
+  border: 1px solid #d7e3dc;
+  border-radius: 1.5rem;
+  background: #f8faf9;
+}
+.evidence-explainer-lock-grid,
+.evidence-explainer-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+.evidence-explainer-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.evidence-explainer-lock-grid article,
+.evidence-explainer-grid article,
+.evidence-explainer-list {
+  border: 1px solid #dfe7e2;
+  border-radius: 1.25rem;
+  background: #ffffff;
+  padding: 1rem;
+}
+.evidence-explainer-lock-grid span {
+  display: block;
+  color: #60716a;
+  font-weight: 800;
+  font-size: 0.82rem;
+  margin-bottom: 0.45rem;
+}
+.evidence-explainer-lock-grid strong { display: block; color: #20342c; line-height: 1.35; }
+.evidence-explainer-grid h4,
+.evidence-explainer-list h4,
+.evidence-explainer-warning h4 { margin: 0 0 0.65rem; }
+.evidence-explainer-grid p { margin: 0; line-height: 1.6; color: #2f4139; }
+.evidence-explainer-list ul { margin: 0; padding-left: 1.2rem; }
+.evidence-explainer-list li { padding: 0.35rem 0; line-height: 1.55; }
+.evidence-explainer-warning {
+  margin-top: 1rem;
+  border: 1px solid #efc7c2;
+  border-radius: 1.25rem;
+  background: #fbe5e2;
+  padding: 1rem;
+}
+.evidence-explain-button { margin-top: 0.75rem; width: 100%; justify-content: center; }
+@media (max-width: 1000px) {
+  .evidence-explainer-lock-grid,
+  .evidence-explainer-grid { grid-template-columns: 1fr; }
+}

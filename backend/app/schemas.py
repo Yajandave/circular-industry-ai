@@ -327,3 +327,27 @@ class SiteAICopilotSummary(BaseModel):
     claim_safety_note: str
     governance_note: str
     validation_warnings: list[str]
+
+# Milestone 8C: AI evidence gap explainer schemas
+
+class AIEvidenceGapExplanation(BaseModel):
+    generation_mode: str
+    model_name: str
+    stream_id: str
+    stream_name: str
+    decision_lock_status: str
+    evidence_gap_summary: str
+    claim_readiness_explanation: str
+    evidence_to_collect: list[str]
+    supplier_documents_required: list[str]
+    process_checks_required: list[str]
+    safe_current_statement: str
+    unsafe_claims_to_avoid: list[str]
+    recommended_review_gate: str
+    governance_note: str
+    validation_warnings: list[str]
+    locked_rule_applied: str | None = None
+    locked_risk_level: str | None = None
+    locked_human_review_required: bool | None = None
+    locked_claim_readiness: str | None = None
+    locked_review_gate: str | None = None

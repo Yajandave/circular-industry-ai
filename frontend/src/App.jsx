@@ -45,6 +45,7 @@ export default function App() {
   const [reviewPack, setReviewPack] = useState(null);
   const [evidenceRecords, setEvidenceRecords] = useState([]);
   const [evidenceSummary, setEvidenceSummary] = useState(null);
+  const [evidenceGapExplanation, setEvidenceGapExplanation] = useState(null);
   const [resolutionPlans, setResolutionPlans] = useState([]);
   const [resolutionSummary, setResolutionSummary] = useState(null);
   const [aiStatus, setAiStatus] = useState(null);
@@ -120,6 +121,7 @@ export default function App() {
       setActionPlan(null);
       setEvidenceRecords([]);
       setEvidenceSummary(null);
+      setEvidenceGapExplanation(null);
       setResolutionPlans([]);
       setResolutionSummary(null);
       setSupplierLoopPlans([]);
@@ -143,6 +145,7 @@ export default function App() {
       setActionPlan(null);
       setEvidenceRecords([]);
       setEvidenceSummary(null);
+      setEvidenceGapExplanation(null);
       setResolutionPlans([]);
       setResolutionSummary(null);
       setSupplierLoopPlans([]);
@@ -166,6 +169,16 @@ export default function App() {
     });
   }
 
+  async function explainEvidenceGap(streamId) {
+    await safeRun(`AI evidence gap explanation generated for ${streamId}.`, async () => {
+      const result = await api.generateEvidenceGapExplanation(streamId);
+      setEvidenceGapExplanation(result);
+      setActiveView('evidence');
+      setTimeout(() => {
+        document.getElementById('evidence-gap-explainer')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 50);
+    });
+  }
   async function refreshSiteCopilot() {
     await safeRun('Site-wide AI copilot summary refreshed.', async () => {
       const result = await api.siteAICopilotSummary();
@@ -242,8 +255,8 @@ export default function App() {
           </p>
         </div>
         <div className="hero-note">
-          <strong>Milestone 8B</strong>
-          <span>Site-wide AI copilot panel connected to the locked backend summary endpoint</span>
+          <strong>Milestone 8C</strong>
+          <span>AI evidence gap explainer for claim-readiness and audit-focused evidence planning</span>
         </div>
       </header>
 
@@ -343,7 +356,13 @@ export default function App() {
 
       {activeView === 'evidence' && (
         <section className="workflow-panel evidence-view">
-          <EvidenceRegister records={evidenceRecords} summary={evidenceSummary} />
+          <EvidenceRegister
+            records={evidenceRecords}
+            summary={evidenceSummary}
+            explanation={evidenceGapExplanation}
+            onExplain={explainEvidenceGap}
+            busy={busy}
+          />
         </section>
       )}
 
@@ -355,4 +374,6 @@ export default function App() {
     </main>
   );
 }
+
+
 

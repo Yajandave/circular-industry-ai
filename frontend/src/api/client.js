@@ -31,6 +31,7 @@ export const api = {
   actionPlan: (limit = 12) => request(`/api/agent/action-plan?limit=${limit}`),
   evidenceRegister: () => request('/api/evidence-register'),
   evidenceSummary: () => request('/api/evidence-register/summary'),
+  generateEvidenceGapExplanation: (streamId) => request(`/api/evidence-register/${encodeURIComponent(streamId)}/ai-explainer`, { method: 'POST' }),
   runResolutions: () => request('/api/resolutions/run', { method: 'POST' }),
   resolutionPlans: () => request('/api/resolutions'),
   resolutionSummary: () => request('/api/resolutions/summary'),
@@ -46,4 +47,5 @@ export const api = {
 };
 
 export { API_BASE_URL };
+
 
