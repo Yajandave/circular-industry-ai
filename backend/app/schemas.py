@@ -376,3 +376,32 @@ class SupplierEvidenceEmailDraft(BaseModel):
     locked_claim_readiness: str | None = None
     locked_procurement_route: str | None = None
     locked_review_gate: str | None = None
+
+# Milestone 8E: circular action report builder schemas
+
+class CircularActionReport(BaseModel):
+    generation_mode: str
+    model_name: str
+    stream_id: str
+    stream_name: str
+    decision_lock_status: str
+    report_title: str
+    executive_summary: str
+    locked_recommendation: str
+    risk_and_review_status: str
+    evidence_position: str
+    circular_resolution_summary: str
+    supplier_loop_summary: str
+    implementation_plan: list[str]
+    evidence_to_collect: list[str]
+    unsafe_claims_to_avoid: list[str]
+    recommended_next_actions: list[str]
+    claim_boundary: str
+    governance_note: str
+    validation_warnings: list[str]
+    locked_rule_applied: str | None = None
+    locked_risk_level: str | None = None
+    locked_human_review_required: bool | None = None
+    locked_claim_readiness: str | None = None
+    locked_review_gate: str | None = None
+    locked_procurement_route: str | None = None
