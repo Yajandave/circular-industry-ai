@@ -4,7 +4,7 @@ React + Vite interface for the Industrial Circular Economy AI Agent portfolio pr
 
 ## Current milestone
 
-Milestone 6B: portfolio-ready UI polish for the dashboard, recommendation table and print/PDF view.
+Milestone 6C: workflow layout, progressive disclosure and domain-specific review polish.
 
 ## What the frontend does
 
@@ -64,3 +64,18 @@ The screen interface still keeps the detailed recommendation and stream tables f
 - quick-win and controlled-review examples
 
 This keeps the user experience simple while preserving the advanced controlled-agentic workflow underneath.
+
+
+## Milestone 6C workflow polish
+
+Milestone 6C changes the interface from one long data-heavy page into a staged decision workflow:
+
+- Executive dashboard: portfolio summary, strategy mix, risk profile and screenshot-ready portfolio snapshot.
+- Recommendations: filters, ranking and locked rules-engine recommendation table.
+- Review pack: focused evidence, risk, procurement, symbiosis and resource-efficiency drill-down for a selected stream.
+- Action plan: ranked validation and opportunity-development phases.
+- Raw data: the underlying industrial stream dataset, now hidden from the default landing view.
+
+The aim is industrial-grade capability with progressive disclosure: summary first, drill-down only when the user needs it.
+
+Milestone 6C also improves domain-specific review-pack wording for streams such as grease trap waste, process water, waste heat, chemical residues, batteries, electronics and returnable containers. This avoids generic manufacturing-scrap language being applied to streams where it does not fit.

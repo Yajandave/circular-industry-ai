@@ -10,6 +10,7 @@ import ReviewPackPanel from './components/ReviewPackPanel.jsx';
 import StatusPanel from './components/StatusPanel.jsx';
 import StreamsTable from './components/StreamsTable.jsx';
 import SummaryCards from './components/SummaryCards.jsx';
+import WorkflowNav from './components/WorkflowNav.jsx';
 import { applyRecommendationFilters, buildDashboardData, sortRecommendations } from './utils/analytics.js';
 
 const DEFAULT_FILTERS = {
@@ -37,6 +38,7 @@ export default function App() {
   const [actionPlan, setActionPlan] = useState(null);
   const [reviewPack, setReviewPack] = useState(null);
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
+  const [activeView, setActiveView] = useState('dashboard');
 
   async function safeRun(label, task) {
     setBusy(true);
@@ -83,6 +85,7 @@ export default function App() {
       setActionPlan(null);
       setReviewPack(null);
       setFilters(DEFAULT_FILTERS);
+      setActiveView('dashboard');
       await refreshData();
     });
   }
@@ -97,6 +100,7 @@ export default function App() {
       setActionPlan(null);
       setReviewPack(null);
       setFilters(DEFAULT_FILTERS);
+      setActiveView('dashboard');
       await refreshData();
     });
   }
@@ -105,6 +109,7 @@ export default function App() {
     await safeRun('Rules engine, dashboard metrics and agentic portfolio outputs refreshed.', async () => {
       await api.runRecommendations();
       await refreshData();
+      setActiveView('dashboard');
     });
   }
 
@@ -112,6 +117,7 @@ export default function App() {
     await safeRun(`Review pack loaded for ${streamId}.`, async () => {
       const pack = await api.reviewPack(streamId);
       setReviewPack(pack);
+      setActiveView('review');
       setTimeout(() => {
         document.getElementById('review-pack-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 50);
@@ -165,8 +171,8 @@ export default function App() {
           </p>
         </div>
         <div className="hero-note">
-          <strong>Milestone 6B</strong>
-          <span>Portfolio-ready UI polish and print-safe reporting layer</span>
+          <strong>Milestone 6C</strong>
+          <span>Workflow layout, progressive disclosure and domain-specific review polish</span>
         </div>
       </header>
 
@@ -179,21 +185,52 @@ export default function App() {
         busy={busy}
       />
       <SummaryCards streamSummary={streamSummary} recommendationSummary={recommendationSummary} agentSummary={agentSummary} />
-      <Dashboard dashboardData={dashboardData} agentSummary={agentSummary} onSelectReviewPack={openReviewPack} />
-      <PortfolioSnapshot dashboardData={dashboardData} agentSummary={agentSummary} />
-      <FiltersPanel
-        filters={filters}
-        onChange={setFilters}
-        materials={materials}
-        strategies={strategies}
-        priorities={priorities}
-        resultCount={filteredRecommendations.length}
-        totalCount={recommendations.length}
+      <WorkflowNav
+        activeView={activeView}
+        onChange={setActiveView}
+        recommendationCount={recommendations.length}
+        reviewPack={reviewPack}
       />
-      <RecommendationsTable recommendations={filteredRecommendations} onSelectReviewPack={openReviewPack} />
-      <ReviewPackPanel reviewPack={reviewPack} />
-      <ActionPlan actionPlan={actionPlan} />
-      <StreamsTable streams={streams} />
+
+      {activeView === 'dashboard' && (
+        <section className="workflow-panel dashboard-view">
+          <Dashboard dashboardData={dashboardData} agentSummary={agentSummary} onSelectReviewPack={openReviewPack} />
+          <PortfolioSnapshot dashboardData={dashboardData} agentSummary={agentSummary} />
+        </section>
+      )}
+
+      {activeView === 'recommendations' && (
+        <section className="workflow-panel recommendations-view">
+          <FiltersPanel
+            filters={filters}
+            onChange={setFilters}
+            materials={materials}
+            strategies={strategies}
+            priorities={priorities}
+            resultCount={filteredRecommendations.length}
+            totalCount={recommendations.length}
+          />
+          <RecommendationsTable recommendations={filteredRecommendations} onSelectReviewPack={openReviewPack} />
+        </section>
+      )}
+
+      {activeView === 'review' && (
+        <section className="workflow-panel review-view">
+          <ReviewPackPanel reviewPack={reviewPack} />
+        </section>
+      )}
+
+      {activeView === 'action-plan' && (
+        <section className="workflow-panel action-view">
+          <ActionPlan actionPlan={actionPlan} />
+        </section>
+      )}
+
+      {activeView === 'raw-data' && (
+        <section className="workflow-panel raw-data-view">
+          <StreamsTable streams={streams} />
+        </section>
+      )}
     </main>
   );
 }

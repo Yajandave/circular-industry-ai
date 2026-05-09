@@ -312,6 +312,7 @@ http://127.0.0.1:5173
 - Milestone 5: React frontend recommendation review interface — complete.
 - Milestone 6: dashboard and advanced recommendation filters — complete.
 - Milestone 6B: UI polish and portfolio screenshot readiness — complete.
+- Milestone 6C: workflow layout, progressive disclosure and domain-specific review wording — complete.
 
 
 ## Milestone 6 dashboard features
@@ -341,3 +342,22 @@ This milestone does not change the rules engine, scoring method or agentic contr
 ```text
 style: polish dashboard UI for portfolio screenshots
 ```
+
+
+## Milestone 6C: Workflow layout and domain-specific review polish
+
+Milestone 6C improves the usability of the frontend without changing the locked rules engine. The interface now uses a staged workflow so users do not have to read the dashboard, recommendations, review pack, action plan and raw data all at once.
+
+### Workflow views
+
+1. **Executive dashboard** — summary metrics, strategy mix, risk profile, priority bands and portfolio snapshot.
+2. **Recommendations** — filterable and ranked rules-engine outputs.
+3. **Review pack** — selected stream drill-down covering evidence, risk, procurement, symbiosis and resource-efficiency context.
+4. **Action plan** — ranked validation and opportunity-development phases.
+5. **Raw data** — underlying industrial stream table, hidden by default.
+
+### Domain-specific review wording
+
+The agentic review layer now avoids applying generic scrap-reduction language to every stream. It includes more appropriate review prompts for grease trap waste, process water, waste heat, chemical residues, batteries, electronics, returnable containers and controlled textile/PPE-type streams.
+
+This keeps the user experience cleaner while making the review packs more credible for industrial circular economy, EHS and procurement contexts.

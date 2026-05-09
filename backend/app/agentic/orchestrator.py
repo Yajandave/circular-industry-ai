@@ -58,6 +58,132 @@ def _claim_safety_controls(recommendation: models.CircularRecommendation) -> lis
     return controls
 
 
+
+
+def _stream_context(stream: models.IndustrialStream) -> str:
+    """Return a compact material/process context key for domain-specific wording."""
+    combined = f"{stream.stream_name} {stream.material} {stream.source_process} {stream.current_route} {stream.notes}".lower()
+    if "grease trap" in combined:
+        return "grease_trap"
+    if "wastewater" in combined or "process water" in combined or "rinse" in combined:
+        return "process_water"
+    if "waste heat" in combined or "curing oven" in combined:
+        return "waste_heat"
+    if "canteen" in combined or "coffee grounds" in combined:
+        return "canteen_organic"
+    if "solvent" in combined or "acetone" in combined or "adhesive" in combined:
+        return "chemical_residue"
+    if "lithium" in combined or "battery" in combined:
+        return "battery"
+    if "pcb" in combined or "weee" in combined or "sensor" in combined:
+        return "electronics"
+    if "drum" in combined or "tote" in combined or "crate" in combined or "pallet" in combined:
+        return "returnable_container"
+    if "filter" in combined or "ppe" in combined:
+        return "textile_controlled"
+    return "general"
+
+
+def _resource_levers_for_stream(stream: models.IndustrialStream) -> list[str]:
+    """Generate process-specific resource-efficiency prompts instead of generic scrap wording."""
+    context = _stream_context(stream)
+    process = stream.source_process
+    name = stream.stream_name
+
+    if context == "grease_trap":
+        return [
+            "Review grease trap maintenance frequency, contractor records and disposal documentation before considering any recovery route.",
+            "Check whether upstream kitchen practices, food-waste separation and staff handling could reduce fats, oils and grease entering the wastewater system.",
+            "Confirm whether the specialist contractor can evidence compliant treatment, recovery or anaerobic-digestion routing where permitted.",
+        ]
+    if context == "process_water":
+        return [
+            "Map where the rinse or wastewater stream is generated and identify whether upstream process changes could reduce volume or pollutant loading.",
+            "Check water-quality parameters, treatment requirements and whether closed-loop rinse reuse is technically possible before external routing is considered.",
+            "Confirm discharge, treatment and acceptance requirements with utilities, EHS and any specialist water-treatment provider.",
+        ]
+    if context == "waste_heat":
+        return [
+            "Quantify heat temperature, operating hours and seasonal profile before proposing heat recovery or external heat use.",
+            "Check whether internal pre-heating, process integration or insulation improvements should come before external symbiosis options.",
+            "Identify nearby heat users only after confirming usable temperature range, distance, continuity and commercial practicality.",
+        ]
+    if context == "canteen_organic":
+        return [
+            "Review source separation, contamination controls and collection frequency for the organic stream.",
+            "Check whether prevention, segregation or staff/catering practices can reduce avoidable food or organic waste before external treatment.",
+            "Confirm acceptance criteria for composting, anaerobic digestion or other organic recovery routes before making diversion claims.",
+        ]
+    if context == "chemical_residue":
+        return [
+            "Review chemical use, substitution and dosage control before treating the stream as an end-of-pipe disposal issue.",
+            "Confirm SDS, contamination profile, storage requirements and authorised contractor route before considering recovery.",
+            "Check whether solvent recovery, closed-container management or process changes could reduce hazardous waste generation.",
+        ]
+    if context == "battery":
+        return [
+            "Treat the stream as a controlled safety item first and confirm battery chemistry, state of charge, damage condition and storage controls.",
+            "Check authorised battery recycling or hazardous specialist requirements before any circular route is discussed.",
+            "Confirm incident, transport and packaging controls with EHS before operational action.",
+        ]
+    if context == "electronics":
+        return [
+            "Confirm whether the stream is WEEE, production reject or inventory write-off, because the route and evidence requirements differ.",
+            "Separate reusable components, precious-metal recovery potential and hazardous subcomponents only after EHS and quality checks.",
+            "Request recycler acceptance criteria, data/security requirements where relevant and chain-of-custody documentation.",
+        ]
+    if context == "returnable_container":
+        return [
+            "Check damage rates, loss rates, cleaning requirements and reverse-logistics costs for returnable containers or pallets.",
+            "Review supplier delivery frequency and whether contract terms can support pooling, take-back or reuse loops.",
+            "Confirm whether internal reuse, repair or supplier return is higher value than recycling or disposal.",
+        ]
+    if context == "textile_controlled":
+        return [
+            "Confirm contamination, PPE status and hygiene requirements before reuse or recycling is considered.",
+            "Check whether laundering, replacement frequency, filter-life extension or supplier take-back can reduce waste generation.",
+            "Use specialist textile or PPE recovery only where acceptance criteria and duty-of-care evidence are clear.",
+        ]
+
+    material = _normalise(stream.material)
+    levers = [
+        f"Review why {name} arises from {process} before choosing an end-of-pipe route.",
+        "Check whether process settings, batch quality, handling, storage or specification choices are causing avoidable material loss.",
+    ]
+    if material == "metals":
+        levers.append("Assess nesting/cutting optimisation, grade segregation and return-to-supplier or closed-loop recycling options at source.")
+    elif material == "plastics":
+        levers.append("Check polymer separation, purge reduction, regrind limits and quality requirements before selecting a recycling route.")
+    elif material == "cardboard/packaging":
+        levers.append("Review inbound packaging specifications, right-sizing, returnable transit packaging and supplier take-back potential.")
+    elif material == "chemicals/solvents":
+        levers.append("Check minimisation, substitution, storage controls and specialist recovery before disposal.")
+    elif material in {"rubber", "glass", "textiles", "wood/pallets"}:
+        levers.append("Confirm segregation, contamination controls and specialist recovery acceptance criteria before routing the stream.")
+    return levers
+
+
+def _supplier_questions_for_stream(stream: models.IndustrialStream, supplier: str) -> list[str]:
+    """Generate procurement questions that fit the supplier type and stream context."""
+    context = _stream_context(stream)
+    if context in {"grease_trap", "process_water", "chemical_residue", "battery", "textile_controlled"} or _normalise(stream.hazardous_flag) in {"true", "unknown"}:
+        return [
+            f"Can {supplier} provide duty-of-care, acceptance criteria and treatment/recovery documentation for this stream?",
+            f"Can {supplier} confirm whether any compliant recovery route exists, or whether specialist disposal remains the only acceptable option?",
+            "What evidence can be provided: waste transfer/consignment documentation, treatment route, permit/authorisation evidence, audit record or service contract clause?",
+        ]
+    if context == "waste_heat":
+        return [
+            "Can an energy or engineering partner assess usable temperature, operating hours and heat-recovery feasibility?",
+            "What metering, engineering survey or feasibility evidence is needed before heat recovery or symbiosis can be claimed?",
+            "Would internal process integration create more value than external heat transfer?",
+        ]
+    return [
+        f"Can {supplier} provide documented recycled-content options for this material or input category?",
+        f"Can {supplier} support segregation, take-back, returnable packaging, or closed-loop routing?",
+        "What evidence can be provided: specification sheet, acceptance criteria, certificate, audit record, or contract clause?",
+    ]
+
 def evidence_audit(
     stream: models.IndustrialStream,
     recommendation: models.CircularRecommendation,
@@ -163,13 +289,11 @@ def procurement_agent(
     """Generate supplier and procurement actions."""
     supplier = stream.supplier or "current supplier"
     material = _normalise(stream.material)
-    questions = [
-        f"Can {supplier} provide documented recycled-content options for this material or input category?",
-        f"Can {supplier} support segregation, take-back, returnable packaging, or closed-loop routing?",
-        "What evidence can be provided: specification sheet, acceptance criteria, certificate, audit record, or contract clause?",
-    ]
+    questions = _supplier_questions_for_stream(stream, supplier)
     levers = []
 
+    if _normalise(stream.hazardous_flag) in {"true", "unknown"}:
+        levers.extend(["duty-of-care evidence request", "authorised treatment or recovery route confirmation"])
     if material in SUPPLIER_LINKED_MATERIALS:
         levers.extend(["supplier take-back review", "contract clause for reverse logistics"])
     if _normalise(stream.recycled_content_available) == "yes":
@@ -185,8 +309,9 @@ def procurement_agent(
         "supplier_questions": questions,
         "procurement_action": recommendation.supplier_procurement_action,
         "contract_evidence_needed": [
-            "take-back terms or rejection criteria",
-            "material specification and segregation requirements",
+            "take-back, treatment or rejection criteria",
+            "material specification, contamination controls and segregation requirements",
+            "duty-of-care, permit, recovery or chain-of-custody evidence where relevant",
             "recycled content or secondary material evidence where claimed",
         ],
     }
@@ -209,7 +334,10 @@ def symbiosis_agent(
     ]
 
     likely_partners = []
-    if material == "organic/process residue":
+    context = _stream_context(stream)
+    if context == "grease_trap":
+        likely_partners = ["specialist FOG/wastewater contractor", "anaerobic digestion route only if legally and technically accepted"]
+    elif material == "organic/process residue":
         likely_partners = ["anaerobic digestion operator", "animal feed or composting route subject to compliance"]
     elif material == "process water":
         likely_partners = ["on-site reuse process", "nearby industrial water user subject to treatment quality"]
@@ -236,25 +364,9 @@ def resource_efficiency_agent(
     recommendation: models.CircularRecommendation,
 ) -> dict[str, Any]:
     """Suggest process-level opportunities before end-of-pipe routes."""
-    process = stream.source_process
-    material = _normalise(stream.material)
-    levers = [
-        f"Review why {stream.stream_name} arises from {process} before choosing an end-of-pipe route.",
-        "Check whether process settings, cutting plans, batch quality, handling or storage are causing avoidable scrap.",
-    ]
-
-    if material == "metals":
-        levers.append("Assess nesting/cutting optimisation and alloy segregation at source.")
-    elif material == "plastics":
-        levers.append("Check polymer separation, purge reduction and regrind compatibility.")
-    elif material == "cardboard/packaging":
-        levers.append("Review inbound packaging specifications and returnable transit packaging potential.")
-    elif material == "chemicals/solvents":
-        levers.append("Check solvent minimisation, substitution and specialist recovery before disposal.")
-
     return {
         "reduce_before_recycle_check": True,
-        "process_improvement_levers": levers,
+        "process_improvement_levers": _resource_levers_for_stream(stream),
         "priority_reason": recommendation.dashboard_priority,
     }
 
