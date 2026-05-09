@@ -39,6 +39,11 @@ export const api = {
   generateAiReasoning: (streamId) => request(`/api/ai-reasoning/${encodeURIComponent(streamId)}`, { method: 'POST' }),
   materialPlaybooks: () => request('/api/playbooks'),
   materialPlaybookSummary: () => request('/api/playbooks/summary'),
+  siteAICopilotSummary: () => request('/api/ai-copilot/site-summary'),
+  runSupplierLoops: () => request('/api/procurement/run', { method: 'POST' }),
+  supplierLoopPlans: () => request('/api/procurement/supplier-loops'),
+  supplierLoopSummary: () => request('/api/procurement/supplier-loops/summary'),
 };
 
 export { API_BASE_URL };
+

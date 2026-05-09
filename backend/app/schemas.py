@@ -309,3 +309,21 @@ class AIReasoningNarrative(BaseModel):
     locked_human_review_required: bool | None = None
     locked_recommendation: str | None = None
     claim_boundary: str | None = None
+
+
+# Milestone 8A: site-wide AI copilot schemas
+
+class SiteAICopilotSummary(BaseModel):
+    generation_mode: str
+    model_name: str
+    decision_lock_status: str
+    executive_summary: str
+    risk_summary: str
+    opportunity_summary: str
+    evidence_gap_summary: str
+    supplier_procurement_summary: str
+    human_review_priorities: list[str]
+    recommended_next_actions: list[str]
+    claim_safety_note: str
+    governance_note: str
+    validation_warnings: list[str]

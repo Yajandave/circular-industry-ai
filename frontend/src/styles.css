@@ -1291,3 +1291,270 @@ td p,
     display: none;
   }
 }
+
+/* Milestone 7E: supplier-loop and circular procurement intelligence */
+.supplier-loop-section-page {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.supplier-action-list,
+.supplier-loop-card-stack {
+  display: grid;
+  gap: 1rem;
+}
+
+.supplier-action-card {
+  border: 1px solid #d7ded9;
+  background: #ffffff;
+  border-radius: 1rem;
+  padding: 1rem;
+  display: grid;
+  gap: 0.45rem;
+  overflow-wrap: anywhere;
+}
+
+.supplier-action-card strong {
+  color: #153128;
+}
+
+.supplier-action-card span,
+.supplier-action-card small {
+  color: #52645c;
+}
+
+.supplier-loop-card {
+  border: 1px solid #d7ded9;
+  border-radius: 1.2rem;
+  background: #ffffff;
+  box-shadow: 0 12px 30px rgba(18, 44, 34, 0.07);
+  padding: 1.1rem;
+  display: grid;
+  gap: 1rem;
+  overflow-wrap: anywhere;
+}
+
+.supplier-loop-card.controlled {
+  border-color: #e9c5ba;
+  background: #fffaf8;
+}
+
+.supplier-loop-card.candidate {
+  border-color: #c8ded2;
+}
+
+.supplier-loop-header,
+.supplier-loop-footer-grid,
+.supplier-loop-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 1rem;
+  align-items: start;
+}
+
+.supplier-loop-header h3 {
+  margin: 0.2rem 0;
+  color: #153128;
+}
+
+.supplier-loop-header span,
+.supplier-loop-summary-grid span,
+.supplier-loop-footer-grid span {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.72rem;
+  color: #6a7b73;
+  font-weight: 700;
+}
+
+.supplier-loop-priority {
+  justify-self: start;
+  background: #eef6f1;
+  border: 1px solid #d2e5da;
+  border-radius: 999px;
+  padding: 0.55rem 0.8rem;
+  display: grid;
+  gap: 0.15rem;
+  max-width: 100%;
+}
+
+.supplier-loop-priority strong {
+  color: #1e4c39;
+  font-size: 0.88rem;
+}
+
+.supplier-loop-priority small {
+  color: #5d6c65;
+}
+
+.supplier-loop-section,
+.supplier-loop-clause {
+  border: 1px solid #e0e7e2;
+  background: #f8fbf9;
+  border-radius: 1rem;
+  padding: 0.95rem;
+}
+
+.supplier-loop-section h4,
+.supplier-loop-clause h4,
+.supplier-list-block h4 {
+  margin: 0 0 0.4rem;
+  color: #153128;
+}
+
+.supplier-loop-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+}
+
+.supplier-list-block {
+  border: 1px solid #e0e7e2;
+  border-radius: 1rem;
+  padding: 0.95rem;
+  background: #ffffff;
+  min-width: 0;
+}
+
+.supplier-list-block ul {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.supplier-list-block li {
+  margin-bottom: 0.45rem;
+}
+
+.supplier-loop-clause {
+  background: #f3f8f5;
+}
+
+@media (max-width: 720px) {
+  .supplier-loop-card {
+    padding: 0.9rem;
+  }
+}
+
+@media print {
+  .supplier-loops-view {
+    break-before: page;
+  }
+}
+
+
+/* Milestone 8B: Site-wide AI Copilot panel */
+.ai-copilot-panel {
+  margin-top: 22px;
+  padding: 24px;
+  border-radius: 24px;
+  background: #ffffff;
+  border: 1px solid #dfe7e2;
+  box-shadow: 0 10px 30px rgba(36, 51, 44, 0.08);
+}
+
+.ai-copilot-panel.empty {
+  background: #fbfdfb;
+}
+
+.copilot-status-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.copilot-status-grid article,
+.copilot-grid article,
+.copilot-list-block,
+.copilot-executive-card,
+.copilot-claim-card,
+.copilot-warning-card {
+  border: 1px solid #dfe7e2;
+  border-radius: 20px;
+  background: #fbfdfb;
+  padding: 18px;
+}
+
+.copilot-status-grid span {
+  display: block;
+  color: #60716a;
+  font-weight: 800;
+  font-size: 0.82rem;
+  margin-bottom: 8px;
+}
+
+.copilot-status-grid strong {
+  display: block;
+  color: #20342c;
+  line-height: 1.35;
+}
+
+.copilot-executive-card {
+  margin-top: 16px;
+  background: #f4f7f5;
+}
+
+.copilot-executive-card h3,
+.copilot-grid h3,
+.copilot-list-block h3,
+.copilot-claim-card h3,
+.copilot-warning-card h3 {
+  margin: 0 0 10px;
+}
+
+.copilot-executive-card p,
+.copilot-grid p,
+.copilot-claim-card p {
+  margin: 0;
+  line-height: 1.65;
+  color: #2f4139;
+}
+
+.copilot-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.copilot-grid.lower {
+  align-items: start;
+}
+
+.copilot-list-block ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.copilot-list-block li {
+  padding: 7px 0;
+  line-height: 1.55;
+}
+
+.copilot-claim-card {
+  margin-top: 16px;
+  background: #fff8e8;
+  border-color: #eed9a7;
+}
+
+.copilot-warning-card {
+  margin-top: 16px;
+  background: #fbe5e2;
+  border-color: #efc7c2;
+}
+
+@media (max-width: 1000px) {
+  .copilot-status-grid,
+  .copilot-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media print {
+  .ai-copilot-panel {
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    break-inside: avoid;
+  }
+}
+
