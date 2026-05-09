@@ -85,3 +85,16 @@ Milestone 6C also improves domain-specific review-pack wording for streams such 
 ## Milestone 7 evidence workflow
 
 The frontend now includes an Evidence Register tab. It shows evidence maturity, human-review gates, missing data, claim boundaries and export controls for recommendations and evidence-register CSV files.
+
+## Milestone 7B UI
+
+The frontend includes a new **Resolution plans** workflow tab. This view shows specific circular intervention plans generated from the locked recommendation run, including implementation steps, supplier/procurement actions, process redesign actions, KPIs, evidence requirements, claim boundaries and fallback routes.
+
+Use the workflow in this order:
+
+```text
+Load sample dataset
+Run recommendations
+Open Resolution plans
+Export resolution plans CSV
+```

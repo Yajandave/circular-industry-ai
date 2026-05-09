@@ -178,3 +178,54 @@ class EvidenceRegisterSummary(BaseModel):
     evidence_status_breakdown: dict
     claim_readiness_breakdown: dict
     governance_note: str
+
+
+# Milestone 7B: circular resolution engine schemas
+
+class CircularResolutionPlan(BaseModel):
+    stream_id: str
+    stream_name: str
+    material: str
+    department: str
+    supplier: str
+    locked_recommendation: str
+    circular_strategy_category: str
+    risk_level: str
+    human_review_required: bool
+    rule_applied: str
+    material_playbook_focus: str
+    circular_problem: str
+    specific_resolution_idea: str
+    why_this_is_circular_economy: str
+    value_retention_logic: str
+    implementation_steps: list[str]
+    supplier_or_procurement_action: str
+    process_redesign_action: str
+    industrial_symbiosis_action: str
+    pilot_plan: str
+    kpis: list[str]
+    evidence_required: list[str]
+    decision_gates: list[str]
+    claim_boundary: str
+    fallback_route: str
+    confidence_notes: str
+    circularity_route_strength: str
+    estimated_annual_waste_diverted_kg: float
+    estimated_annual_disposal_cost_avoided: float
+
+
+class CircularResolutionSummary(BaseModel):
+    total_plans: int
+    controlled_review_plans: int
+    claim_blocked_or_not_ready: int
+    route_strength_breakdown: dict
+    playbook_focus_breakdown: dict
+    top_validation_candidates: list[dict]
+    method_note: str
+
+
+class RunCircularResolutionsResponse(BaseModel):
+    generated_plans: int
+    controlled_review_plans: int
+    claim_blocked_or_not_ready: int
+    message: str

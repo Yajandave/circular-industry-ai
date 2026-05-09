@@ -740,3 +740,220 @@ ul { margin: 0; padding-left: 20px; color: #33443d; line-height: 1.55; }
     display: none !important;
   }
 }
+
+/* Milestone 7B: Circular Resolution Engine */
+.resolution-section {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.resolution-summary-grid,
+.resolution-overview-grid,
+.resolution-body-grid,
+.resolution-detail-grid,
+.resolution-actions-grid,
+.resolution-footer-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.resolution-summary-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.resolution-overview-grid {
+  grid-template-columns: 1fr 1.35fr;
+}
+
+.resolution-card-stack {
+  display: grid;
+  gap: 1rem;
+}
+
+.resolution-card-stack.compact .resolution-card {
+  border-left-width: 4px;
+}
+
+.resolution-card {
+  border: 1px solid #dbe3ef;
+  border-left: 6px solid #2563eb;
+  border-radius: 1.4rem;
+  padding: 1.1rem;
+  background: #fff;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+}
+
+.resolution-card.controlled {
+  border-left-color: #dc2626;
+  background: linear-gradient(180deg, #fff, #fff7f7);
+}
+
+.resolution-card.ready {
+  border-left-color: #15803d;
+}
+
+.resolution-card-header,
+.resolution-footer-grid {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 1rem;
+  align-items: start;
+}
+
+.resolution-card-header h3 {
+  margin: 0.2rem 0;
+}
+
+.resolution-card-header span,
+.resolution-footer-grid span {
+  color: #64748b;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.resolution-card-header p,
+.resolution-card p,
+.resolution-list-block li,
+.resolution-footer-grid p {
+  color: #334155;
+}
+
+.resolution-tags {
+  display: grid;
+  gap: 0.35rem;
+  justify-items: end;
+  max-width: 280px;
+}
+
+.resolution-tags strong,
+.resolution-tags small {
+  border-radius: 999px;
+  padding: 0.35rem 0.65rem;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-weight: 800;
+  text-align: right;
+}
+
+.resolution-tags small {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.resolution-body-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 1rem;
+}
+
+.resolution-body-grid section,
+.resolution-actions-grid > div,
+.resolution-list-block,
+.claim-boundary-box,
+.resolution-candidate {
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  background: #f8fafc;
+  padding: 0.9rem;
+}
+
+.resolution-body-grid h4,
+.resolution-actions-grid h4,
+.resolution-list-block h4,
+.claim-boundary-box h4 {
+  margin: 0 0 0.5rem;
+}
+
+.resolution-detail-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-top: 1rem;
+}
+
+.resolution-actions-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 1rem;
+}
+
+.resolution-list-block ul {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.resolution-list-block li + li {
+  margin-top: 0.4rem;
+}
+
+.claim-boundary-box {
+  margin-top: 1rem;
+  background: #fff7ed;
+  border-color: #fed7aa;
+}
+
+.claim-boundary-box p {
+  margin: 0;
+  color: #9a3412;
+  font-weight: 700;
+}
+
+.resolution-footer-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 1rem;
+}
+
+.resolution-footer-grid div {
+  border-top: 1px solid #e2e8f0;
+  padding-top: 0.85rem;
+}
+
+.resolution-candidate-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.resolution-candidate strong,
+.resolution-candidate small {
+  display: block;
+}
+
+.resolution-candidate small {
+  margin: 0.25rem 0 0.45rem;
+  color: #64748b;
+  font-weight: 700;
+}
+
+.controlled-resolution-box {
+  border: 1px solid #fecaca;
+  border-radius: 1.4rem;
+  padding: 1rem;
+  background: #fef2f2;
+}
+
+.controlled-resolution-box > h3 {
+  margin-top: 0;
+}
+
+@media (max-width: 1000px) {
+  .resolution-summary-grid,
+  .resolution-overview-grid,
+  .resolution-body-grid,
+  .resolution-detail-grid,
+  .resolution-actions-grid,
+  .resolution-footer-grid,
+  .resolution-card-header {
+    grid-template-columns: 1fr;
+  }
+
+  .resolution-tags {
+    justify-items: start;
+  }
+}
+
+@media print {
+  .resolution-card-stack.compact,
+  .controlled-resolution-box,
+  .resolution-detail-grid,
+  .resolution-actions-grid {
+    display: none !important;
+  }
+}

@@ -31,6 +31,10 @@ export const api = {
   actionPlan: (limit = 12) => request(`/api/agent/action-plan?limit=${limit}`),
   evidenceRegister: () => request('/api/evidence-register'),
   evidenceSummary: () => request('/api/evidence-register/summary'),
+  runResolutions: () => request('/api/resolutions/run', { method: 'POST' }),
+  resolutionPlans: () => request('/api/resolutions'),
+  resolutionSummary: () => request('/api/resolutions/summary'),
+  resolutionPlan: (streamId) => request(`/api/resolutions/${encodeURIComponent(streamId)}`),
 };
 
 export { API_BASE_URL };

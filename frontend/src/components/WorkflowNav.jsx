@@ -9,6 +9,12 @@ const TABS = [
     label: 'Recommendations',
     helper: 'Filter, rank and inspect locked rules-engine outputs',
   },
+
+  {
+    id: 'resolutions',
+    label: 'Resolution plans',
+    helper: 'Specific circular interventions, pilots, KPIs and claim boundaries',
+  },
   {
     id: 'review',
     label: 'Review pack',

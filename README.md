@@ -376,3 +376,27 @@ New outputs include:
 - evidence register CSV export
 - frontend Evidence Register workflow tab
 - claim-readiness and anti-greenwashing controls
+
+## Milestone 7B: Circular Resolution Engine
+
+Milestone 7B adds the domain intelligence layer that turns broad rules-engine recommendations into specific circular economy intervention plans. The engine uses material-specific playbooks to produce practical resolution plans with circular problem framing, value-retention logic, implementation steps, supplier/procurement actions, process redesign actions, industrial symbiosis screening, pilot plans, KPIs, evidence requirements, decision gates, claim boundaries and fallback routes.
+
+The rules engine remains the locked decision source. Resolution plans do not lower risk, remove human-review flags or verify claims. They support screening, pilot design and evidence-led human review.
+
+New API endpoints:
+
+```text
+POST /api/resolutions/run
+GET  /api/resolutions
+GET  /api/resolutions/summary
+GET  /api/resolutions/{stream_id}
+GET  /api/export/resolution-plans.csv
+```
+
+Frontend workflow addition:
+
+```text
+Resolution plans
+```
+
+This milestone makes the project more clearly circular economy focused by moving beyond waste-route classification into prevention, value retention, supplier loops, process redesign, by-product valorisation, pilot planning and claim-readiness control.

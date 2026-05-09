@@ -171,3 +171,19 @@ Suggested commit message:
 ```text
 feat: add evidence register and export workflow
 ```
+
+## Milestone 7B: Circular Resolution Engine
+
+The backend now includes a Circular Resolution Engine under `app/circular_resolution/`. It generates resolution plans dynamically from the loaded streams and locked rules-engine recommendations.
+
+Endpoints:
+
+```text
+POST /api/resolutions/run
+GET  /api/resolutions
+GET  /api/resolutions/summary
+GET  /api/resolutions/{stream_id}
+GET  /api/export/resolution-plans.csv
+```
+
+The engine uses material-specific playbooks and quality gates. It does not persist a separate decision table and does not override risk, human review or rule-applied fields.

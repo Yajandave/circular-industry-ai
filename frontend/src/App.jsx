@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { api } from './api/client.js';
 import ActionPlan from './components/ActionPlan.jsx';
 import Controls from './components/Controls.jsx';
+import CircularResolutionPlans from './components/CircularResolutionPlans.jsx';
 import Dashboard from './components/Dashboard.jsx';
 import EvidenceRegister from './components/EvidenceRegister.jsx';
 import FiltersPanel from './components/FiltersPanel.jsx';
@@ -40,6 +41,8 @@ export default function App() {
   const [reviewPack, setReviewPack] = useState(null);
   const [evidenceRecords, setEvidenceRecords] = useState([]);
   const [evidenceSummary, setEvidenceSummary] = useState(null);
+  const [resolutionPlans, setResolutionPlans] = useState([]);
+  const [resolutionSummary, setResolutionSummary] = useState(null);
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
   const [activeView, setActiveView] = useState('dashboard');
 
@@ -67,13 +70,15 @@ export default function App() {
     setStreams(loadedStreams);
     setStreamSummary(loadedStreamSummary);
 
-    const [loadedRecs, recSummary, mgmtSummary, plan, evidence, evSummary] = await Promise.all([
+    const [loadedRecs, recSummary, mgmtSummary, plan, evidence, evSummary, resolutions, resSummary] = await Promise.all([
       api.listRecommendations().catch(() => []),
       api.recommendationSummary().catch(() => null),
       api.managementSummary().catch(() => null),
       api.actionPlan(12).catch(() => null),
       api.evidenceRegister().catch(() => []),
       api.evidenceSummary().catch(() => null),
+      api.resolutionPlans().catch(() => []),
+      api.resolutionSummary().catch(() => null),
     ]);
     setRecommendations(loadedRecs);
     setRecommendationSummary(recSummary);
@@ -81,6 +86,8 @@ export default function App() {
     setActionPlan(plan);
     setEvidenceRecords(evidence);
     setEvidenceSummary(evSummary);
+    setResolutionPlans(resolutions);
+    setResolutionSummary(resSummary);
   }
 
   async function loadSample() {
@@ -92,6 +99,8 @@ export default function App() {
       setActionPlan(null);
       setEvidenceRecords([]);
       setEvidenceSummary(null);
+      setResolutionPlans([]);
+      setResolutionSummary(null);
       setReviewPack(null);
       setFilters(DEFAULT_FILTERS);
       setActiveView('dashboard');
@@ -109,6 +118,8 @@ export default function App() {
       setActionPlan(null);
       setEvidenceRecords([]);
       setEvidenceSummary(null);
+      setResolutionPlans([]);
+      setResolutionSummary(null);
       setReviewPack(null);
       setFilters(DEFAULT_FILTERS);
       setActiveView('dashboard');
@@ -119,6 +130,7 @@ export default function App() {
   async function runRecommendations() {
     await safeRun('Rules engine, dashboard metrics and agentic portfolio outputs refreshed.', async () => {
       await api.runRecommendations();
+      await api.runResolutions().catch(() => null);
       await refreshData();
       setActiveView('dashboard');
     });
@@ -182,8 +194,8 @@ export default function App() {
           </p>
         </div>
         <div className="hero-note">
-          <strong>Milestone 7</strong>
-          <span>Evidence register, audit trail and export workflow</span>
+          <strong>Milestone 7B</strong>
+          <span>Circular resolution engine and intervention design layer</span>
         </div>
       </header>
 
@@ -222,6 +234,13 @@ export default function App() {
             totalCount={recommendations.length}
           />
           <RecommendationsTable recommendations={filteredRecommendations} onSelectReviewPack={openReviewPack} />
+        </section>
+      )}
+
+
+      {activeView === 'resolutions' && (
+        <section className="workflow-panel resolution-view">
+          <CircularResolutionPlans plans={resolutionPlans} summary={resolutionSummary} />
         </section>
       )}
 
