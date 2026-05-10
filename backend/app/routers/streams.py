@@ -18,6 +18,20 @@ def load_sample_streams(db: Session = Depends(get_db)) -> schemas.LoadSampleResp
     init_db()
     streams = load_streams_from_csv()
     loaded_rows = crud.bulk_replace_streams(db, streams)
+    crud.create_audit_event(
+        db,
+        event_type="dataset_loaded",
+        entity_type="dataset",
+        entity_id="sample",
+        actor_type="operator",
+        actor_id="local_user",
+        source="streams_router",
+        action="load_sample_dataset",
+        summary=f"Loaded {loaded_rows} sample material streams and replaced existing stream/recommendation rows.",
+        decision_source="operator_action",
+        claim_boundary="Data loading does not create verified circular economy, cost or environmental impact claims.",
+        metadata={"loaded_rows": loaded_rows, "replaced_existing_rows": True},
+    )
     return schemas.LoadSampleResponse(
         loaded_rows=loaded_rows,
         replaced_existing_rows=True,
@@ -49,6 +63,34 @@ async def upload_stream_csv(
         ) from exc
 
     loaded_rows = crud.bulk_replace_streams(db, streams)
+    crud.create_audit_event(
+        db,
+        event_type="dataset_uploaded",
+        entity_type="dataset",
+        entity_id=file.filename,
+        actor_type="operator",
+        actor_id="local_user",
+        source="streams_router",
+        action="upload_csv_dataset",
+        summary=f"Uploaded CSV '{file.filename}' with {loaded_rows} material streams and replaced existing stream/recommendation rows.",
+        decision_source="operator_action",
+        claim_boundary="CSV upload does not create verified circular economy, cost or environmental impact claims.",
+        metadata={"loaded_rows": loaded_rows, "filename": file.filename, "replaced_existing_rows": True},
+    )
+    crud.create_audit_event(
+        db,
+        event_type="dataset_loaded",
+        entity_type="dataset",
+        entity_id="sample",
+        actor_type="operator",
+        actor_id="local_user",
+        source="streams_router",
+        action="load_sample_dataset",
+        summary=f"Loaded {loaded_rows} sample material streams and replaced existing stream/recommendation rows.",
+        decision_source="operator_action",
+        claim_boundary="Data loading does not create verified circular economy, cost or environmental impact claims.",
+        metadata={"loaded_rows": loaded_rows, "replaced_existing_rows": True},
+    )
     return schemas.LoadSampleResponse(
         loaded_rows=loaded_rows,
         replaced_existing_rows=True,
@@ -92,3 +134,4 @@ def get_stream(stream_id: str, db: Session = Depends(get_db)) -> schemas.Industr
             detail=f"Industrial stream not found: {stream_id}",
         )
     return stream
+

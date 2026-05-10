@@ -552,3 +552,46 @@ class WorkspaceContext(BaseModel):
     recommendation_summary: RecommendationSummary
     data_model_stage: str
     governance_note: str
+
+
+# Milestone 9E: audit and traceability schemas
+
+class AuditEventCreate(BaseModel):
+    event_type: str
+    entity_type: str
+    entity_id: str | None = None
+    actor_type: str = "system"
+    actor_id: str | None = None
+    source: str
+    action: str
+    summary: str
+    decision_source: str
+    claim_boundary: str
+    metadata_json: dict = {}
+
+
+class AuditEventRead(BaseModel):
+    id: int
+    event_type: str
+    entity_type: str
+    entity_id: str | None = None
+    actor_type: str
+    actor_id: str | None = None
+    source: str
+    action: str
+    summary: str
+    decision_source: str
+    claim_boundary: str
+    metadata_json: dict
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class AuditSummary(BaseModel):
+    total_events: int
+    event_type_breakdown: dict
+    entity_type_breakdown: dict
+    decision_source_breakdown: dict
+    latest_events: list[AuditEventRead]
+    governance_note: str

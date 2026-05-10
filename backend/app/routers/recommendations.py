@@ -27,6 +27,23 @@ def run_recommendations(db: Session = Depends(get_db)) -> schemas.RunRecommendat
         for rec in recommend_for_streams(streams)
     ]
     created_count = crud.bulk_replace_recommendations(db, recommendations)
+    crud.create_audit_event(
+        db,
+        event_type="rules_engine_run",
+        entity_type="recommendation_run",
+        entity_id="latest",
+        actor_type="system",
+        actor_id="rules_engine",
+        source="recommendations_router",
+        action="run_locked_rules_engine",
+        summary=f"Generated {created_count} locked circular economy recommendations.",
+        decision_source="locked_rules_engine",
+        claim_boundary="Rules-engine outputs are screening recommendations, not verified circularity, cost or environmental impact claims.",
+        metadata={
+            "analysed_streams": len(streams),
+            "recommendations_created": created_count,
+        },
+    )
     human_review_count = sum(1 for rec in recommendations if rec.human_review_required)
     high_priority_count = sum(
         1 for rec in recommendations if rec.dashboard_priority.lower().startswith("high")
@@ -80,3 +97,4 @@ def get_recommendation(
             detail=f"Recommendation not found for stream: {stream_id}. Run POST /api/recommendations/run first.",
         )
     return recommendation
+

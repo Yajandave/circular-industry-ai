@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import json
+
 from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
@@ -230,3 +232,111 @@ def get_analysis_runs(db: Session, *, site_id: int, limit: int = 50) -> list[mod
         .limit(limit)
     )
     return list(db.scalars(query).all())
+
+
+# Milestone 9E: audit and traceability CRUD helpers
+
+def _audit_read(event: models.AuditEvent) -> schemas.AuditEventRead:
+    """Convert an AuditEvent ORM row into a schema with parsed metadata."""
+    try:
+        metadata = json.loads(event.metadata_json or "{}")
+    except json.JSONDecodeError:
+        metadata = {"raw_metadata_json": event.metadata_json}
+
+    return schemas.AuditEventRead(
+        id=event.id,
+        event_type=event.event_type,
+        entity_type=event.entity_type,
+        entity_id=event.entity_id,
+        actor_type=event.actor_type,
+        actor_id=event.actor_id,
+        source=event.source,
+        action=event.action,
+        summary=event.summary,
+        decision_source=event.decision_source,
+        claim_boundary=event.claim_boundary,
+        metadata_json=metadata,
+        created_at=event.created_at,
+    )
+
+
+def create_audit_event(
+    db: Session,
+    *,
+    event_type: str,
+    entity_type: str,
+    entity_id: str | None,
+    actor_type: str = "system",
+    actor_id: str | None = None,
+    source: str,
+    action: str,
+    summary: str,
+    decision_source: str,
+    claim_boundary: str,
+    metadata: dict | None = None,
+) -> schemas.AuditEventRead:
+    """Create and return a traceable audit event."""
+    event = models.AuditEvent(
+        event_type=event_type,
+        entity_type=entity_type,
+        entity_id=entity_id,
+        actor_type=actor_type,
+        actor_id=actor_id,
+        source=source,
+        action=action,
+        summary=summary,
+        decision_source=decision_source,
+        claim_boundary=claim_boundary,
+        metadata_json=json.dumps(metadata or {}, ensure_ascii=False),
+    )
+    db.add(event)
+    db.commit()
+    db.refresh(event)
+    return _audit_read(event)
+
+
+def get_audit_events(
+    db: Session,
+    *,
+    event_type: str | None = None,
+    entity_type: str | None = None,
+    limit: int = 100,
+) -> list[schemas.AuditEventRead]:
+    query = select(models.AuditEvent).order_by(models.AuditEvent.created_at.desc(), models.AuditEvent.id.desc())
+
+    if event_type:
+        query = query.where(func.lower(models.AuditEvent.event_type) == event_type.lower())
+    if entity_type:
+        query = query.where(func.lower(models.AuditEvent.entity_type) == entity_type.lower())
+
+    query = query.limit(limit)
+    return [_audit_read(event) for event in db.scalars(query).all()]
+
+
+def get_audit_summary(db: Session) -> schemas.AuditSummary:
+    events = list(
+        db.scalars(
+            select(models.AuditEvent)
+            .order_by(models.AuditEvent.created_at.desc(), models.AuditEvent.id.desc())
+            .limit(500)
+        ).all()
+    )
+
+    def breakdown(attribute: str) -> dict:
+        result: dict[str, int] = {}
+        for event in events:
+            value = getattr(event, attribute) or "unknown"
+            result[value] = result.get(value, 0) + 1
+        return result
+
+    return schemas.AuditSummary(
+        total_events=len(events),
+        event_type_breakdown=breakdown("event_type"),
+        entity_type_breakdown=breakdown("entity_type"),
+        decision_source_breakdown=breakdown("decision_source"),
+        latest_events=[_audit_read(event) for event in events[:10]],
+        governance_note=(
+            "Audit events record workflow traceability. They do not independently verify legal compliance, "
+            "supplier capability, carbon savings, financial savings or completed operational impact."
+        ),
+    )
