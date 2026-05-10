@@ -19,6 +19,7 @@ import StreamsTable from './components/StreamsTable.jsx';
 import SummaryCards from './components/SummaryCards.jsx';
 import SupplierLoopIntelligence from './components/SupplierLoopIntelligence.jsx';
 import WorkflowNav from './components/WorkflowNav.jsx';
+import WorkflowPrerequisiteNotice from './components/WorkflowPrerequisiteNotice.jsx';
 import { applyRecommendationFilters, buildDashboardData, sortRecommendations } from './utils/analytics.js';
 
 const DEFAULT_FILTERS = {
@@ -51,6 +52,7 @@ export default function App() {
   const [resolutionPlans, setResolutionPlans] = useState([]);
   const [resolutionSummary, setResolutionSummary] = useState(null);
   const [aiStatus, setAiStatus] = useState(null);
+  const [aiRuntimeStatus, setAiRuntimeStatus] = useState(null);
   const [aiReasoning, setAiReasoning] = useState(null);
   const [siteCopilotSummary, setSiteCopilotSummary] = useState(null);
   const [materialPlaybooks, setMaterialPlaybooks] = useState([]);
@@ -171,7 +173,12 @@ export default function App() {
 
   async function runRecommendations() {
     await safeRun('Rules engine, dashboard metrics and agentic portfolio outputs refreshed.', async () => {
-      await api.runRecommendations();
+      setEvidenceGapExplanation(null);
+      setSupplierEmailDraft(null);
+      setCircularActionReport(null);
+      setAiReasoning(null);
+      setSiteCopilotSummary(null);
+      setReviewPack(null);      await api.runRecommendations();
       await api.runResolutions().catch(() => null);
       await api.runSupplierLoops().catch(() => null);
       await refreshData();
@@ -285,8 +292,8 @@ export default function App() {
           </p>
         </div>
         <div className="hero-note">
-          <strong>Milestone 9B</strong>
-          <span>AI runtime reliability, fallback visibility and agentic mode hardening</span>
+          <strong>Milestone 9C</strong>
+          <span>Frontend workflow guardrails, stale-output control and AI runtime visibility</span>
         </div>
       </header>
 
@@ -305,8 +312,20 @@ export default function App() {
         onChange={setActiveView}
         recommendationCount={recommendations.length}
         reviewPack={reviewPack}
+        hasData={streams.length > 0}
       />
 
+      {streams.length > 0 && recommendations.length === 0 && activeView !== 'dashboard' && activeView !== 'raw-data' && activeView !== 'recommendations' && (
+        <WorkflowPrerequisiteNotice
+          title="Run the locked rules engine first"
+          message="This workflow depends on generated recommendations. Load data, run recommendations, then reopen this workflow."
+          actions={[
+            'Use Load sample dataset or upload a valid CSV.',
+            'Click Run recommendations to generate locked decision records.',
+            'Then open evidence, supplier loops, AI reasoning or reports.',
+          ]}
+        />
+      )}
       {activeView === 'dashboard' && (
         <section className="workflow-panel dashboard-view">
           <Dashboard dashboardData={dashboardData} agentSummary={agentSummary} onSelectReviewPack={openReviewPack} />
@@ -422,6 +441,7 @@ export default function App() {
     </main>
   );
 }
+
 
 
 
