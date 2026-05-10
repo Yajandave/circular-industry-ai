@@ -595,3 +595,32 @@ class AuditSummary(BaseModel):
     decision_source_breakdown: dict
     latest_events: list[AuditEventRead]
     governance_note: str
+
+
+# Milestone 9F: data quality and import validation schemas
+
+class DataQualityIssue(BaseModel):
+    issue_type: str
+    severity: str
+    field: str
+    stream_id: str | None = None
+    message: str
+    recommended_action: str
+
+
+class DataQualityReport(BaseModel):
+    dataset_label: str
+    total_records: int
+    readiness_status: str
+    readiness_score: int
+    critical_issue_count: int
+    warning_issue_count: int
+    info_issue_count: int
+    duplicate_stream_ids: list[str]
+    material_breakdown: dict
+    department_breakdown: dict
+    high_risk_data_flags: dict
+    top_quantity_streams: list[dict]
+    top_cost_streams: list[dict]
+    issues: list[DataQualityIssue]
+    governance_note: str
