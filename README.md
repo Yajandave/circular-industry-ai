@@ -1,208 +1,90 @@
 # Circular Industry AI
 
-**Working title:** Circular Industry AI: Material Flow, By-Product Valorisation and Circular Procurement Decision Support
+**Professional product direction:** industrial circular economy, ESG, EIA and sustainability intelligence dashboard.
 
-## Project purpose
+Circular Industry AI is a professional decision-support platform for industrial circular economy and sustainability intelligence. It converts raw operational material-flow data into rules-locked circular recommendations, evidence controls, supplier-loop actions, ESG/EIA-relevant risk signals, claim-readiness checks, agentic insight workflows and operator-facing analytics.
 
-Circular Industry AI is an industry-facing portfolio project for industrial circular economy analysis. The goal is to build a structured decision-support system that can take industrial material and waste stream data, classify circular economy opportunities, flag evidence gaps, and prepare dashboard-ready recommendations for human review.
+It is designed as an operator-facing intelligence system, not a generic chatbot and not a presentation-only dashboard.
 
-This project is designed for junior sustainability, ESG, procurement sustainability, circular economy, environmental consulting, resource efficiency and industrial sustainability roles.
+---
+
+## Current product capability
+
+Circular Industry AI supports a full screening-to-review workflow:
+
+```text
+Raw operational data
+→ material and waste stream database
+→ rules-based circular economy screening
+→ risk, confidence and evidence scoring
+→ evidence register and claim controls
+→ circular resolution plans
+→ supplier-loop and circular procurement intelligence
+→ optional rules-locked AI reasoning
+→ agentic retrieval and insight workflows
+→ visual analytics dashboard
+→ operator drilldown and decision triage
+```
+
+The system is intended for professional circular economy, ESG, EIA, sustainability, resource-efficiency, procurement-sustainability and industrial operations contexts.
+
+---
+
+## Governance boundary
+
+The rules engine remains the locked decision source.
+
+AI/LLM features may explain, summarise, draft and support investigation, but they must not override:
+
+- risk level
+- human-review status
+- rule applied
+- claim boundary
+- evidence controls
+- legal/compliance status
+- verified impact
+
+Dashboard values are screening outputs. They support prioritisation and operator attention. They are not verified savings, verified diversion, verified environmental benefit, supplier compliance confirmation or externally validated sustainability claims.
+
+---
 
 ## Why this is not a chatbot
 
-This project is not intended to be a conversational circular economy assistant. A chatbot that explains circular economy concepts would be too generic and would not prove practical industrial capability.
+Circular economy and sustainability decisions in industrial settings require controlled evidence, review gates and claim boundaries.
 
-Instead, Circular Industry AI is designed as a structured analytical workflow:
+A free-form chatbot would be too generic and too risky for:
 
-```text
-CSV dataset
-→ data validation
-→ material/waste stream classification
-→ rules-based circular economy screening
-→ risk and evidence scoring
-→ human-review flags
-→ dashboard-ready recommendations
-→ exportable evidence register
-```
+- waste classification and compliance-sensitive decisions
+- supplier evidence requests
+- ESG claim-readiness
+- circular procurement routes
+- EIA-style issue scoping
+- human-review gates
+- evidence-gap handling
 
-The future AI layer should support explanation and evidence-gap wording, but it should not make uncontrolled environmental, compliance or procurement decisions.
-
-## Industrial circular economy relevance
-
-Industrial circular economy is about keeping materials, components, by-products and resources in productive use for as long as possible. In an industrial setting, this means looking beyond recycling and considering material reduction, process redesign, internal reuse, supplier take-back, closed-loop recycling, by-product valorisation, industrial symbiosis, recovery and compliant disposal only where higher-value options are not viable.
-
-This project focuses on practical industrial questions such as:
-
-- Which material streams are high-volume or high-cost?
-- Which streams could be reduced at source?
-- Which supplier-linked streams could use take-back or returnable packaging?
-- Which by-products could be reviewed for industrial symbiosis?
-- Which streams require human review because of hazardous status, contamination or weak evidence?
-- Which data gaps stop a confident circular economy recommendation?
-
-## Milestone 1 scope
-
-Milestone 1 creates the project foundation only. It does not include backend logic, frontend screens, the rules engine or the AI reasoning layer yet.
-
-Included in this milestone:
-
-- Clean repository structure for a future React + FastAPI + SQLite build
-- Synthetic industrial material/waste stream dataset
-- Data dictionary
-- Initial project README
-- Acceptance criteria
-- Suggested GitHub commit message
-
-## Repository structure
-
-```text
-circular-industry-ai/
-├── README.md
-├── .gitignore
-├── data/
-│   ├── sample_industrial_streams.csv
-│   └── data_dictionary.md
-├── backend/
-│   ├── README.md
-│   ├── app/
-│   │   └── .gitkeep
-│   └── tests/
-│       └── .gitkeep
-├── frontend/
-│   ├── README.md
-│   └── src/
-│       └── .gitkeep
-├── docs/
-│   └── milestone_1_acceptance.md
-└── portfolio/
-    └── .gitkeep
-```
-
-## Dataset summary
-
-The sample dataset contains 50 synthetic industrial streams across:
-
-- metals
-- plastics
-- cardboard and packaging
-- wood and pallets
-- chemicals and solvents
-- textiles
-- glass
-- rubber
-- electronic components
-- organic and process residues
-- process water and energy/resource streams
-
-The dataset intentionally includes variation for future rule testing, including:
-
-- low-risk recycling opportunities
-- supplier take-back opportunities
-- possible closed-loop recycling cases
-- internal reuse examples
-- industrial symbiosis candidates
-- recovery routes
-- high-risk hazardous streams
-- weak evidence cases requiring review
-- streams where reduction is more appropriate than recycling
-
-## Core dataset fields
-
-The sample CSV includes:
-
-- `stream_id`
-- `stream_name`
-- `material`
-- `source_process`
-- `monthly_quantity_kg`
-- `current_route`
-- `disposal_cost_per_month`
-- `contamination_risk`
-- `hazardous_flag`
-- `department`
-- `supplier`
-- `supplier_takeback_available`
-- `recycled_content_available`
-- `notes`
-
-## Future milestones
-
-Planned next milestones:
-
-1. Backend database and API
-2. Rules-based circular recommendation engine
-3. Risk, evidence and confidence scoring
-4. AI-assisted explanation and evidence-gap layer
-5. React upload and recommendation table
-6. Dashboard and filters
-7. Evidence register and export
-8. Portfolio case study and final README
-
-## Milestone 1 acceptance criteria
-
-- [x] Repository structure created for React + FastAPI + SQLite project
-- [x] Synthetic CSV dataset created with at least 40 industrial streams
-- [x] Dataset includes all required material categories
-- [x] Dataset includes all required circular economy fields
-- [x] Dataset includes enough variation for future recommendation rules
-- [x] README explains project purpose and why this is not a chatbot
-- [x] Data dictionary explains each dataset column
-
-## Suggested GitHub commit message
-
-```text
-chore: initialise project structure and industrial stream dataset
-```
-
-## Portfolio positioning
-
-This milestone proves the project is being built from a realistic industrial data foundation rather than from a generic AI-chatbot idea. It shows the ability to structure circular economy data around material flows, supplier relationships, waste routes, risk conditions and evidence gaps.
+Circular Industry AI is instead built as a structured analytical workflow where AI supports controlled explanation and drafting around a locked decision record.
 
 ---
 
-## Milestone 2: Backend Database and API
+## Product users
 
-Milestone 2 adds a working FastAPI + SQLite backend foundation.
+The dashboard is designed for professional users such as:
 
-The backend can load the synthetic industrial stream dataset into SQLite and expose it through structured API endpoints.
-
-### Endpoints
-
-```text
-GET  /health
-POST /api/streams/load-sample
-GET  /api/streams
-GET  /api/streams/summary
-GET  /api/streams/{stream_id}
-```
-
-### What this proves
-
-This milestone shows that the project is moving from a static dataset into a usable analytical system. The backend now provides the data layer needed for the future rules engine, scoring workflow, dashboard and evidence register.
-
-### Suggested commit message
-
-```text
-feat: add FastAPI backend and industrial stream database
-```
-
+- circular economy analysts
+- ESG and sustainability analysts
+- EIA / environmental assessment support teams
+- resource-efficiency teams
+- procurement sustainability teams
+- industrial operations and facilities teams
+- supplier engagement and circular procurement teams
 
 ---
 
-## Milestone 3: Rules-Based Circular Recommendation Engine
+## Core workflows
 
-Milestone 3 adds the first decision-support layer. The backend can now run a deterministic rules engine over the loaded industrial streams and create circular economy recommendations.
+### 1. Material-flow screening
 
-### New recommendation endpoints
-
-```text
-POST /api/recommendations/run
-GET  /api/recommendations
-GET  /api/recommendations/summary
-GET  /api/recommendations/{stream_id}
-```
-
-### What the rules engine produces
+Users can load or upload industrial material and waste stream data, then run the locked rules engine to generate circular economy recommendations.
 
 Each stream receives:
 
@@ -213,72 +95,119 @@ Each stream receives:
 - confidence score
 - evidence quality score
 - missing data
-- human review flag
+- human-review flag
 - estimated annual waste diversion
-- estimated annual disposal cost avoided
+- estimated annual disposal cost exposure
 - supplier/procurement action
 - industrial symbiosis opportunity flag
 - next action
 - dashboard priority
 - rule applied
 
-### Example
+### 2. Evidence register and claim controls
 
-For `S001`, Aluminium machining offcuts, the rules engine classifies the stream as a closed-loop recycling review case. The system also flags that alloy grade or material segregation evidence is needed before making a stronger circularity claim.
+The evidence workflow separates:
 
-### What this proves
+- measured data
+- estimates
+- assumptions
+- missing evidence
+- review gates
+- claim boundaries
 
-This milestone shows circular economy decision logic, not uncontrolled AI generation. It demonstrates the ability to structure industrial sustainability recommendations around material type, contamination risk, hazardous status, supplier evidence and evidence gaps.
+This helps prevent unsupported circularity, ESG or sustainability claims.
 
-### Suggested commit message
+### 3. Circular resolution planning
 
-```text
-feat: add rules-based circular recommendation engine
-```
+The Circular Resolution Engine translates recommendations into practical circular economy intervention plans, including:
 
-
-## Milestone 4 update: controlled agentic decision support
-
-The project now includes an advanced agentic review layer. This does not turn the project into a chatbot. Instead, it creates a controlled multi-agent decision-support workflow around the rules engine.
-
-Specialist reviewers now provide:
-
-- evidence audit
-- risk review
-- procurement review
+- value-retention logic
+- implementation steps
+- process redesign actions
+- supplier/procurement actions
 - industrial symbiosis screening
-- resource efficiency review
-- executive synthesis
-- ranked action planning
+- pilot plans
+- KPIs
+- evidence requirements
+- decision gates
+- fallback routes
 
-The rules engine remains locked as the decision source. The agentic layer explains, challenges, structures and prioritises the recommendation. It cannot lower risk, remove human-review flags or verify unsupported claims.
+### 4. Supplier-loop and circular procurement intelligence
 
-New endpoints:
+The supplier-loop workflow turns circular recommendations into procurement-facing actions, including:
+
+- reverse-logistics models
+- supplier questions
+- contract levers
+- evidence requests
+- commercial checks
+- operational checks
+- acceptance criteria
+- pilot scopes
+- fallback positions
+
+### 5. Agentic intelligence workflows
+
+The agentic intelligence layer supports controlled investigation through:
+
+- knowledge graph relationships
+- agentic retrieval workflow
+- insight generation
+- insight history and traceability
+- retrieval and insight quality evaluation
+
+These workflows support investigation. They do not replace the locked rules engine.
+
+### 6. Visual analytics and operator drilldown
+
+The dashboard includes decision-useful visuals for:
+
+- risk vs opportunity matrix
+- material quantity Pareto
+- cost exposure Pareto
+- evidence maturity
+- claim-readiness control
+- supplier-loop opportunity profile
+- scenario screening
+
+The operator drilldown layer lets users move from a visual signal into the underlying records:
 
 ```text
-GET /api/agent/review-pack/{stream_id}
-GET /api/agent/management-summary
-GET /api/agent/action-plan
+Visual signal → selected slice → compact records → selected inspector → review pack
 ```
 
-## Milestone 5: Frontend recommendation review layer
+---
 
-Milestone 5 adds the first usable React interface for Circular Industry AI.
+## Current milestone status
 
-The interface allows a user to:
+- Milestone 1: repository setup and industrial stream dataset — complete
+- Milestone 2: FastAPI backend, SQLite database and stream API — complete
+- Milestone 3: rules-based circular recommendation engine — complete
+- Milestone 4: controlled agentic decision-support layer — complete
+- Milestone 5: React frontend recommendation review interface — complete
+- Milestone 6: dashboard and advanced recommendation filters — complete
+- Milestone 6B: interface polish and management-summary view — complete
+- Milestone 6C: workflow layout, progressive disclosure and domain-specific review wording — complete
+- Milestone 7: evidence register and export workflow — complete
+- Milestone 7B: Circular Resolution Engine — complete
+- Milestone 7C: rules-locked optional LLM reasoning — complete
+- Milestone 7D: material-specific circular playbooks — complete
+- Milestone 7E: circular procurement and supplier-loop intelligence — complete
+- Milestone 8E: circular action report builder — complete
+- Milestone 10D: Autonomous Insight Generator — complete
+- Milestone 10E: Insight History and Traceability — complete
+- Milestone 11A: Knowledge Graph Relationship Layer — complete
+- Milestone 11B: Agentic Retrieval Workflow — complete
+- Milestone 11C: Retrieval and Insight Quality Evaluation — complete
+- Milestone 11D: Operator UI for Agentic Intelligence — complete
+- Milestone 11E: Operator UI Usability Refinement — complete
+- Milestone 12A: Visual Analytics Dashboard — complete
+- Milestone 12B: Operator Drilldown and Decision Triage Layer — complete
+- Milestone 12C: Professional Product Wording Alignment — current
 
-- check whether the FastAPI backend is connected
-- load the sample industrial stream dataset
-- upload a custom CSV that follows the data dictionary
-- run the rules-based recommendation engine
-- view industrial material streams
-- view circular recommendations with risk, confidence, evidence and human-review badges
-- open a controlled agentic review pack for an individual stream
-- view a ranked action plan
+---
 
-The frontend is intentionally clean for the user, but the underlying system remains controlled and auditable. The browser interface does not make circular economy decisions. It displays the locked rules-engine recommendations and the agentic evidence, procurement, symbiosis and management-review context generated by the backend.
-
-### Running the full local app
+## Local development
 
 Start the backend:
 
@@ -302,149 +231,94 @@ Open:
 http://127.0.0.1:5173
 ```
 
+Run frontend build:
 
-## Current build status
+```powershell
+cd frontend
+npm run build
+```
 
-- Milestone 1: project setup and synthetic industrial dataset — complete.
-- Milestone 2: FastAPI backend, SQLite database and stream API — complete.
-- Milestone 3: rules-based circular recommendation engine — complete.
-- Milestone 4: controlled agentic decision-support layer — complete.
-- Milestone 5: React frontend recommendation review interface — complete.
-- Milestone 6: dashboard and advanced recommendation filters — complete.
-- Milestone 6B: UI polish and portfolio screenshot readiness — complete.
-- Milestone 6C: workflow layout, progressive disclosure and domain-specific review wording — complete.
-- Milestone 7: evidence register and export workflow — complete.
+Run backend tests:
 
+```powershell
+cd backend
+.\.venv\Scripts\python.exe -m pytest
+```
 
-## Milestone 6 dashboard features
+---
 
-The frontend now includes a decision dashboard with strategy, risk, priority and material-quantity breakdowns. Users can search and filter by material, circular strategy, risk level, human-review status, priority band, confidence and evidence quality. Recommendations can also be sorted by priority score, annual cost exposure, diversion potential, risk severity, confidence or evidence maturity.
+## Data model
 
-The dashboard is a prioritisation and screening layer only. It does not override the rules engine and does not convert estimated values into verified savings or verified environmental impact.
+The sample dataset contains 50 synthetic industrial streams across:
 
+- metals
+- plastics
+- cardboard and packaging
+- wood and pallets
+- chemicals and solvents
+- textiles
+- glass
+- rubber
+- electronic components
+- organic and process residues
+- process water and energy/resource streams
 
-## Milestone 6B: UI polish and portfolio screenshot readiness
+The dataset includes variation for rule testing, including:
 
-Milestone 6B improves the presentation layer after reviewing a browser/PDF export of the Milestone 6 interface.
+- low-risk recycling opportunities
+- supplier take-back opportunities
+- closed-loop recycling cases
+- internal reuse examples
+- industrial symbiosis candidates
+- recovery routes
+- high-risk hazardous streams
+- weak evidence cases requiring review
+- streams where reduction is more appropriate than recycling
 
-The update adds:
+Core fields include:
 
-- a portfolio snapshot section for recruiter-ready screenshots
-- a cleaner recommendation table with fewer columns and better wrapping
-- clearer priority, risk, evidence and screened-exposure grouping
-- print/PDF-specific styling that hides interactive controls and large raw tables
-- improved spacing to avoid clipped labels in exported views
-- a stronger governance note for screening estimates versus verified impact
+- `stream_id`
+- `stream_name`
+- `material`
+- `source_process`
+- `monthly_quantity_kg`
+- `current_route`
+- `disposal_cost_per_month`
+- `contamination_risk`
+- `hazardous_flag`
+- `department`
+- `supplier`
+- `supplier_takeback_available`
+- `recycled_content_available`
+- `notes`
 
-This milestone does not change the rules engine, scoring method or agentic controls. It only improves usability and presentation so the advanced decision-support workflow is easier for a non-technical user to understand.
+---
 
-### Suggested commit message
+## Technology stack
+
+- Frontend: React + Vite
+- Backend: FastAPI
+- Database: SQLite
+- Data handling: CSV ingest and structured API endpoints
+- Optional AI: rules-locked LLM explanation/drafting layer
+- Testing: backend pytest, frontend production build
+
+---
+
+## Professional positioning
+
+Circular Industry AI is positioned as a market-relevant industrial sustainability intelligence dashboard.
+
+It demonstrates how raw operational data can be converted into controlled, auditable and decision-useful circular economy intelligence without allowing AI to override governance-critical decision fields.
+
+The product direction is:
 
 ```text
-style: polish dashboard UI for portfolio screenshots
+Industry-grade
+Operator-facing
+Evidence-controlled
+Claim-safe
+ESG/EIA-aligned
+Circular procurement aware
+Sustainability intelligence focused
 ```
-
-
-## Milestone 6C: Workflow layout and domain-specific review polish
-
-Milestone 6C improves the usability of the frontend without changing the locked rules engine. The interface now uses a staged workflow so users do not have to read the dashboard, recommendations, review pack, action plan and raw data all at once.
-
-### Workflow views
-
-1. **Executive dashboard** — summary metrics, strategy mix, risk profile, priority bands and portfolio snapshot.
-2. **Recommendations** — filterable and ranked rules-engine outputs.
-3. **Review pack** — selected stream drill-down covering evidence, risk, procurement, symbiosis and resource-efficiency context.
-4. **Action plan** — ranked validation and opportunity-development phases.
-5. **Raw data** — underlying industrial stream table, hidden by default.
-
-### Domain-specific review wording
-
-The agentic review layer now avoids applying generic scrap-reduction language to every stream. It includes more appropriate review prompts for grease trap waste, process water, waste heat, chemical residues, batteries, electronics, returnable containers and controlled textile/PPE-type streams.
-
-This keeps the user experience cleaner while making the review packs more credible for industrial circular economy, EHS and procurement contexts.
-
-
-## Milestone 7: Evidence register and export workflow
-
-Milestone 7 adds an auditable evidence register and CSV export workflow. The register separates measured data, estimated calculations, assumptions, missing evidence, review gates and claim boundaries for each recommendation. This strengthens the project as an evidence-led circular economy decision-support tool rather than a generic AI dashboard.
-
-New outputs include:
-
-- evidence register API endpoint
-- evidence maturity summary
-- recommendations CSV export
-- evidence register CSV export
-- frontend Evidence Register workflow tab
-- claim-readiness and anti-greenwashing controls
-
-## Milestone 7B: Circular Resolution Engine
-
-Milestone 7B adds the domain intelligence layer that turns broad rules-engine recommendations into specific circular economy intervention plans. The engine uses material-specific playbooks to produce practical resolution plans with circular problem framing, value-retention logic, implementation steps, supplier/procurement actions, process redesign actions, industrial symbiosis screening, pilot plans, KPIs, evidence requirements, decision gates, claim boundaries and fallback routes.
-
-The rules engine remains the locked decision source. Resolution plans do not lower risk, remove human-review flags or verify claims. They support screening, pilot design and evidence-led human review.
-
-New API endpoints:
-
-```text
-POST /api/resolutions/run
-GET  /api/resolutions
-GET  /api/resolutions/summary
-GET  /api/resolutions/{stream_id}
-GET  /api/export/resolution-plans.csv
-```
-
-Frontend workflow addition:
-
-```text
-Resolution plans
-```
-
-This milestone makes the project more clearly circular economy focused by moving beyond waste-route classification into prevention, value retention, supplier loops, process redesign, by-product valorisation, pilot planning and claim-readiness control.
-
-
-## Milestone 7C: Rules-locked LLM reasoning and UI QA
-
-This milestone adds an optional LLM reasoning layer that writes stream-specific explanations, supplier questions, evidence-gap summaries and pilot guidance from locked rules, evidence and resolution-plan context. It also improves table wrapping, badge layout and page readability. The LLM cannot override risk, human-review gates, rule applied or claim boundaries. If no API key is configured, the app uses deterministic fallback reasoning.
-
-
-## Gemini free-tier LLM setup
-
-The optional Milestone 7C LLM reasoning layer can run through Gemini Developer API. Keep it off by default for safe local demos, then enable it in `backend/.env` when you have a Gemini API key:
-
-```env
-AI_REASONING_ENABLED=true
-LLM_PROVIDER=gemini
-GEMINI_API_KEY=your_gemini_api_key_here
-OPENAI_MODEL=gemini-2.5-flash
-GEMINI_API_BASE_URL=https://generativelanguage.googleapis.com/v1beta
-```
-
-The LLM is rules-locked: it can explain, draft supplier questions and summarise evidence gaps, but it cannot change the rule, risk level, human-review flag or claim boundary.
-
-
-## Milestone 7D: Material-Specific Circular Playbooks
-
-Milestone 7D adds material-family circular economy playbooks to make the agent less generic and more useful for industrial material-stream decision support. The playbooks cover metals, plastics, packaging, wood/pallets, chemicals/solvents, textiles, glass, rubber, WEEE/electronics, organic residues, process water, waste heat and mineral residues.
-
-The playbook layer supports:
-
-- specific circular intervention patterns
-- prevention and design levers
-- supplier/procurement levers
-- industrial symbiosis partner types
-- material-specific evidence tests
-- red flags and routes to avoid
-- pilot patterns and KPIs
-- ESRS E5 mapping and CTI-style screening metrics
-- claim controls and fallback routes
-
-The playbooks do not replace the rules engine. They provide domain context for the Circular Resolution Engine and optional LLM reasoning layer.
-
-
-## Milestone 7E: Circular procurement and supplier-loop intelligence
-
-Milestone 7E adds supplier-facing circular procurement logic. The system now converts locked circular recommendations and resolution plans into supplier-loop plans with reverse-logistics models, contract levers, supplier questions, acceptance criteria, evidence requests, commercial checks, operational checks, pilot scopes and fallback positions.
-
-This layer is designed for procurement sustainability and circular supply-chain use cases. It does not verify supplier compliance or legal waste status. Controlled and hazardous streams remain blocked until evidence and review gates are resolved.
-
-New endpoints include `/api/procurement/run`, `/api/procurement/supplier-loops`, `/api/procurement/supplier-loops/summary`, `/api/procurement/supplier-loops/{stream_id}` and `/api/export/supplier-loop-plans.csv`.
