@@ -697,3 +697,39 @@ class AutonomousInsightResult(BaseModel):
     source_knowledge_ids: list[str]
     retrieval_notes: list[str]
     governance_note: str
+
+
+# Milestone 10E: generated insight history and traceability schemas
+
+class GeneratedInsightRead(BaseModel):
+    id: int
+    stream_id: str
+    stream_name: str
+    material: str
+    source_process: str
+    analysis_run_id: int | None = None
+    input_snapshot: dict
+    input_notes_present: bool
+    notes_dependency: str
+    insight_summary: str
+    matched_material_families: list[str]
+    current_action: dict
+    near_future_action: dict
+    future_watch: dict
+    evidence_needed: list[str]
+    supplier_questions: list[str]
+    human_review_triggers: list[str]
+    do_not_claim: list[str]
+    claim_boundary: str
+    source_knowledge_ids: list[str]
+    retrieval_notes: list[str]
+    generation_mode: str
+    governance_note: str
+    created_at: datetime
+
+
+class InsightHistorySummary(BaseModel):
+    total_insights: int
+    stream_count: int
+    latest_insights: list[GeneratedInsightRead]
+    governance_note: str
