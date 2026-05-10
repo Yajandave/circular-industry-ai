@@ -733,3 +733,34 @@ class InsightHistorySummary(BaseModel):
     stream_count: int
     latest_insights: list[GeneratedInsightRead]
     governance_note: str
+
+
+# Milestone 11A: knowledge graph relationship schemas
+
+class KnowledgeGraphNode(BaseModel):
+    node_id: str
+    label: str
+    node_type: str
+    detail: str = ""
+    source_knowledge_id: str | None = None
+
+
+class KnowledgeGraphEdge(BaseModel):
+    source: str
+    target: str
+    relationship: str
+    evidence_level: str
+    governance_note: str = ""
+
+
+class KnowledgeGraphResult(BaseModel):
+    graph_scope: str
+    stream_id: str | None = None
+    nodes: list[KnowledgeGraphNode]
+    edges: list[KnowledgeGraphEdge]
+    graph_path: list[str]
+    matched_material_families: list[str]
+    source_knowledge_ids: list[str]
+    retrieval_notes: list[str]
+    knowledge_validation: dict
+    governance_note: str
