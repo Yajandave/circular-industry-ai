@@ -1,5 +1,6 @@
 import { formatCurrency, formatKg } from '../utils/formatters.js';
 import VisualAnalyticsDashboard from './VisualAnalyticsDashboard.jsx';
+import ProfessionalIntelligenceSuite from './ProfessionalIntelligenceSuite.jsx';
 
 function BarList({ rows, labelKey, valueKey, formatter = (value) => value, emptyText = 'No data yet.' }) {
   const max = Math.max(...rows.map((row) => Number(row[valueKey]) || 0), 0);
@@ -106,6 +107,11 @@ export default function Dashboard({ dashboardData, agentSummary, onSelectReviewP
         onSelectReviewPack={onSelectReviewPack}
       />
 
+      <ProfessionalIntelligenceSuite
+        dashboardData={dashboardData}
+        onSelectReviewPack={onSelectReviewPack}
+      />
+
       <div className="dashboard-grid">
         <article className="chart-card wide">
           <h3>Recommended strategy mix</h3>
@@ -148,5 +154,6 @@ export default function Dashboard({ dashboardData, agentSummary, onSelectReviewP
     </section>
   );
 }
+
 
 
