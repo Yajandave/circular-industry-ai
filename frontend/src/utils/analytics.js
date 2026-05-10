@@ -74,6 +74,71 @@ function classifyOpportunity(rec) {
   return 'controlled_review';
 }
 
+function opportunityLabel(bucket) {
+  return {
+    quick_win: 'Quick win',
+    developing: 'Developing',
+    evidence_uplift: 'Evidence uplift',
+    controlled_review: 'Controlled review',
+  }[bucket] || 'Controlled review';
+}
+
+function evidenceBucket(rec) {
+  const evidence = normaliseNumber(rec.evidence_quality_score);
+  if (evidence >= 85) return 'strong_evidence';
+  if (evidence >= 70) return 'moderate_evidence';
+  return 'evidence_uplift';
+}
+
+function evidenceLabel(bucket) {
+  return {
+    strong_evidence: 'Strong evidence',
+    moderate_evidence: 'Moderate evidence',
+    evidence_uplift: 'Evidence uplift needed',
+  }[bucket] || 'Evidence status';
+}
+
+function claimBucket(rec) {
+  const evidence = normaliseNumber(rec.evidence_quality_score);
+  if (['high', 'blocked'].includes(rec.risk_level)) return 'high_blocked_risk';
+  if (rec.human_review_required) return 'controlled_review_gate';
+  if (evidence < 70) return 'evidence_uplift_first';
+  if (evidence >= 85) return 'ready_for_internal_validation';
+  return 'developing_opportunity';
+}
+
+function claimLabel(bucket) {
+  return {
+    ready_for_internal_validation: 'Ready for internal validation',
+    developing_opportunity: 'Developing opportunity',
+    evidence_uplift_first: 'Evidence uplift first',
+    controlled_review_gate: 'Controlled review gate',
+    high_blocked_risk: 'High / blocked risk',
+  }[bucket] || 'Claim-readiness control';
+}
+
+function hasRecordedSupplier(rec) {
+  const supplier = rec.stream?.supplier;
+  if (!supplier) return false;
+  return !['not recorded', 'unknown', 'n/a', 'none'].includes(String(supplier).trim().toLowerCase());
+}
+
+function supplierBucket(rec) {
+  if (!hasRecordedSupplier(rec)) return 'supplier_data_gap';
+  if (rec.human_review_required) return 'controlled_supplier_review';
+  if (rec.priority_score >= 68) return 'supplier_loop_candidate';
+  return 'lower_readiness_supplier_record';
+}
+
+function supplierLabel(bucket) {
+  return {
+    supplier_loop_candidate: 'Supplier-loop candidates',
+    controlled_supplier_review: 'Controlled supplier reviews',
+    supplier_data_gap: 'Supplier data gaps',
+    lower_readiness_supplier_record: 'Lower-readiness supplier records',
+  }[bucket] || 'Supplier-loop profile';
+}
+
 function buildRiskOpportunityMatrix(enriched) {
   const columns = [
     { key: 'quick_win', label: 'Quick win' },
@@ -84,7 +149,7 @@ function buildRiskOpportunityMatrix(enriched) {
 
   const cellMap = enriched.reduce((acc, rec) => {
     const risk = rec.risk_level || 'unknown';
-    const opportunity = classifyOpportunity(rec);
+    const opportunity = rec.opportunity_bucket || classifyOpportunity(rec);
     const key = `${risk}::${opportunity}`;
     if (!acc[key]) {
       acc[key] = { risk, opportunity, count: 0, exposure: 0 };
@@ -102,11 +167,12 @@ function buildRiskOpportunityMatrix(enriched) {
   };
 }
 
-function buildParetoRows(items, labelSelector, valueSelector, limit = 8) {
+function buildParetoRows(items, labelSelector, valueSelector, limit = 8, extraSelector = () => ({})) {
   const rows = items
     .map((item) => ({
       label: labelSelector(item),
       value: normaliseNumber(valueSelector(item)),
+      ...extraSelector(item),
     }))
     .filter((row) => row.value > 0)
     .sort((a, b) => b.value - a.value)
@@ -126,49 +192,58 @@ function buildParetoRows(items, labelSelector, valueSelector, limit = 8) {
   });
 }
 
-function buildEvidenceMaturity(enriched) {
-  const rows = [
-    { label: 'Strong evidence', value: enriched.filter((rec) => normaliseNumber(rec.evidence_quality_score) >= 85).length, tone: '#1f5b43' },
-    { label: 'Moderate evidence', value: enriched.filter((rec) => normaliseNumber(rec.evidence_quality_score) >= 70 && normaliseNumber(rec.evidence_quality_score) < 85).length, tone: '#7ea58d' },
-    { label: 'Evidence uplift needed', value: enriched.filter((rec) => normaliseNumber(rec.evidence_quality_score) < 70).length, tone: '#d39a2f' },
+function countRowsByBucket(records, bucketKey, labelFn) {
+  const counts = records.reduce((acc, record) => {
+    const bucket = record[bucketKey] || 'unknown';
+    acc[bucket] = (acc[bucket] || 0) + 1;
+    return acc;
+  }, {});
+
+  return Object.entries(counts)
+    .map(([bucket, value]) => ({
+      bucket,
+      label: labelFn(bucket),
+      value,
+    }))
+    .filter((row) => row.value > 0);
+}
+
+function buildEvidenceMaturity(records) {
+  const order = ['strong_evidence', 'moderate_evidence', 'evidence_uplift'];
+  const tones = {
+    strong_evidence: '#1f5b43',
+    moderate_evidence: '#7ea58d',
+    evidence_uplift: '#d39a2f',
+  };
+  const rows = countRowsByBucket(records, 'evidence_bucket', evidenceLabel);
+
+  return order
+    .map((bucket) => rows.find((row) => row.bucket === bucket))
+    .filter(Boolean)
+    .map((row) => ({ ...row, tone: tones[row.bucket] || '#1f5b43' }));
+}
+
+function buildClaimReadiness(records) {
+  const order = [
+    'ready_for_internal_validation',
+    'developing_opportunity',
+    'evidence_uplift_first',
+    'controlled_review_gate',
+    'high_blocked_risk',
   ];
-  return rows.filter((row) => row.value > 0);
+  const rows = countRowsByBucket(records, 'claim_bucket', claimLabel);
+  return order.map((bucket) => rows.find((row) => row.bucket === bucket)).filter(Boolean);
 }
 
-function buildClaimReadiness(enriched) {
-  const ready = enriched.filter((rec) => !rec.human_review_required && !['high', 'blocked'].includes(rec.risk_level) && normaliseNumber(rec.evidence_quality_score) >= 85).length;
-  const controlledReview = enriched.filter((rec) => rec.human_review_required).length;
-  const evidenceUplift = enriched.filter((rec) => !rec.human_review_required && normaliseNumber(rec.evidence_quality_score) < 70).length;
-  const riskBlocked = enriched.filter((rec) => ['high', 'blocked'].includes(rec.risk_level)).length;
-  const developing = Math.max(0, enriched.length - ready - controlledReview - evidenceUplift - riskBlocked);
-
-  return [
-    { label: 'Ready for internal validation', value: ready },
-    { label: 'Developing opportunity', value: developing },
-    { label: 'Evidence uplift first', value: evidenceUplift },
-    { label: 'Controlled review gate', value: controlledReview },
-    { label: 'High / blocked risk', value: riskBlocked },
-  ].filter((row) => row.value > 0);
-}
-
-function hasRecordedSupplier(rec) {
-  const supplier = rec.stream?.supplier;
-  if (!supplier) return false;
-  return !['not recorded', 'unknown', 'n/a', 'none'].includes(String(supplier).trim().toLowerCase());
-}
-
-function buildSupplierLoopProfile(enriched) {
-  const supplierCandidates = enriched.filter((rec) => hasRecordedSupplier(rec) && !rec.human_review_required && rec.priority_score >= 68).length;
-  const controlledSupplierReviews = enriched.filter((rec) => hasRecordedSupplier(rec) && rec.human_review_required).length;
-  const supplierDataGaps = enriched.filter((rec) => !hasRecordedSupplier(rec)).length;
-  const lowReadinessSupplierRecords = Math.max(0, enriched.length - supplierCandidates - controlledSupplierReviews - supplierDataGaps);
-
-  return [
-    { label: 'Supplier-loop candidates', value: supplierCandidates },
-    { label: 'Controlled supplier reviews', value: controlledSupplierReviews },
-    { label: 'Supplier data gaps', value: supplierDataGaps },
-    { label: 'Lower-readiness supplier records', value: lowReadinessSupplierRecords },
-  ].filter((row) => row.value > 0);
+function buildSupplierLoopProfile(records) {
+  const order = [
+    'supplier_loop_candidate',
+    'controlled_supplier_review',
+    'supplier_data_gap',
+    'lower_readiness_supplier_record',
+  ];
+  const rows = countRowsByBucket(records, 'supplier_bucket', supplierLabel);
+  return order.map((bucket) => rows.find((row) => row.bucket === bucket)).filter(Boolean);
 }
 
 function scenarioText(rec) {
@@ -184,49 +259,91 @@ function scenarioText(rec) {
   return 'Opportunity-development scenario: useful candidate for operational and supplier feasibility checks.';
 }
 
-function buildScenarioItems(enriched) {
-  return [...enriched]
+function buildDrilldownRecords(enriched) {
+  return enriched.map((rec) => {
+    const stream = rec.stream || {};
+    const opportunity = classifyOpportunity(rec);
+    const evidence = evidenceBucket(rec);
+    const claim = claimBucket(rec);
+    const supplier = supplierBucket(rec);
+
+    return {
+      stream_id: rec.stream_id,
+      stream_name: stream.stream_name || rec.recommended_circular_action || 'Unnamed stream',
+      material: stream.material || 'unknown material',
+      department: stream.department || 'unknown department',
+      supplier: stream.supplier || 'not recorded',
+      source_process: stream.source_process || 'unknown process',
+      risk_level: rec.risk_level || 'unknown',
+      priority_band: rec.priority_band,
+      priority_score: rec.priority_score,
+      evidence_quality_score: normaliseNumber(rec.evidence_quality_score),
+      confidence_score: normaliseNumber(rec.confidence_score),
+      human_review_required: Boolean(rec.human_review_required),
+      estimated_annual_disposal_cost_avoided: normaliseNumber(rec.estimated_annual_disposal_cost_avoided),
+      estimated_annual_waste_diverted_kg: normaliseNumber(rec.estimated_annual_waste_diverted_kg),
+      recommended_circular_action: rec.recommended_circular_action || 'No recommendation recorded.',
+      next_action: rec.next_action || 'No next action recorded.',
+      opportunity_bucket: opportunity,
+      opportunity_label: opportunityLabel(opportunity),
+      evidence_bucket: evidence,
+      evidence_label: evidenceLabel(evidence),
+      claim_bucket: claim,
+      claim_label: claimLabel(claim),
+      supplier_bucket: supplier,
+      supplier_label: supplierLabel(supplier),
+      scenario: scenarioText(rec),
+    };
+  });
+}
+
+function buildScenarioItems(records) {
+  return [...records]
     .sort((a, b) => {
       const costDelta = normaliseNumber(b.estimated_annual_disposal_cost_avoided) - normaliseNumber(a.estimated_annual_disposal_cost_avoided);
       if (costDelta !== 0) return costDelta;
       return b.priority_score - a.priority_score;
     })
     .slice(0, 6)
-    .map((rec) => ({
-      stream_id: rec.stream_id,
-      stream_name: rec.stream?.stream_name || rec.recommended_circular_action || 'Unnamed stream',
-      priority_score: rec.priority_score,
-      scenario: scenarioText(rec),
+    .map((record) => ({
+      stream_id: record.stream_id,
+      stream_name: record.stream_name,
+      priority_score: record.priority_score,
+      scenario: record.scenario,
     }));
 }
 
 function buildVisualAnalyticsData(enriched, streams) {
+  const drilldownRecords = buildDrilldownRecords(enriched);
   const materialPareto = buildParetoRows(
     streams,
     (stream) => stream.material || 'unknown material',
     (stream) => normaliseNumber(stream.monthly_quantity_kg) * 12,
     8,
+    (stream) => ({ material: stream.material || 'unknown material' }),
   );
   const costPareto = buildParetoRows(
-    enriched,
-    (rec) => `${rec.stream_id} · ${rec.stream?.stream_name || rec.stream?.material || 'stream'}`,
-    (rec) => rec.estimated_annual_disposal_cost_avoided,
+    drilldownRecords,
+    (record) => `${record.stream_id} · ${record.stream_name}`,
+    (record) => record.estimated_annual_disposal_cost_avoided,
     8,
+    (record) => ({ stream_id: record.stream_id }),
   );
 
   return {
-    totalRecords: enriched.length,
-    matrix: buildRiskOpportunityMatrix(enriched),
+    totalRecords: drilldownRecords.length,
+    matrix: buildRiskOpportunityMatrix(drilldownRecords),
     materialPareto,
     costPareto,
-    evidenceMaturity: buildEvidenceMaturity(enriched),
-    claimReadiness: buildClaimReadiness(enriched),
-    supplierLoopProfile: buildSupplierLoopProfile(enriched),
-    scenarioItems: buildScenarioItems(enriched),
+    evidenceMaturity: buildEvidenceMaturity(drilldownRecords),
+    claimReadiness: buildClaimReadiness(drilldownRecords),
+    supplierLoopProfile: buildSupplierLoopProfile(drilldownRecords),
+    scenarioItems: buildScenarioItems(drilldownRecords),
+    drilldownRecords,
     controlSummary: {
-      humanReview: enriched.filter((rec) => rec.human_review_required).length,
-      lowEvidence: enriched.filter((rec) => normaliseNumber(rec.evidence_quality_score) < 70).length,
-      supplierDataGaps: enriched.filter((rec) => !hasRecordedSupplier(rec)).length,
+      humanReview: drilldownRecords.filter((record) => record.human_review_required).length,
+      lowEvidence: drilldownRecords.filter((record) => record.evidence_bucket === 'evidence_uplift').length,
+      supplierDataGaps: drilldownRecords.filter((record) => record.supplier_bucket === 'supplier_data_gap').length,
       boundary: 'rules_locked_screening',
     },
   };

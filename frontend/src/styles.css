@@ -3292,3 +3292,373 @@ button,
     height: 102px;
   }
 }
+
+/* Milestone 12B: operator drilldown and decision triage */
+
+.visual-select-row {
+  width: 100%;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #24332e;
+  box-shadow: none;
+  text-align: left;
+}
+
+.visual-select-row:hover {
+  border-color: #bdd6c8;
+  background: #f4faf6;
+}
+
+.visual-select-row.selected,
+.scenario-card.selected {
+  border-color: #1f5b43;
+  background: #ecf6f0;
+}
+
+button.visual-bar-row {
+  display: block;
+  padding: 10px;
+  border-radius: 14px;
+}
+
+button.pareto-row {
+  display: grid;
+  border-radius: 16px;
+  padding: 10px;
+}
+
+button.donut-legend-row {
+  border-radius: 14px;
+  padding: 8px;
+}
+
+.risk-matrix button.matrix-cell {
+  color: #24332e;
+  box-shadow: none;
+  text-align: left;
+}
+
+.risk-matrix button.matrix-cell:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.matrix-cell.selected {
+  box-shadow: inset 0 0 0 2px #1f5b43;
+}
+
+.scenario-card .scenario-score .link-button {
+  width: 100%;
+  min-width: 0;
+}
+
+.operator-drilldown-panel {
+  margin-top: 18px;
+  border-radius: 24px;
+  border: 1px solid #dfe7e2;
+  background: #ffffff;
+  padding: 18px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.drilldown-empty {
+  border-radius: 20px;
+  border: 1px dashed #c8d8cf;
+  background: #f8fbf9;
+  padding: 22px;
+}
+
+.drilldown-empty h3 {
+  margin: 0 0 8px;
+}
+
+.drilldown-empty p {
+  margin: 0;
+  color: #60716a;
+  line-height: 1.5;
+}
+
+.drilldown-summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: flex-start;
+  border-radius: 20px;
+  background: #f4f7f5;
+  border: 1px solid #dfe7e2;
+  padding: 18px;
+  margin-bottom: 14px;
+}
+
+.drilldown-summary h3 {
+  margin: 6px 0 8px;
+  overflow-wrap: anywhere;
+}
+
+.drilldown-summary p {
+  margin: 0;
+  color: #60716a;
+  line-height: 1.5;
+}
+
+.drilldown-summary-count {
+  min-width: 130px;
+  border-radius: 18px;
+  background: #ffffff;
+  border: 1px solid #dfe7e2;
+  padding: 14px;
+  text-align: right;
+}
+
+.drilldown-summary-count strong,
+.drilldown-summary-count span {
+  display: block;
+}
+
+.drilldown-summary-count strong {
+  color: #1f5b43;
+  font-size: 1.9rem;
+  line-height: 1;
+}
+
+.drilldown-summary-count span {
+  color: #60716a;
+  margin-top: 5px;
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+.drilldown-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 14px;
+}
+
+.drilldown-toolbar label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  color: #60716a;
+  font-size: 0.86rem;
+  font-weight: 850;
+}
+
+.drilldown-layout {
+  display: grid;
+  grid-template-columns: minmax(300px, 0.8fr) minmax(520px, 1.2fr);
+  gap: 16px;
+  align-items: stretch;
+  min-width: 0;
+}
+
+.drilldown-list {
+  border: 1px solid #dfe7e2;
+  border-radius: 22px;
+  background: #fbfdfb;
+  padding: 8px;
+  max-height: 680px;
+  overflow-y: auto;
+  min-width: 0;
+}
+
+.drilldown-list-row {
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  text-align: left;
+  color: #24332e;
+  background: #ffffff;
+  box-shadow: none;
+  border: 1px solid transparent;
+  border-radius: 16px;
+  padding: 12px;
+  margin-bottom: 8px;
+}
+
+.drilldown-list-row:hover {
+  border-color: #cbdcd3;
+  background: #f7faf8;
+}
+
+.drilldown-list-row.selected {
+  border-color: #1f5b43;
+  background: #ecf6f0;
+}
+
+.drilldown-list-row strong,
+.drilldown-list-row small,
+.drilldown-row-metrics strong,
+.drilldown-row-metrics small {
+  display: block;
+}
+
+.drilldown-list-row strong {
+  margin: 4px 0;
+  overflow-wrap: anywhere;
+}
+
+.drilldown-list-row small {
+  color: #60716a;
+  line-height: 1.35;
+}
+
+.drilldown-row-metrics {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.drilldown-row-metrics strong {
+  color: #1f5b43;
+}
+
+.drilldown-inspector {
+  border: 1px solid #dfe7e2;
+  border-radius: 22px;
+  background: #ffffff;
+  padding: 20px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.drilldown-inspector.empty {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  color: #60716a;
+}
+
+.drilldown-inspector-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.drilldown-inspector-header h3 {
+  margin: 5px 0 6px;
+  overflow-wrap: anywhere;
+}
+
+.drilldown-inspector-header p {
+  margin: 0;
+  color: #60716a;
+  line-height: 1.4;
+}
+
+.drilldown-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.drilldown-kpi-grid article,
+.drilldown-detail-box,
+.drilldown-detail-grid div {
+  border-radius: 16px;
+  background: #f8fbf9;
+  border: 1px solid #dfe7e2;
+  padding: 13px;
+  min-width: 0;
+}
+
+.drilldown-kpi-grid span,
+.drilldown-detail-box span,
+.drilldown-detail-grid span {
+  display: block;
+  color: #60716a;
+  font-weight: 850;
+  font-size: 0.78rem;
+  margin-bottom: 7px;
+}
+
+.drilldown-kpi-grid strong,
+.drilldown-kpi-grid small,
+.drilldown-detail-grid strong {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.drilldown-kpi-grid strong {
+  color: #1f5b43;
+}
+
+.drilldown-kpi-grid small {
+  color: #66766e;
+  line-height: 1.35;
+}
+
+.drilldown-detail-box {
+  margin-bottom: 12px;
+}
+
+.drilldown-detail-box p {
+  margin: 0;
+  color: #33443d;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.drilldown-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.drilldown-governance {
+  margin-top: 0;
+}
+
+@media (max-width: 1180px) {
+  .drilldown-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .drilldown-list {
+    max-height: 420px;
+  }
+
+  .drilldown-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .drilldown-summary,
+  .drilldown-inspector-header {
+    flex-direction: column;
+  }
+
+  .drilldown-summary-count {
+    width: 100%;
+    text-align: left;
+  }
+
+  .drilldown-toolbar {
+    justify-content: stretch;
+  }
+
+  .drilldown-toolbar label,
+  .drilldown-toolbar select {
+    width: 100%;
+  }
+
+  .drilldown-list-row {
+    grid-template-columns: 1fr;
+  }
+
+  .drilldown-row-metrics {
+    text-align: left;
+  }
+
+  .drilldown-kpi-grid,
+  .drilldown-detail-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
