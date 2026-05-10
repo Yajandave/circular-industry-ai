@@ -63,7 +63,7 @@ def _call_openai_supplier_email(context: dict[str, Any]) -> dict[str, Any]:
     )
 
     try:
-        with urllib.request.urlopen(request, timeout=45) as response:
+        with urllib.request.urlopen(request, timeout=llm_timeout_seconds()) as response:
             response_payload = json.loads(response.read().decode("utf-8"))
     except urllib.error.HTTPError as exc:
         detail = exc.read().decode("utf-8", errors="replace")
@@ -119,7 +119,7 @@ def _call_gemini_supplier_email(context: dict[str, Any]) -> dict[str, Any]:
     )
 
     try:
-        with urllib.request.urlopen(request, timeout=45) as response:
+        with urllib.request.urlopen(request, timeout=llm_timeout_seconds()) as response:
             response_payload = json.loads(response.read().decode("utf-8"))
     except urllib.error.HTTPError as exc:
         detail = exc.read().decode("utf-8", errors="replace")
@@ -140,3 +140,4 @@ def call_structured_supplier_email(context: dict[str, Any]) -> dict[str, Any]:
     if provider != "openai":
         raise RuntimeError(f"Unsupported LLM_PROVIDER '{provider}'. Use 'openai' or 'gemini'.")
     return _call_openai_supplier_email(context)
+

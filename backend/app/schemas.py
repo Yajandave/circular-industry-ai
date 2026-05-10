@@ -480,3 +480,20 @@ class RunSupplierLoopsResponse(BaseModel):
     supplier_loop_candidates: int
     controlled_supplier_reviews: int
     message: str
+
+# Milestone 9B: AI runtime reliability schemas
+
+class AIRuntimeStatus(BaseModel):
+    ai_reasoning_enabled: bool
+    llm_provider: str
+    api_key_configured: bool
+    configured_model: str
+    configured_base_url: str
+    timeout_seconds: int
+    runtime_mode: str
+    live_check_requested: bool
+    live_check_status: str
+    fallback_available: bool
+    agentic_role: str
+    guardrail_summary: str
+    recommended_operator_action: str

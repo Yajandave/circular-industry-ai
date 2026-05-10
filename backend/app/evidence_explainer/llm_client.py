@@ -52,7 +52,7 @@ def _call_openai_evidence_gap(context: dict[str, Any]) -> dict[str, Any]:
         method="POST",
     )
     try:
-        with urllib.request.urlopen(request, timeout=45) as response:
+        with urllib.request.urlopen(request, timeout=llm_timeout_seconds()) as response:
             response_payload = json.loads(response.read().decode("utf-8"))
     except urllib.error.HTTPError as exc:
         detail = exc.read().decode("utf-8", errors="replace")
@@ -81,7 +81,7 @@ def _call_gemini_evidence_gap(context: dict[str, Any]) -> dict[str, Any]:
     data = json.dumps(request_body).encode("utf-8")
     request = urllib.request.Request(url, data=data, headers={"x-goog-api-key": api_key, "Content-Type": "application/json"}, method="POST")
     try:
-        with urllib.request.urlopen(request, timeout=45) as response:
+        with urllib.request.urlopen(request, timeout=llm_timeout_seconds()) as response:
             response_payload = json.loads(response.read().decode("utf-8"))
     except urllib.error.HTTPError as exc:
         detail = exc.read().decode("utf-8", errors="replace")
@@ -101,3 +101,4 @@ def call_structured_evidence_gap(context: dict[str, Any]) -> dict[str, Any]:
     if provider != "openai":
         raise RuntimeError(f"Unsupported LLM_PROVIDER '{provider}'. Use 'openai' or 'gemini'.")
     return _call_openai_evidence_gap(context)
+
