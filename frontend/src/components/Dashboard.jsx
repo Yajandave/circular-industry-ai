@@ -63,9 +63,9 @@ export default function Dashboard({ dashboardData, agentSummary, onSelectReviewP
       <div className="section-heading">
         <div>
           <h2>Decision dashboard</h2>
-          <p>Portfolio view for circular opportunity screening, evidence maturity, controlled review and implementation prioritisation.</p>
+          <p>Operational view for circular opportunity screening, evidence maturity, controlled review and implementation prioritisation.</p>
         </div>
-        <span>Milestone 6 dashboard</span>
+        <span>Operational dashboard</span>
       </div>
 
       <div className="insight-grid">
@@ -93,7 +93,7 @@ export default function Dashboard({ dashboardData, agentSummary, onSelectReviewP
 
       {agentSummary?.executive_summary && (
         <article className="executive-card">
-          <h3>Executive portfolio summary</h3>
+          <h3>Executive screening summary</h3>
           <p>{agentSummary.executive_summary}</p>
           <small>{agentSummary.portfolio_note}</small>
         </article>
@@ -141,3 +141,4 @@ export default function Dashboard({ dashboardData, agentSummary, onSelectReviewP
     </section>
   );
 }
+
