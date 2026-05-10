@@ -54,8 +54,8 @@ export default function AIReasoningPanel({
     <section className="ai-reasoning-section">
       <div className="section-heading ai-heading">
         <div>
-          <span className="eyebrow">Milestone 7C reasoning layer</span>
-          <h2>Rules-locked AI reasoning</h2>
+          
+          <h2>Rules-locked reasoning assistant</h2>
           <p>
             Generate a consultant-style reasoning narrative from the locked rules recommendation, evidence register and
             circular resolution plan. The AI can explain and draft, but it cannot override the rule, risk level or review gate.
@@ -124,3 +124,4 @@ export default function AIReasoningPanel({
     </section>
   );
 }
+

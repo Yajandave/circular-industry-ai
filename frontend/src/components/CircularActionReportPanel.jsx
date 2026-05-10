@@ -58,8 +58,8 @@ export default function CircularActionReportPanel({
     <section className="circular-action-report-page">
       <div className="section-heading">
         <div>
-          <span className="eyebrow">Milestone 8F</span>
-          <h2>Circular action report builder</h2>
+          
+          <h2>Circular action report</h2>
           <p>
             Generate a consultant-style stream report from locked rules, evidence, resolution planning and supplier-loop
             data. The report is designed for review packs, portfolio screenshots and print/PDF export.
@@ -176,3 +176,4 @@ export default function CircularActionReportPanel({
     </section>
   );
 }
+

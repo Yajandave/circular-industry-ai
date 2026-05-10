@@ -1,3 +1,5 @@
+import { useMemo, useState } from 'react';
+
 import { API_BASE_URL } from '../api/client.js';
 import { formatCurrency, formatNumber } from '../utils/formatters.js';
 
@@ -39,8 +41,8 @@ function EvidenceGapExplainer({ explanation }) {
     <section className="evidence-gap-explainer" id="evidence-gap-explainer">
       <div className="section-heading compact-heading">
         <div>
-          <span className="eyebrow">Milestone 8C</span>
-          <h3>AI evidence gap explainer: {explanation.stream_id}</h3>
+          
+          <h3>Evidence gap explainer: {explanation.stream_id}</h3>
           <p>Advisory explanation for claim readiness, missing evidence and safe next steps. Locked rules-engine fields remain unchanged.</p>
         </div>
         <span>{explanation.generation_mode?.replaceAll('_', ' ')}</span>
@@ -63,12 +65,6 @@ function EvidenceGapExplainer({ explanation }) {
         <ExplainerList title="Unsafe claims to avoid" items={explanation.unsafe_claims_to_avoid} />
       </div>
       <div className="governance-strip">{explanation.governance_note}</div>
-      {!!explanation.validation_warnings?.length && (
-        <div className="evidence-explainer-warning">
-          <h4>Validation warnings</h4>
-          <ul>{explanation.validation_warnings.map((warning, index) => <li key={`evidence-warning-${index}`}>{warning}</li>)}</ul>
-        </div>
-      )}
     </section>
   );
 }
@@ -77,36 +73,125 @@ function downloadCsv(path) {
   window.open(`${API_BASE_URL}${path}`, '_blank', 'noopener,noreferrer');
 }
 
+function EvidenceListItem({ record, selected, onSelect }) {
+  return (
+    <button
+      type="button"
+      className={`operator-list-row ${selected ? 'selected' : ''}`}
+      onClick={() => onSelect(record.stream_id)}
+      title={`Inspect ${record.stream_id}`}
+    >
+      <div className="operator-row-main">
+        <span className="record-id">{record.stream_id}</span>
+        <strong>{record.stream_name}</strong>
+        <small>{record.material} · {record.department}</small>
+      </div>
+      <div className="operator-row-meta">
+        <span>{record.evidence_quality_score}/100</span>
+        <small>{record.human_review_required ? 'Review' : 'Clear'}</small>
+      </div>
+    </button>
+  );
+}
+
+function EvidenceInspector({ record, onExplain, busy }) {
+  if (!record) {
+    return (
+      <aside className="operator-inspector empty">
+        <h3>Select an evidence record</h3>
+        <p>Choose a stream to inspect evidence maturity, missing evidence, review gate and claim boundary.</p>
+      </aside>
+    );
+  }
+
+  return (
+    <aside className="operator-inspector">
+      <div className="operator-inspector-header">
+        <div>
+          <span className="record-id">{record.stream_id}</span>
+          <h3>{record.stream_name}</h3>
+          <p>{record.material} · {record.department}</p>
+        </div>
+        {onExplain && (
+          <button
+            type="button"
+            className="secondary-button evidence-explain-button table-action-button"
+            onClick={() => onExplain(record.stream_id)}
+            disabled={busy}
+          >
+            Explain evidence gap
+          </button>
+        )}
+      </div>
+
+      <div className="inspector-kpi-grid">
+        <article>
+          <span>Evidence status</span>
+          <strong>{record.evidence_status}</strong>
+          <small>{record.claim_readiness}</small>
+        </article>
+        <article>
+          <span>Evidence score</span>
+          <strong>{record.evidence_quality_score}/100</strong>
+          <small>Confidence: {record.confidence_score}/100</small>
+        </article>
+        <article>
+          <span>Screened exposure</span>
+          <strong>{formatCurrency(record.estimated_annual_disposal_cost_avoided)}</strong>
+          <small>{formatNumber(record.estimated_annual_waste_diverted_kg)} kg screened diversion</small>
+        </article>
+      </div>
+
+      <div className="operator-detail-section">
+        <span>Review gate</span>
+        <p>{record.review_gate}</p>
+      </div>
+
+      <div className="operator-detail-section">
+        <span>Missing evidence</span>
+        <p>{record.missing_data}</p>
+      </div>
+
+      <div className="operator-detail-section warning-detail">
+        <span>Claim boundary</span>
+        <p>{record.claim_boundary}</p>
+      </div>
+    </aside>
+  );
+}
+
 export default function EvidenceRegister({ records = [], summary = null, explanation = null, onExplain = null, busy = false }) {
-  const sortedRecords = [...records].sort((a, b) => {
+  const sortedRecords = useMemo(() => [...records].sort((a, b) => {
     const reviewSort = Number(b.human_review_required) - Number(a.human_review_required);
     if (reviewSort !== 0) return reviewSort;
     return a.evidence_quality_score - b.evidence_quality_score;
-  });
-  const criticalRecords = sortedRecords.filter((record) => record.human_review_required || record.evidence_quality_score < 70);
+  }), [records]);
+
+  const [selectedId, setSelectedId] = useState(sortedRecords[0]?.stream_id || '');
+  const selected = sortedRecords.find((record) => record.stream_id === selectedId) || sortedRecords[0];
 
   return (
-    <section className="section-card evidence-register-section">
+    <section className="section-card evidence-register-section operator-master-detail-section">
       <div className="section-heading evidence-heading">
         <div>
-          <span className="eyebrow">Milestone 8C evidence workflow</span>
-          <h2>Evidence register and AI evidence gap explainer</h2>
-          <p>Trace each recommendation back to measured fields, estimated calculations, assumptions, missing evidence and review gates. The explainer turns evidence gaps into audit-ready next steps without changing locked decisions.</p>
+          
+          <h2>Evidence register</h2>
+          <p>Inspect evidence maturity through a readable list and detail panel. Use export for the full structured register.</p>
         </div>
         <div className="export-actions">
-          <button type="button" className="secondary-button" onClick={() => downloadCsv('/api/export/recommendations.csv')}>Export recommendations CSV</button>
-          <button type="button" onClick={() => downloadCsv('/api/export/evidence-register.csv')}>Export evidence register CSV</button>
+          <button type="button" className="secondary-button" onClick={() => downloadCsv('/api/export/recommendations.csv')}>Export recommendations</button>
+          <button type="button" onClick={() => downloadCsv('/api/export/evidence-register.csv')}>Export evidence register</button>
         </div>
       </div>
 
       {!records.length && <div className="empty-state">Run the recommendation engine first. The evidence register is generated from locked rules-engine outputs.</div>}
 
       {summary && (
-        <div className="evidence-summary-grid">
-          <div className="metric-card"><span>Total records</span><strong>{summary.total_records}</strong><small>recommendations with evidence trail</small></div>
-          <div className="metric-card"><span>Human review gates</span><strong>{summary.human_review_required}</strong><small>must be reviewed before action</small></div>
-          <div className="metric-card"><span>Low-evidence records</span><strong>{summary.low_evidence_records}</strong><small>below 70/100 evidence quality</small></div>
-          <div className="metric-card"><span>Strong evidence</span><strong>{summary.strong_evidence_records}</strong><small>85/100 or higher</small></div>
+        <div className="operator-summary-grid">
+          <div className="operator-summary-card"><span>Total records</span><strong>{summary.total_records}</strong><small>recommendations with evidence trail</small></div>
+          <div className="operator-summary-card"><span>Human review gates</span><strong>{summary.human_review_required}</strong><small>must be reviewed before action</small></div>
+          <div className="operator-summary-card"><span>Low-evidence records</span><strong>{summary.low_evidence_records}</strong><small>below 70/100 evidence quality</small></div>
+          <div className="operator-summary-card"><span>Strong evidence</span><strong>{summary.strong_evidence_records}</strong><small>85/100 or higher</small></div>
         </div>
       )}
 
@@ -120,50 +205,30 @@ export default function EvidenceRegister({ records = [], summary = null, explana
 
       <EvidenceGapExplainer explanation={explanation} />
 
-      {!!criticalRecords.length && (
-        <div className="evidence-priority-box">
-          <h3>Evidence priorities</h3>
-          <p>These records should be resolved first because they have human-review gates, high risk or weak evidence.</p>
-          <div className="evidence-priority-grid">
-            {criticalRecords.slice(0, 8).map((record) => (
-              <article key={record.stream_id} className="evidence-priority-card">
-                <span>{record.stream_id}</span>
-                <strong>{record.stream_name}</strong>
-                <small>{record.review_gate}</small>
-                <p>{record.missing_data}</p>
-                {onExplain && <button type="button" className="secondary-button evidence-explain-button" onClick={() => onExplain(record.stream_id)} disabled={busy}>Explain evidence gap</button>}
-              </article>
-            ))}
-          </div>
-        </div>
-      )}
-
       {!!records.length && (
-        <div className="table-wrap evidence-table-wrap">
-          <table className="data-table evidence-table">
-            <thead>
-              <tr>
-                <th>ID</th><th>Stream</th><th>Evidence status</th><th>Scores</th><th>Review gate</th><th>Missing evidence</th><th>Claim boundary</th><th>Screened exposure</th><th>AI explainer</th>
-              </tr>
-            </thead>
-            <tbody>
+        <div className="operator-master-detail">
+          <div className="operator-list-panel">
+            <div className="operator-list-header">
+              <strong>Evidence records</strong>
+              <small>Sorted by review gate and evidence weakness</small>
+            </div>
+            <div className="operator-list-scroll">
               {sortedRecords.map((record) => (
-                <tr key={record.stream_id}>
-                  <td>{record.stream_id}</td>
-                  <td><strong>{record.stream_name}</strong><small>{record.material} · {record.department}</small></td>
-                  <td><span className={`evidence-status-pill ${record.evidence_status.replaceAll(' ', '-')}`}>{record.evidence_status}</span><small>{record.claim_readiness}</small></td>
-                  <td><span>Evidence: {record.evidence_quality_score}/100</span><small>Confidence: {record.confidence_score}/100</small></td>
-                  <td>{record.review_gate}</td>
-                  <td>{record.missing_data}</td>
-                  <td>{record.claim_boundary}</td>
-                  <td><strong>{formatCurrency(record.estimated_annual_disposal_cost_avoided)}</strong><small>{formatNumber(record.estimated_annual_waste_diverted_kg)} kg screened diversion</small></td>
-                  <td>{onExplain && <button type="button" className="link-button compact" onClick={() => onExplain(record.stream_id)} disabled={busy}>Explain</button>}</td>
-                </tr>
+                <EvidenceListItem
+                  key={record.stream_id}
+                  record={record}
+                  selected={selected?.stream_id === record.stream_id}
+                  onSelect={setSelectedId}
+                />
               ))}
-            </tbody>
-          </table>
+            </div>
+          </div>
+
+          <EvidenceInspector record={selected} onExplain={onExplain} busy={busy} />
         </div>
       )}
     </section>
   );
 }
+
+

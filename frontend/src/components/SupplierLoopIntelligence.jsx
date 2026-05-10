@@ -49,7 +49,7 @@ function SupplierEmailDraftPanel({ draft }) {
     <section className="supplier-email-draft-panel" id="supplier-email-draft-panel">
       <div className="section-heading compact-heading">
         <div>
-          <span className="eyebrow">Milestone 8D</span>
+          
           <h3>Supplier evidence request draft: {draft.stream_id}</h3>
           <p>
             AI-assisted supplier communication generated from locked procurement, recommendation and evidence-register data.
@@ -216,27 +216,27 @@ export default function SupplierLoopIntelligence({
           </p>
         </div>
         <div className="export-actions">
-          <ExportButton href={`${API_BASE_URL}/api/export/supplier-loop-plans.csv`}>Export supplier-loop CSV</ExportButton>
+          <ExportButton href={`${API_BASE_URL}/api/export/supplier-loop-plans.csv`}>Export CSV</ExportButton>
         </div>
       </div>
 
-      <div className="resolution-summary-grid">
-        <div className="metric-card">
-          <span>Supplier-loop plans</span>
+      <div className="operator-summary-grid">
+        <div className="operator-summary-card">
+          <span>Supplier action register</span>
           <strong>{formatNumber(summary?.total_plans || plans.length)}</strong>
-          <small>generated from locked recommendations</small>
+          <small>evidence-controlled procurement records</small>
         </div>
-        <div className="metric-card">
+        <div className="operator-summary-card">
           <span>Supplier-loop candidates</span>
           <strong>{formatNumber(summary?.supplier_loop_candidates || 0)}</strong>
           <small>good candidates for supplier pilot scoping</small>
         </div>
-        <div className="metric-card">
+        <div className="operator-summary-card">
           <span>Reverse logistics candidates</span>
           <strong>{formatNumber(summary?.reverse_logistics_candidates || 0)}</strong>
           <small>return, take-back or packaging-loop opportunities</small>
         </div>
-        <div className="metric-card">
+        <div className="operator-summary-card">
           <span>Controlled supplier reviews</span>
           <strong>{formatNumber(summary?.controlled_supplier_reviews || 0)}</strong>
           <small>contractor/compliance evidence gates</small>
@@ -320,3 +320,5 @@ export default function SupplierLoopIntelligence({
     </section>
   );
 }
+
+
