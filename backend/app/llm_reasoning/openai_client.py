@@ -82,6 +82,18 @@ def configured_model() -> str:
     return "gpt-5-mini"
 
 
+def llm_timeout_seconds() -> int:
+    """Return the configured LLM request timeout in seconds.
+
+    Keep a bounded timeout so AI features cannot hang the product workflow.
+    """
+    raw_value = _env("LLM_TIMEOUT_SECONDS", "20") or "20"
+    try:
+        timeout = int(raw_value)
+    except ValueError:
+        timeout = 20
+    return max(3, min(timeout, 60))
+
 def configured_base_url() -> str:
     if llm_provider() == "gemini":
         return _env("GEMINI_API_BASE_URL", GEMINI_API_BASE_URL) or GEMINI_API_BASE_URL
@@ -216,7 +228,7 @@ def _call_openai_structured_reasoning(context: dict[str, Any]) -> dict[str, Any]
         method="POST",
     )
     try:
-        with urllib.request.urlopen(request, timeout=45) as response:
+        with urllib.request.urlopen(request, timeout=llm_timeout_seconds()) as response:
             response_payload = json.loads(response.read().decode("utf-8"))
     except urllib.error.HTTPError as exc:
         detail = exc.read().decode("utf-8", errors="replace")
@@ -276,7 +288,7 @@ def _call_gemini_structured_reasoning(context: dict[str, Any]) -> dict[str, Any]
         method="POST",
     )
     try:
-        with urllib.request.urlopen(request, timeout=45) as response:
+        with urllib.request.urlopen(request, timeout=llm_timeout_seconds()) as response:
             response_payload = json.loads(response.read().decode("utf-8"))
     except urllib.error.HTTPError as exc:
         detail = exc.read().decode("utf-8", errors="replace")
@@ -297,3 +309,4 @@ def call_structured_reasoning(context: dict[str, Any]) -> dict[str, Any]:
     if provider != "openai":
         raise RuntimeError(f"Unsupported LLM_PROVIDER '{provider}'. Use 'openai' or 'gemini'.")
     return _call_openai_structured_reasoning(context)
+

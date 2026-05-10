@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { api } from './api/client.js';
 import ActionPlan from './components/ActionPlan.jsx';
 import AIReasoningPanel from './components/AIReasoningPanel.jsx';
+import AIRuntimeStatus from './components/AIRuntimeStatus.jsx';
 import Controls from './components/Controls.jsx';
 import CircularResolutionPlans from './components/CircularResolutionPlans.jsx';
 import CircularActionReportPanel from './components/CircularActionReportPanel.jsx';
@@ -57,6 +58,7 @@ export default function App() {
   const [supplierLoopPlans, setSupplierLoopPlans] = useState([]);
   const [supplierLoopSummary, setSupplierLoopSummary] = useState(null);
   const [supplierEmailDraft, setSupplierEmailDraft] = useState(null);
+  const [circularActionReport, setCircularActionReport] = useState(null);
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
   const [activeView, setActiveView] = useState('dashboard');
 
@@ -84,7 +86,7 @@ export default function App() {
     setStreams(loadedStreams);
     setStreamSummary(loadedStreamSummary);
 
-    const [loadedRecs, recSummary, mgmtSummary, plan, evidence, evSummary, resolutions, resSummary, aiMode, playbooks, playbookSummary, supplierLoops, supplierLoopsSummary] = await Promise.all([
+    const [loadedRecs, recSummary, mgmtSummary, plan, evidence, evSummary, resolutions, resSummary, aiMode, runtimeMode, playbooks, playbookSummary, supplierLoops, supplierLoopsSummary] = await Promise.all([
       api.listRecommendations().catch(() => []),
       api.recommendationSummary().catch(() => null),
       api.managementSummary().catch(() => null),
@@ -94,6 +96,7 @@ export default function App() {
       api.resolutionPlans().catch(() => []),
       api.resolutionSummary().catch(() => null),
       api.aiReasoningStatus().catch(() => null),
+      api.aiRuntimeStatus().catch(() => null),
       api.materialPlaybooks().catch(() => []),
       api.materialPlaybookSummary().catch(() => null),
       api.supplierLoopPlans().catch(() => []),
@@ -108,6 +111,7 @@ export default function App() {
     setResolutionPlans(resolutions);
     setResolutionSummary(resSummary);
     setAiStatus(aiMode);
+    setAiRuntimeStatus(runtimeMode);
     setMaterialPlaybooks(playbooks);
     setMaterialPlaybookSummary(playbookSummary);
     setSupplierLoopPlans(supplierLoops);
@@ -281,8 +285,8 @@ export default function App() {
           </p>
         </div>
         <div className="hero-note">
-          <strong>Milestone 8F</strong>
-          <span>Frontend circular action report panel with print-ready consultant-style output</span>
+          <strong>Milestone 9B</strong>
+          <span>AI runtime reliability, fallback visibility and agentic mode hardening</span>
         </div>
       </header>
 
@@ -295,6 +299,7 @@ export default function App() {
         busy={busy}
       />
       <SummaryCards streamSummary={streamSummary} recommendationSummary={recommendationSummary} agentSummary={agentSummary} />
+      <AIRuntimeStatus status={aiRuntimeStatus} />
       <WorkflowNav
         activeView={activeView}
         onChange={setActiveView}
@@ -417,6 +422,7 @@ export default function App() {
     </main>
   );
 }
+
 
 
 

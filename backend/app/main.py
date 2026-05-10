@@ -8,7 +8,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.database import init_db
-from app.routers import agent, ai_copilot, ai_reasoning, diagnostics, evidence, playbooks, procurement, recommendations, reports, resolutions, streams
+from app.routers import agent, ai_copilot, ai_reasoning, diagnostics, evidence, playbooks, procurement, recommendations, reports, resolutions, streams, ai_runtime
 
 
 @asynccontextmanager
@@ -46,6 +46,7 @@ app.include_router(evidence.router)
 app.include_router(resolutions.router)
 app.include_router(ai_reasoning.router)
 app.include_router(ai_copilot.router)
+app.include_router(ai_runtime.router)
 app.include_router(reports.router)
 app.include_router(procurement.router)
 app.include_router(diagnostics.router)
