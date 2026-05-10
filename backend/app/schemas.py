@@ -800,3 +800,48 @@ class AgenticRetrievalWorkflowResult(BaseModel):
     graph: dict
     insight: dict
     governance_note: str
+
+
+# Milestone 11C: retrieval and insight quality evaluation schemas
+
+class EvaluationCaseDefinition(BaseModel):
+    case_id: str
+    title: str
+    description: str
+    stream: dict
+    expectations: dict
+
+
+class EvaluationRunRequest(BaseModel):
+    case_ids: list[str] | None = None
+
+
+class EvaluationCheckResult(BaseModel):
+    check_id: str
+    status: str
+    expected: object
+    actual: object
+    detail: str
+
+
+class EvaluationCaseResult(BaseModel):
+    case_id: str
+    title: str
+    status: str
+    checks: list[EvaluationCheckResult]
+    workflow_id: str
+    matched_material_families: list[str]
+    source_knowledge_ids: list[str]
+    quality_gate_summary: dict
+    governance_note: str
+
+
+class EvaluationRunResult(BaseModel):
+    suite_name: str
+    overall_status: str
+    total_cases: int
+    status_breakdown: dict
+    failed_checks: int
+    review_checks: int
+    results: list[EvaluationCaseResult]
+    governance_note: str
