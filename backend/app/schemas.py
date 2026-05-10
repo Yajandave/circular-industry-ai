@@ -665,3 +665,35 @@ class KnowledgeRetrievalResult(BaseModel):
     retrieval_notes: list[str]
     knowledge_validation: dict
     governance_note: str
+
+
+# Milestone 10D: autonomous insight generator schemas
+
+class GeneratedInsightSection(BaseModel):
+    title: str
+    content: str
+    maturity: str
+    confidence: str
+    source_knowledge_ids: list[str]
+
+
+class AutonomousInsightResult(BaseModel):
+    stream_id: str
+    stream_name: str
+    material: str
+    source_process: str
+    input_notes_present: bool
+    notes_dependency: str
+    insight_summary: str
+    matched_material_families: list[str]
+    current_action: GeneratedInsightSection
+    near_future_action: GeneratedInsightSection
+    future_watch: GeneratedInsightSection
+    evidence_needed: list[str]
+    supplier_questions: list[str]
+    human_review_triggers: list[str]
+    do_not_claim: list[str]
+    claim_boundary: str
+    source_knowledge_ids: list[str]
+    retrieval_notes: list[str]
+    governance_note: str
