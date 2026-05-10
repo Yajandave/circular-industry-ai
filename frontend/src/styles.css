@@ -2080,3 +2080,130 @@ td p,
   }
 }
 
+
+
+/* Milestone 9C: frontend workflow guardrails */
+.workflow-tab.disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  filter: grayscale(0.25);
+}
+
+.workflow-tab.disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.workflow-prerequisite-notice {
+  margin: 1rem 0;
+  padding: 1.25rem;
+  border: 1px solid #eed9a7;
+  border-radius: 1.25rem;
+  background: #fff8e8;
+  color: #20342c;
+}
+
+.workflow-prerequisite-notice h3 {
+  margin: 0.3rem 0 0.5rem;
+}
+
+.workflow-prerequisite-notice p {
+  margin: 0;
+  line-height: 1.55;
+  color: #40554b;
+}
+
+.workflow-prerequisite-notice ul {
+  margin: 0.75rem 0 0;
+  padding-left: 1.2rem;
+}
+
+.workflow-prerequisite-notice li {
+  padding: 0.25rem 0;
+  line-height: 1.45;
+}
+
+/* AI runtime status carried into 9C UI guardrails */
+.ai-runtime-status {
+  margin: 1rem 0;
+  padding: 1rem;
+  border: 1px solid #dfe7e2;
+  border-radius: 1.25rem;
+  background: #fbfdfb;
+  box-shadow: 0 8px 24px rgba(36, 51, 44, 0.06);
+}
+
+.ai-runtime-status.ai-on {
+  background: #f1faf5;
+  border-color: #b9dcc8;
+}
+
+.ai-runtime-status.warning {
+  background: #fff8e8;
+  border-color: #eed9a7;
+}
+
+.ai-runtime-status h3 {
+  margin: 0.25rem 0 0.45rem;
+}
+
+.ai-runtime-status p {
+  margin: 0;
+  color: #40554b;
+  line-height: 1.55;
+}
+
+.ai-runtime-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.ai-runtime-grid article {
+  border: 1px solid #dfe7e2;
+  border-radius: 1rem;
+  background: #ffffff;
+  padding: 0.85rem;
+}
+
+.ai-runtime-grid span {
+  display: block;
+  color: #60716a;
+  font-weight: 800;
+  font-size: 0.78rem;
+  margin-bottom: 0.35rem;
+}
+
+.ai-runtime-grid strong {
+  display: block;
+  color: #20342c;
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.ai-runtime-note {
+  margin-top: 0.75rem;
+  padding: 0.85rem;
+  border-radius: 1rem;
+  background: #ffffff;
+  color: #2f4139;
+  line-height: 1.55;
+}
+
+.ai-runtime-note.muted-note {
+  color: #60716a;
+}
+
+@media (max-width: 900px) {
+  .ai-runtime-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .ai-runtime-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
