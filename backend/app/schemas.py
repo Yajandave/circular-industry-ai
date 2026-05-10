@@ -497,3 +497,58 @@ class AIRuntimeStatus(BaseModel):
     agentic_role: str
     guardrail_summary: str
     recommended_operator_action: str
+
+
+# Milestone 9D: product data-model foundation schemas
+
+class OrganisationRead(BaseModel):
+    id: int
+    organisation_name: str
+    sector: str
+    region: str
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class SiteRead(BaseModel):
+    id: int
+    organisation_id: int
+    site_name: str
+    site_type: str
+    country: str
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class AnalysisRunRead(BaseModel):
+    id: int
+    organisation_id: int
+    site_id: int
+    run_name: str
+    run_status: str
+    decision_source: str
+    stream_count: int
+    recommendation_count: int
+    human_review_required_count: int
+    low_risk_count: int
+    medium_risk_count: int
+    high_risk_count: int
+    blocked_count: int
+    total_estimated_annual_waste_diverted_kg: float
+    total_estimated_annual_disposal_cost_avoided: float
+    governance_note: str
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class WorkspaceContext(BaseModel):
+    organisation: OrganisationRead
+    site: SiteRead
+    latest_analysis_run: AnalysisRunRead | None = None
+    stream_summary: StreamSummary
+    recommendation_summary: RecommendationSummary
+    data_model_stage: str
+    governance_note: str

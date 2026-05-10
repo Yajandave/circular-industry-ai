@@ -131,3 +131,102 @@ def get_recommendation_summary(db: Session) -> schemas.RecommendationSummary:
             sum(rec.estimated_annual_disposal_cost_avoided for rec in recs), 2
         ),
     )
+
+
+# Milestone 9D: product data-model foundation CRUD helpers
+
+def ensure_default_workspace(db: Session) -> tuple[models.Organisation, models.Site]:
+    """Ensure a default organisation and site exist for the current Alpha workflow."""
+    organisation = db.scalars(
+        select(models.Organisation).where(models.Organisation.organisation_name == "Default Organisation")
+    ).first()
+
+    if organisation is None:
+        organisation = models.Organisation(
+            organisation_name="Default Organisation",
+            sector="manufacturing",
+            region="unspecified",
+        )
+        db.add(organisation)
+        db.commit()
+        db.refresh(organisation)
+
+    site = db.scalars(
+        select(models.Site).where(
+            models.Site.organisation_id == organisation.id,
+            models.Site.site_name == "Default Manufacturing Site",
+        )
+    ).first()
+
+    if site is None:
+        site = models.Site(
+            organisation_id=organisation.id,
+            site_name="Default Manufacturing Site",
+            site_type="manufacturing",
+            country="unspecified",
+        )
+        db.add(site)
+        db.commit()
+        db.refresh(site)
+
+    return organisation, site
+
+
+def create_analysis_run_snapshot(
+    db: Session,
+    *,
+    organisation_id: int,
+    site_id: int,
+) -> models.AnalysisRun:
+    """Create a metadata snapshot of the current loaded streams and recommendations."""
+    stream_summary = get_stream_summary(db)
+    recommendation_summary = get_recommendation_summary(db)
+
+    existing_count = db.scalar(
+        select(func.count(models.AnalysisRun.id)).where(models.AnalysisRun.site_id == site_id)
+    ) or 0
+
+    snapshot = models.AnalysisRun(
+        organisation_id=organisation_id,
+        site_id=site_id,
+        run_name=f"Analysis snapshot {existing_count + 1}",
+        run_status="snapshot_created",
+        decision_source="locked_rules_engine",
+        stream_count=stream_summary.total_streams,
+        recommendation_count=recommendation_summary.total_recommendations,
+        human_review_required_count=recommendation_summary.human_review_required,
+        low_risk_count=recommendation_summary.low_risk,
+        medium_risk_count=recommendation_summary.medium_risk,
+        high_risk_count=recommendation_summary.high_risk,
+        blocked_count=recommendation_summary.blocked,
+        total_estimated_annual_waste_diverted_kg=recommendation_summary.total_estimated_annual_waste_diverted_kg,
+        total_estimated_annual_disposal_cost_avoided=recommendation_summary.total_estimated_annual_disposal_cost_avoided,
+        governance_note=(
+            "Analysis-run metadata is a snapshot of current Alpha workflow outputs. It does not verify "
+            "legal compliance, supplier capability, carbon savings, financial savings or operational impact."
+        ),
+    )
+    db.add(snapshot)
+    db.commit()
+    db.refresh(snapshot)
+    return snapshot
+
+
+def get_latest_analysis_run(db: Session, *, site_id: int) -> models.AnalysisRun | None:
+    query = (
+        select(models.AnalysisRun)
+        .where(models.AnalysisRun.site_id == site_id)
+        .order_by(models.AnalysisRun.created_at.desc(), models.AnalysisRun.id.desc())
+        .limit(1)
+    )
+    return db.scalars(query).first()
+
+
+def get_analysis_runs(db: Session, *, site_id: int, limit: int = 50) -> list[models.AnalysisRun]:
+    query = (
+        select(models.AnalysisRun)
+        .where(models.AnalysisRun.site_id == site_id)
+        .order_by(models.AnalysisRun.created_at.desc(), models.AnalysisRun.id.desc())
+        .limit(limit)
+    )
+    return list(db.scalars(query).all())

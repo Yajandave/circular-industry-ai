@@ -64,3 +64,66 @@ class CircularRecommendation(Base):
         default=lambda: datetime.now(timezone.utc),
         nullable=False,
     )
+
+
+# Milestone 9D: product data-model foundation
+
+class Organisation(Base):
+    """Business organisation using the Circular Industry AI workflow."""
+
+    __tablename__ = "organisations"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    organisation_name: Mapped[str] = mapped_column(String(160), unique=True, index=True, nullable=False)
+    sector: Mapped[str] = mapped_column(String(120), nullable=False, default="manufacturing")
+    region: Mapped[str] = mapped_column(String(120), nullable=False, default="unspecified")
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
+
+
+class Site(Base):
+    """Operational site where material streams are reviewed."""
+
+    __tablename__ = "sites"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    organisation_id: Mapped[int] = mapped_column(Integer, index=True, nullable=False)
+    site_name: Mapped[str] = mapped_column(String(160), index=True, nullable=False)
+    site_type: Mapped[str] = mapped_column(String(120), nullable=False, default="manufacturing")
+    country: Mapped[str] = mapped_column(String(120), nullable=False, default="unspecified")
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
+
+
+class AnalysisRun(Base):
+    """Metadata snapshot of one product analysis run."""
+
+    __tablename__ = "analysis_runs"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    organisation_id: Mapped[int] = mapped_column(Integer, index=True, nullable=False)
+    site_id: Mapped[int] = mapped_column(Integer, index=True, nullable=False)
+    run_name: Mapped[str] = mapped_column(String(180), index=True, nullable=False)
+    run_status: Mapped[str] = mapped_column(String(80), index=True, nullable=False)
+    decision_source: Mapped[str] = mapped_column(String(120), nullable=False)
+    stream_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    recommendation_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    human_review_required_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    low_risk_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    medium_risk_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    high_risk_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    blocked_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    total_estimated_annual_waste_diverted_kg: Mapped[float] = mapped_column(Float, nullable=False, default=0)
+    total_estimated_annual_disposal_cost_avoided: Mapped[float] = mapped_column(Float, nullable=False, default=0)
+    governance_note: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
