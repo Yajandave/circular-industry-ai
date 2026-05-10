@@ -172,7 +172,7 @@ export default function App() {
   }
 
   async function runRecommendations() {
-    await safeRun('Rules engine, dashboard metrics and agentic portfolio outputs refreshed.', async () => {
+    await safeRun('Rules engine, dashboard metrics and operational intelligence outputs refreshed.', async () => {
       setEvidenceGapExplanation(null);
       setSupplierEmailDraft(null);
       setCircularActionReport(null);
@@ -292,8 +292,8 @@ export default function App() {
           </p>
         </div>
         <div className="hero-note">
-          <strong>Milestone 9C</strong>
-          <span>Frontend workflow guardrails, stale-output control and AI runtime visibility</span>
+          <strong>Operational intelligence layer</strong>
+          <span>Rules-locked screening, knowledge retrieval, autonomous insights and evidence-controlled action planning</span>
         </div>
       </header>
 
@@ -441,6 +441,7 @@ export default function App() {
     </main>
   );
 }
+
 
 
 

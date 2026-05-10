@@ -2,7 +2,7 @@ const TABS = [
   {
     id: 'dashboard',
     label: 'Executive dashboard',
-    helper: 'Portfolio snapshot, strategy mix and opportunity profile',
+    helper: 'Site-level screening, strategy mix and controlled opportunity profile',
     requiresData: false,
     requiresRecommendations: false,
   },
@@ -139,3 +139,4 @@ export default function WorkflowNav({
     </section>
   );
 }
+

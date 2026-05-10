@@ -40,13 +40,13 @@ export default function PortfolioSnapshot({ dashboardData, agentSummary }) {
     .slice(0, 4);
 
   return (
-    <section className="portfolio-snapshot" aria-label="Portfolio-ready summary snapshot">
+    <section className="portfolio-snapshot" aria-label="Operational intelligence summary snapshot">
       <div className="section-heading compact-heading">
         <div>
-          <h2>Portfolio snapshot</h2>
-          <p>A recruiter-ready summary of what the system has screened, prioritised and controlled.</p>
+          <h2>Operational intelligence snapshot</h2>
+          <p>A site-level summary of screened material flows, review gates, value exposure and evidence-controlled circular opportunities.</p>
         </div>
-        <span>Screenshot ready</span>
+        <span>Management briefing ready</span>
       </div>
 
       <div className="snapshot-grid">
@@ -60,9 +60,9 @@ export default function PortfolioSnapshot({ dashboardData, agentSummary }) {
         <article className="snapshot-narrative">
           <h3>Decision-support position</h3>
           <p>
-            Circular Industry AI combines deterministic circular economy rules, risk scoring, evidence maturity checks and
-            controlled agentic review packs. The user interface is designed to make the workflow easy to use while keeping
-            the recommendation source auditable.
+            Circular Industry AI combines deterministic circular economy rules, risk scoring, evidence maturity checks, knowledge retrieval and
+            controlled autonomous insight generation. The interface is designed to support operational screening, supplier engagement,
+            review gates and evidence-led circular action planning while keeping the decision source auditable.
           </p>
           <p className="snapshot-warning">
             The system supports opportunity screening. It does not verify savings, environmental benefit, supplier compliance,
@@ -70,9 +70,10 @@ export default function PortfolioSnapshot({ dashboardData, agentSummary }) {
           </p>
         </article>
 
-        <SnapshotList title="Priority validation candidates" items={quickWins} valueKey="estimated_annual_waste_diverted_kg" valueFormatter={formatKg} />
-        <SnapshotList title="Controlled review examples" items={controlledReview} valueKey="estimated_annual_disposal_cost_avoided" valueFormatter={formatCurrency} />
+        <SnapshotList title="Priority validation opportunities" items={quickWins} valueKey="estimated_annual_waste_diverted_kg" valueFormatter={formatKg} />
+        <SnapshotList title="Controlled review priorities" items={controlledReview} valueKey="estimated_annual_disposal_cost_avoided" valueFormatter={formatCurrency} />
       </div>
     </section>
   );
 }
+
