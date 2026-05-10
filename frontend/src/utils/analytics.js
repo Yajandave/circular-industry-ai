@@ -59,6 +59,179 @@ export function classifyPriority(rec) {
   return 'evidence improvement';
 }
 
+function orderRiskRows(cells) {
+  const riskOrder = ['blocked', 'high', 'medium', 'low', 'unknown'];
+  const risks = new Set(cells.map((cell) => cell.risk));
+  return riskOrder
+    .filter((risk) => risks.has(risk))
+    .map((risk) => ({ key: risk, label: risk.replaceAll('_', ' ') }));
+}
+
+function classifyOpportunity(rec) {
+  if (rec.priority_band === 'quick win') return 'quick_win';
+  if (rec.priority_band === 'opportunity development') return 'developing';
+  if (rec.priority_band === 'evidence improvement') return 'evidence_uplift';
+  return 'controlled_review';
+}
+
+function buildRiskOpportunityMatrix(enriched) {
+  const columns = [
+    { key: 'quick_win', label: 'Quick win' },
+    { key: 'developing', label: 'Developing' },
+    { key: 'evidence_uplift', label: 'Evidence uplift' },
+    { key: 'controlled_review', label: 'Controlled review' },
+  ];
+
+  const cellMap = enriched.reduce((acc, rec) => {
+    const risk = rec.risk_level || 'unknown';
+    const opportunity = classifyOpportunity(rec);
+    const key = `${risk}::${opportunity}`;
+    if (!acc[key]) {
+      acc[key] = { risk, opportunity, count: 0, exposure: 0 };
+    }
+    acc[key].count += 1;
+    acc[key].exposure += normaliseNumber(rec.estimated_annual_disposal_cost_avoided);
+    return acc;
+  }, {});
+
+  const cells = Object.values(cellMap);
+  return {
+    rows: orderRiskRows(cells),
+    columns,
+    cells,
+  };
+}
+
+function buildParetoRows(items, labelSelector, valueSelector, limit = 8) {
+  const rows = items
+    .map((item) => ({
+      label: labelSelector(item),
+      value: normaliseNumber(valueSelector(item)),
+    }))
+    .filter((row) => row.value > 0)
+    .sort((a, b) => b.value - a.value)
+    .slice(0, limit);
+
+  const total = rows.reduce((sum, row) => sum + row.value, 0);
+  let cumulative = 0;
+
+  return rows.map((row) => {
+    const share = total > 0 ? (row.value / total) * 100 : 0;
+    cumulative += share;
+    return {
+      ...row,
+      share,
+      cumulativeShare: cumulative,
+    };
+  });
+}
+
+function buildEvidenceMaturity(enriched) {
+  const rows = [
+    { label: 'Strong evidence', value: enriched.filter((rec) => normaliseNumber(rec.evidence_quality_score) >= 85).length, tone: '#1f5b43' },
+    { label: 'Moderate evidence', value: enriched.filter((rec) => normaliseNumber(rec.evidence_quality_score) >= 70 && normaliseNumber(rec.evidence_quality_score) < 85).length, tone: '#7ea58d' },
+    { label: 'Evidence uplift needed', value: enriched.filter((rec) => normaliseNumber(rec.evidence_quality_score) < 70).length, tone: '#d39a2f' },
+  ];
+  return rows.filter((row) => row.value > 0);
+}
+
+function buildClaimReadiness(enriched) {
+  const ready = enriched.filter((rec) => !rec.human_review_required && !['high', 'blocked'].includes(rec.risk_level) && normaliseNumber(rec.evidence_quality_score) >= 85).length;
+  const controlledReview = enriched.filter((rec) => rec.human_review_required).length;
+  const evidenceUplift = enriched.filter((rec) => !rec.human_review_required && normaliseNumber(rec.evidence_quality_score) < 70).length;
+  const riskBlocked = enriched.filter((rec) => ['high', 'blocked'].includes(rec.risk_level)).length;
+  const developing = Math.max(0, enriched.length - ready - controlledReview - evidenceUplift - riskBlocked);
+
+  return [
+    { label: 'Ready for internal validation', value: ready },
+    { label: 'Developing opportunity', value: developing },
+    { label: 'Evidence uplift first', value: evidenceUplift },
+    { label: 'Controlled review gate', value: controlledReview },
+    { label: 'High / blocked risk', value: riskBlocked },
+  ].filter((row) => row.value > 0);
+}
+
+function hasRecordedSupplier(rec) {
+  const supplier = rec.stream?.supplier;
+  if (!supplier) return false;
+  return !['not recorded', 'unknown', 'n/a', 'none'].includes(String(supplier).trim().toLowerCase());
+}
+
+function buildSupplierLoopProfile(enriched) {
+  const supplierCandidates = enriched.filter((rec) => hasRecordedSupplier(rec) && !rec.human_review_required && rec.priority_score >= 68).length;
+  const controlledSupplierReviews = enriched.filter((rec) => hasRecordedSupplier(rec) && rec.human_review_required).length;
+  const supplierDataGaps = enriched.filter((rec) => !hasRecordedSupplier(rec)).length;
+  const lowReadinessSupplierRecords = Math.max(0, enriched.length - supplierCandidates - controlledSupplierReviews - supplierDataGaps);
+
+  return [
+    { label: 'Supplier-loop candidates', value: supplierCandidates },
+    { label: 'Controlled supplier reviews', value: controlledSupplierReviews },
+    { label: 'Supplier data gaps', value: supplierDataGaps },
+    { label: 'Lower-readiness supplier records', value: lowReadinessSupplierRecords },
+  ].filter((row) => row.value > 0);
+}
+
+function scenarioText(rec) {
+  if (rec.human_review_required || ['high', 'blocked'].includes(rec.risk_level)) {
+    return 'Controlled-review scenario: resolve risk, compliance and evidence gates before action.';
+  }
+  if (normaliseNumber(rec.evidence_quality_score) < 70) {
+    return 'Evidence-uplift scenario: collect missing records before claim or implementation.';
+  }
+  if (rec.priority_band === 'quick win') {
+    return 'Pilot scenario: suitable for validation planning, with claim wording still controlled.';
+  }
+  return 'Opportunity-development scenario: useful candidate for operational and supplier feasibility checks.';
+}
+
+function buildScenarioItems(enriched) {
+  return [...enriched]
+    .sort((a, b) => {
+      const costDelta = normaliseNumber(b.estimated_annual_disposal_cost_avoided) - normaliseNumber(a.estimated_annual_disposal_cost_avoided);
+      if (costDelta !== 0) return costDelta;
+      return b.priority_score - a.priority_score;
+    })
+    .slice(0, 6)
+    .map((rec) => ({
+      stream_id: rec.stream_id,
+      stream_name: rec.stream?.stream_name || rec.recommended_circular_action || 'Unnamed stream',
+      priority_score: rec.priority_score,
+      scenario: scenarioText(rec),
+    }));
+}
+
+function buildVisualAnalyticsData(enriched, streams) {
+  const materialPareto = buildParetoRows(
+    streams,
+    (stream) => stream.material || 'unknown material',
+    (stream) => normaliseNumber(stream.monthly_quantity_kg) * 12,
+    8,
+  );
+  const costPareto = buildParetoRows(
+    enriched,
+    (rec) => `${rec.stream_id} · ${rec.stream?.stream_name || rec.stream?.material || 'stream'}`,
+    (rec) => rec.estimated_annual_disposal_cost_avoided,
+    8,
+  );
+
+  return {
+    totalRecords: enriched.length,
+    matrix: buildRiskOpportunityMatrix(enriched),
+    materialPareto,
+    costPareto,
+    evidenceMaturity: buildEvidenceMaturity(enriched),
+    claimReadiness: buildClaimReadiness(enriched),
+    supplierLoopProfile: buildSupplierLoopProfile(enriched),
+    scenarioItems: buildScenarioItems(enriched),
+    controlSummary: {
+      humanReview: enriched.filter((rec) => rec.human_review_required).length,
+      lowEvidence: enriched.filter((rec) => normaliseNumber(rec.evidence_quality_score) < 70).length,
+      supplierDataGaps: enriched.filter((rec) => !hasRecordedSupplier(rec)).length,
+      boundary: 'rules_locked_screening',
+    },
+  };
+}
+
 export function buildDashboardData(recommendations, streams) {
   const enriched = enrichRecommendations(recommendations, streams).map((rec) => ({
     ...rec,
@@ -107,6 +280,7 @@ export function buildDashboardData(recommendations, streams) {
     controlledReview,
     totalCostExposure: sumBy(enriched, (rec) => rec.estimated_annual_disposal_cost_avoided),
     totalDiversionPotential: sumBy(enriched, (rec) => rec.estimated_annual_waste_diverted_kg),
+    visualAnalytics: buildVisualAnalyticsData(enriched, streams),
   };
 }
 
