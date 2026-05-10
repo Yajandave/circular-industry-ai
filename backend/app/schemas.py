@@ -624,3 +624,44 @@ class DataQualityReport(BaseModel):
     top_cost_streams: list[dict]
     issues: list[DataQualityIssue]
     governance_note: str
+
+
+# Milestone 10C: knowledge retrieval engine schemas
+
+class KnowledgeValidationSummary(BaseModel):
+    valid: bool
+    counts: dict
+    source_count: int
+    issues: list[str]
+    governance_note: str
+
+
+class KnowledgeStreamInput(BaseModel):
+    stream_id: str | None = None
+    stream_name: str
+    material: str
+    source_process: str
+    monthly_quantity_kg: float | None = None
+    current_route: str | None = None
+    disposal_cost_per_month: float | None = None
+    contamination_risk: str | None = None
+    hazardous_flag: str | None = None
+    department: str | None = None
+    supplier: str | None = None
+    supplier_takeback_available: str | None = None
+    recycled_content_available: str | None = None
+    notes: str | None = None
+
+
+class KnowledgeRetrievalResult(BaseModel):
+    stream_id: str
+    stream_name: str
+    material: str
+    source_process: str
+    matched_materials: list[dict]
+    matched_routes: list[dict]
+    evidence_rules: list[dict]
+    future_horizon: list[dict]
+    retrieval_notes: list[str]
+    knowledge_validation: dict
+    governance_note: str
