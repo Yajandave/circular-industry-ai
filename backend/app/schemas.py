@@ -764,3 +764,39 @@ class KnowledgeGraphResult(BaseModel):
     retrieval_notes: list[str]
     knowledge_validation: dict
     governance_note: str
+
+
+# Milestone 11B: agentic retrieval workflow schemas
+
+class AgenticRetrievalStep(BaseModel):
+    step_id: str
+    name: str
+    status: str
+    summary: str
+    inputs: list[str]
+    outputs: list[str]
+    governance_note: str = ""
+
+
+class AgenticRetrievalQualityGate(BaseModel):
+    gate: str
+    status: str
+    detail: str
+
+
+class AgenticRetrievalWorkflowResult(BaseModel):
+    workflow_id: str
+    workflow_name: str
+    workflow_mode: str
+    stream_id: str
+    created_at: str
+    save_insight: bool
+    saved_insight_id: int | None = None
+    stream_context: dict
+    steps: list[AgenticRetrievalStep]
+    quality_gates: list[AgenticRetrievalQualityGate]
+    retrieval_summary: dict
+    relationship_summary: dict
+    graph: dict
+    insight: dict
+    governance_note: str
