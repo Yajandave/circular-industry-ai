@@ -153,3 +153,42 @@ class AuditEvent(Base):
         default=lambda: datetime.now(timezone.utc),
         nullable=False,
     )
+
+
+# Milestone 10E: generated insight history and traceability
+
+class GeneratedInsight(Base):
+    """Persisted autonomous insight record for audit and history."""
+
+    __tablename__ = "generated_insights"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    stream_id: Mapped[str] = mapped_column(String(30), index=True, nullable=False)
+    stream_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    material: Mapped[str] = mapped_column(String(80), index=True, nullable=False)
+    source_process: Mapped[str] = mapped_column(String(160), nullable=False)
+    analysis_run_id: Mapped[int | None] = mapped_column(Integer, index=True, nullable=True)
+
+    input_snapshot_json: Mapped[str] = mapped_column(Text, nullable=False)
+    matched_material_families_json: Mapped[str] = mapped_column(Text, nullable=False)
+    current_action_json: Mapped[str] = mapped_column(Text, nullable=False)
+    near_future_action_json: Mapped[str] = mapped_column(Text, nullable=False)
+    future_watch_json: Mapped[str] = mapped_column(Text, nullable=False)
+    evidence_needed_json: Mapped[str] = mapped_column(Text, nullable=False)
+    supplier_questions_json: Mapped[str] = mapped_column(Text, nullable=False)
+    human_review_triggers_json: Mapped[str] = mapped_column(Text, nullable=False)
+    do_not_claim_json: Mapped[str] = mapped_column(Text, nullable=False)
+    source_knowledge_ids_json: Mapped[str] = mapped_column(Text, nullable=False)
+    retrieval_notes_json: Mapped[str] = mapped_column(Text, nullable=False)
+
+    input_notes_present: Mapped[bool] = mapped_column(nullable=False, default=False)
+    notes_dependency: Mapped[str] = mapped_column(String(80), index=True, nullable=False)
+    insight_summary: Mapped[str] = mapped_column(Text, nullable=False)
+    claim_boundary: Mapped[str] = mapped_column(Text, nullable=False)
+    generation_mode: Mapped[str] = mapped_column(String(80), index=True, nullable=False, default="deterministic")
+    governance_note: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )

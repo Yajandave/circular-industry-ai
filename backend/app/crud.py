@@ -340,3 +340,129 @@ def get_audit_summary(db: Session) -> schemas.AuditSummary:
             "supplier capability, carbon savings, financial savings or completed operational impact."
         ),
     )
+
+
+# Milestone 10E: generated insight history CRUD helpers
+
+def _json_dump(value) -> str:
+    return json.dumps(value if value is not None else {}, ensure_ascii=False)
+
+
+def _json_load(value: str, fallback):
+    try:
+        return json.loads(value or "")
+    except (json.JSONDecodeError, TypeError):
+        return fallback
+
+
+def _generated_insight_read(row: models.GeneratedInsight) -> schemas.GeneratedInsightRead:
+    return schemas.GeneratedInsightRead(
+        id=row.id,
+        stream_id=row.stream_id,
+        stream_name=row.stream_name,
+        material=row.material,
+        source_process=row.source_process,
+        analysis_run_id=row.analysis_run_id,
+        input_snapshot=_json_load(row.input_snapshot_json, {}),
+        input_notes_present=row.input_notes_present,
+        notes_dependency=row.notes_dependency,
+        insight_summary=row.insight_summary,
+        matched_material_families=_json_load(row.matched_material_families_json, []),
+        current_action=_json_load(row.current_action_json, {}),
+        near_future_action=_json_load(row.near_future_action_json, {}),
+        future_watch=_json_load(row.future_watch_json, {}),
+        evidence_needed=_json_load(row.evidence_needed_json, []),
+        supplier_questions=_json_load(row.supplier_questions_json, []),
+        human_review_triggers=_json_load(row.human_review_triggers_json, []),
+        do_not_claim=_json_load(row.do_not_claim_json, []),
+        claim_boundary=row.claim_boundary,
+        source_knowledge_ids=_json_load(row.source_knowledge_ids_json, []),
+        retrieval_notes=_json_load(row.retrieval_notes_json, []),
+        generation_mode=row.generation_mode,
+        governance_note=row.governance_note,
+        created_at=row.created_at,
+    )
+
+
+def create_generated_insight(
+    db: Session,
+    *,
+    insight: dict,
+    input_snapshot: dict,
+    analysis_run_id: int | None = None,
+    generation_mode: str = "deterministic",
+) -> schemas.GeneratedInsightRead:
+    """Persist one generated autonomous insight."""
+
+    row = models.GeneratedInsight(
+        stream_id=insight.get("stream_id") or "unknown",
+        stream_name=insight.get("stream_name") or "",
+        material=insight.get("material") or "",
+        source_process=insight.get("source_process") or "",
+        analysis_run_id=analysis_run_id,
+        input_snapshot_json=_json_dump(input_snapshot),
+        matched_material_families_json=_json_dump(insight.get("matched_material_families", [])),
+        current_action_json=_json_dump(insight.get("current_action", {})),
+        near_future_action_json=_json_dump(insight.get("near_future_action", {})),
+        future_watch_json=_json_dump(insight.get("future_watch", {})),
+        evidence_needed_json=_json_dump(insight.get("evidence_needed", [])),
+        supplier_questions_json=_json_dump(insight.get("supplier_questions", [])),
+        human_review_triggers_json=_json_dump(insight.get("human_review_triggers", [])),
+        do_not_claim_json=_json_dump(insight.get("do_not_claim", [])),
+        source_knowledge_ids_json=_json_dump(insight.get("source_knowledge_ids", [])),
+        retrieval_notes_json=_json_dump(insight.get("retrieval_notes", [])),
+        input_notes_present=bool(insight.get("input_notes_present", False)),
+        notes_dependency=insight.get("notes_dependency", "unknown"),
+        insight_summary=insight.get("insight_summary", ""),
+        claim_boundary=insight.get("claim_boundary", ""),
+        generation_mode=generation_mode,
+        governance_note=insight.get("governance_note", ""),
+    )
+
+    db.add(row)
+    db.commit()
+    db.refresh(row)
+    return _generated_insight_read(row)
+
+
+def get_generated_insights(
+    db: Session,
+    *,
+    limit: int = 100,
+) -> list[schemas.GeneratedInsightRead]:
+    query = (
+        select(models.GeneratedInsight)
+        .order_by(models.GeneratedInsight.created_at.desc(), models.GeneratedInsight.id.desc())
+        .limit(limit)
+    )
+    return [_generated_insight_read(row) for row in db.scalars(query).all()]
+
+
+def get_generated_insights_by_stream_id(
+    db: Session,
+    *,
+    stream_id: str,
+    limit: int = 50,
+) -> list[schemas.GeneratedInsightRead]:
+    query = (
+        select(models.GeneratedInsight)
+        .where(models.GeneratedInsight.stream_id == stream_id)
+        .order_by(models.GeneratedInsight.created_at.desc(), models.GeneratedInsight.id.desc())
+        .limit(limit)
+    )
+    return [_generated_insight_read(row) for row in db.scalars(query).all()]
+
+
+def get_latest_generated_insight_by_stream_id(
+    db: Session,
+    *,
+    stream_id: str,
+) -> schemas.GeneratedInsightRead | None:
+    query = (
+        select(models.GeneratedInsight)
+        .where(models.GeneratedInsight.stream_id == stream_id)
+        .order_by(models.GeneratedInsight.created_at.desc(), models.GeneratedInsight.id.desc())
+        .limit(1)
+    )
+    row = db.scalars(query).first()
+    return _generated_insight_read(row) if row else None
