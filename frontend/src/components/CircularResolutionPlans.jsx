@@ -137,25 +137,25 @@ export default function CircularResolutionPlans({ plans = [], summary = null }) 
           <p>Specific circular economy intervention plans generated from locked rules, playbooks, evidence gates and claim controls.</p>
         </div>
         <div className="export-actions">
-          <ExportButton href="http://127.0.0.1:8000/api/export/resolution-plans.csv">Export resolution plans CSV</ExportButton>
+          <ExportButton href="http://127.0.0.1:8000/api/export/resolution-plans.csv">Export CSV</ExportButton>
         </div>
       </div>
 
-      <div className="resolution-summary-grid">
-        <div className="metric-card">
-          <span>Resolution plans</span>
+      <div className="operator-summary-grid">
+        <div className="operator-summary-card">
+          <span>Resolution register</span>
           <strong>{formatNumber(summary?.total_plans || plans.length)}</strong>
-          <small>generated from locked recommendations</small>
+          <small>screened intervention records</small>
         </div>
-        <div className="metric-card">
+        <div className="operator-summary-card">
           <span>Controlled reviews</span>
           <strong>{formatNumber(summary?.controlled_review_plans || 0)}</strong>
           <small>risk, hazard or evidence gates</small>
         </div>
-        <div className="metric-card">
-          <span>Not claim-ready</span>
+        <div className="operator-summary-card">
+          <span>Claim-control cases</span>
           <strong>{formatNumber(summary?.claim_blocked_or_not_ready || 0)}</strong>
-          <small>blocked until evidence improves</small>
+          <small>not claim-ready until evidence improves</small>
         </div>
       </div>
 
@@ -211,3 +211,5 @@ export default function CircularResolutionPlans({ plans = [], summary = null }) 
     </section>
   );
 }
+
+

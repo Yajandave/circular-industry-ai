@@ -23,8 +23,8 @@ export default function SiteAICopilotPanel({ summary, onRefresh, busy }) {
       <section className="ai-copilot-panel empty">
         <div className="section-heading">
           <div>
-            <span className="eyebrow">Milestone 8B</span>
-            <h2>Site-wide AI Copilot</h2>
+            
+            <h2>Site-wide AI copilot</h2>
             <p>
               Generate a dashboard-level briefing from locked recommendations, risk controls, evidence gaps and
               supplier-loop intelligence.
@@ -50,8 +50,8 @@ export default function SiteAICopilotPanel({ summary, onRefresh, busy }) {
     <section className="ai-copilot-panel">
       <div className="section-heading">
         <div>
-          <span className="eyebrow">Milestone 8B</span>
-          <h2>Site-wide AI Copilot</h2>
+          
+          <h2>Site-wide AI copilot</h2>
           <p>
             A controlled briefing layer for portfolio-level risk, circular opportunity, evidence gaps, supplier actions
             and next steps.
@@ -128,3 +128,4 @@ export default function SiteAICopilotPanel({ summary, onRefresh, busy }) {
     </section>
   );
 }
+

@@ -98,22 +98,22 @@ export default function MaterialPlaybooks({ playbooks = [], summary = null }) {
           </p>
         </div>
         <div className="export-actions">
-          <ExportButton href={`${API_BASE_URL}/api/export/material-playbooks.csv`}>Export playbooks CSV</ExportButton>
+          <ExportButton href={`${API_BASE_URL}/api/export/material-playbooks.csv`}>Export CSV</ExportButton>
         </div>
       </div>
 
-      <div className="resolution-summary-grid">
-        <div className="metric-card">
-          <span>Playbooks</span>
+      <div className="operator-summary-grid">
+        <div className="operator-summary-card">
+          <span>Material knowledge modules</span>
           <strong>{formatNumber(summary?.total_playbooks || playbooks.length)}</strong>
-          <small>material-family knowledge modules</small>
+          <small>playbooks for circular screening</small>
         </div>
-        <div className="metric-card">
+        <div className="operator-summary-card">
           <span>Technical cycles</span>
           <strong>{formatNumber(summary?.technical_cycle_count || 0)}</strong>
           <small>metals, plastics, packaging, WEEE and minerals</small>
         </div>
-        <div className="metric-card">
+        <div className="operator-summary-card">
           <span>Biological / water / energy</span>
           <strong>{formatNumber(summary?.biological_or_water_energy_count || 0)}</strong>
           <small>organic residues, water and heat streams</small>
@@ -133,3 +133,5 @@ export default function MaterialPlaybooks({ playbooks = [], summary = null }) {
     </section>
   );
 }
+
+
