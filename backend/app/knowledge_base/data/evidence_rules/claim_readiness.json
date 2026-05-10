@@ -1,0 +1,55 @@
+{
+  "knowledge_id": "evidence_claim_readiness_v1",
+  "knowledge_type": "evidence_rule",
+  "rule_name": "claim_readiness_ladder",
+  "evidence_ladder": [
+    "idea",
+    "screening_estimate",
+    "supplier_indicated",
+    "pilot_validated",
+    "measured",
+    "verified",
+    "audited"
+  ],
+  "minimum_for_internal_screening": [
+    "raw quantity data",
+    "material family",
+    "current route"
+  ],
+  "minimum_for_supplier_action": [
+    "supplier name",
+    "stream description",
+    "quantity estimate",
+    "contamination/hazard status"
+  ],
+  "minimum_for_verified_diversion_claim": [
+    "movement/collection records",
+    "accepted destination",
+    "measured weight",
+    "time period"
+  ],
+  "minimum_for_verified_cost_claim": [
+    "baseline cost record",
+    "post-action cost record",
+    "finance or invoice evidence",
+    "same boundary/time period"
+  ],
+  "minimum_for_carbon_claim": [
+    "defined boundary",
+    "accepted emissions method",
+    "emissions factors/source",
+    "activity data",
+    "calculation record"
+  ],
+  "unsafe_claims": [
+    "verified savings from estimates only",
+    "carbon benefit without method",
+    "supplier take-back without supplier evidence",
+    "closed-loop without destination proof"
+  ],
+  "default_claim_boundary": "Screening outputs are not verified claims.",
+  "source_references": [
+    "iso_59040_v1",
+    "emf_principles_v1"
+  ]
+}

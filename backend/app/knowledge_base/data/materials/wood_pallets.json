@@ -1,0 +1,76 @@
+{
+  "knowledge_id": "material_wood_pallets_v1",
+  "knowledge_type": "material_family",
+  "material_family": "wood_pallets",
+  "aliases": [
+    "wood",
+    "timber",
+    "pallet",
+    "pallets",
+    "crates"
+  ],
+  "common_streams": [
+    "damaged pallets",
+    "timber packaging",
+    "wooden crates",
+    "painted timber"
+  ],
+  "typical_processes": [
+    "warehouse operations",
+    "inbound logistics",
+    "dispatch",
+    "construction fit-out"
+  ],
+  "available_now_routes": [
+    "repair and reuse",
+    "pallet pooling",
+    "supplier return",
+    "wood recycling",
+    "specialist recovery for contaminated wood"
+  ],
+  "pilot_ready_routes": [
+    "pallet pooling contract",
+    "returnable crate trial"
+  ],
+  "future_watch_routes": [
+    {
+      "route": "material passport or traceability for reusable packaging assets",
+      "maturity": "emerging",
+      "allowed_use": "future_watch_only",
+      "claim_boundary": "Future watch only until asset tracking and supplier participation are in place."
+    }
+  ],
+  "blocked_by": [
+    "paint or chemical contamination",
+    "broken beyond repair",
+    "unknown treatment status",
+    "mixed construction contamination"
+  ],
+  "evidence_required": [
+    "condition grade",
+    "contamination/treatment status",
+    "repair feasibility",
+    "supplier/pallet pool acceptance",
+    "collection records"
+  ],
+  "supplier_questions": [
+    "Can pallets be returned or repaired?",
+    "Do you offer pallet pooling?",
+    "What condition and contamination limits apply?",
+    "Can packaging design be reduced?"
+  ],
+  "human_review_triggers": [
+    "treated/painted wood",
+    "chemical contamination",
+    "unknown waste classification"
+  ],
+  "unsafe_claims": [
+    "reuse claim without actual reuse records",
+    "recycling claim without destination evidence"
+  ],
+  "default_claim_boundary": "Screening only until condition, treatment and reuse/recovery evidence exists.",
+  "source_references": [
+    "emf_principles_v1",
+    "govuk_waste_classification_v1"
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "knowledge_id": "future_digital_product_passports_v1",
+  "knowledge_type": "future_horizon",
+  "topic": "digital product passports and circularity data exchange",
+  "related_material_families": [
+    "cross_material",
+    "packaging",
+    "electronics",
+    "batteries"
+  ],
+  "maturity": "emerging",
+  "confidence": "medium_high",
+  "current_use": "future_horizon_and_supplier_data_structure",
+  "when_to_suggest": [
+    "supplier circularity data gaps",
+    "product or component traceability needs",
+    "recycled content and material composition evidence requests"
+  ],
+  "evidence_needed_to_upgrade": [
+    "supplier data format",
+    "product/material identifiers",
+    "data-sharing process",
+    "verification approach"
+  ],
+  "do_not_claim": [
+    "DPP compliance",
+    "verified circularity",
+    "traceability achieved"
+  ],
+  "claim_boundary": "Use as future data-readiness direction until supplier/product data exchange is operational.",
+  "source_references": [
+    "iso_59040_v1",
+    "eu_circular_economy_strategy_v1"
+  ]
+}

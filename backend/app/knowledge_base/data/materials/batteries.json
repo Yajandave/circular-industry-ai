@@ -1,0 +1,81 @@
+{
+  "knowledge_id": "material_batteries_v1",
+  "knowledge_type": "material_family",
+  "material_family": "batteries",
+  "aliases": [
+    "battery",
+    "batteries",
+    "lithium",
+    "lithium-ion",
+    "battery packs",
+    "cells"
+  ],
+  "common_streams": [
+    "damaged lithium battery packs",
+    "spent batteries",
+    "battery modules",
+    "portable batteries"
+  ],
+  "typical_processes": [
+    "maintenance",
+    "electronics assembly",
+    "product returns",
+    "energy storage",
+    "quality rejects"
+  ],
+  "available_now_routes": [
+    "specialist battery recycling",
+    "producer/supplier take-back review",
+    "hazardous/safety handling review"
+  ],
+  "pilot_ready_routes": [
+    "supplier take-back and traceability process",
+    "segregated battery storage and collection trial"
+  ],
+  "future_watch_routes": [
+    {
+      "route": "critical raw material recovery and advanced battery recycling",
+      "maturity": "emerging",
+      "allowed_use": "future_watch_only",
+      "claim_boundary": "Do not claim material recovery without authorised recycler and documented treatment outcome."
+    }
+  ],
+  "blocked_by": [
+    "damage/swelling/fire risk",
+    "unknown chemistry",
+    "mixed battery types",
+    "incorrect storage",
+    "missing authorised route"
+  ],
+  "evidence_required": [
+    "battery chemistry",
+    "condition/safety status",
+    "storage method",
+    "authorised recycler acceptance",
+    "movement/consignment records"
+  ],
+  "supplier_questions": [
+    "Can you accept batteries or packs back?",
+    "What chemistry, condition and packaging rules apply?",
+    "Can you provide treatment/recovery documentation?",
+    "What safety requirements apply before collection?"
+  ],
+  "human_review_triggers": [
+    "damaged batteries",
+    "unknown chemistry",
+    "fire risk",
+    "hazardous status",
+    "transport/storage uncertainty"
+  ],
+  "unsafe_claims": [
+    "safe handling without competent review",
+    "recycling achieved without authorised recycler evidence",
+    "critical material recovery without treatment evidence"
+  ],
+  "default_claim_boundary": "Human/EHS review required. No circular or recovery claim until authorised handling and treatment evidence exists.",
+  "source_references": [
+    "govuk_hazardous_waste_v1",
+    "govuk_waste_classification_v1",
+    "eu_circular_economy_strategy_v1"
+  ]
+}

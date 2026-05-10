@@ -1,0 +1,42 @@
+{
+  "knowledge_id": "route_closed_loop_recycling_v1",
+  "knowledge_type": "circular_route",
+  "route": "closed_loop_recycling",
+  "route_strength": "high_when_evidenced",
+  "best_for": [
+    "clean segregated metals",
+    "mono-polymer plastics",
+    "specific manufacturing scrap with stable composition"
+  ],
+  "not_suitable_for": [
+    "unknown hazardous waste",
+    "mixed contaminated streams",
+    "materials without acceptance route"
+  ],
+  "required_data": [
+    "material family",
+    "grade or composition",
+    "quantity",
+    "contamination risk",
+    "current route"
+  ],
+  "required_evidence": [
+    "acceptance criteria",
+    "collection records",
+    "end-destination evidence",
+    "segregation method",
+    "supplier/recycler confirmation"
+  ],
+  "implementation_steps": [
+    "segregate material",
+    "confirm specification",
+    "engage recycler/supplier",
+    "run controlled trial",
+    "track weights and outcomes"
+  ],
+  "claim_boundary": "Closed-loop recycling is only claim-ready after route, acceptance and actual movement evidence are available.",
+  "source_references": [
+    "emf_principles_v1",
+    "ceon_v1"
+  ]
+}

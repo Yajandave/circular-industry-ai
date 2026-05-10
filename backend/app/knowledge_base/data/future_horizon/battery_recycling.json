@@ -1,0 +1,33 @@
+{
+  "knowledge_id": "future_battery_recycling_v1",
+  "knowledge_type": "future_horizon",
+  "topic": "battery recycling and critical raw material recovery",
+  "related_material_families": [
+    "batteries"
+  ],
+  "maturity": "emerging",
+  "confidence": "medium",
+  "current_use": "future_watch_with_current_specialist_recovery_controls",
+  "when_to_suggest": [
+    "battery streams",
+    "damaged packs",
+    "critical material recovery interest"
+  ],
+  "evidence_needed_to_upgrade": [
+    "battery chemistry",
+    "safe storage condition",
+    "authorised recycler",
+    "treatment outcome",
+    "critical material recovery evidence"
+  ],
+  "do_not_claim": [
+    "critical raw material recovery",
+    "safe treatment",
+    "verified recycling"
+  ],
+  "claim_boundary": "Human/EHS review first. Recovery claims require authorised treatment evidence.",
+  "source_references": [
+    "govuk_hazardous_waste_v1",
+    "eu_circular_economy_strategy_v1"
+  ]
+}

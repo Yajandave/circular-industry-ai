@@ -1,0 +1,36 @@
+{
+  "knowledge_id": "route_compliant_disposal_v1",
+  "knowledge_type": "circular_route",
+  "route": "compliant_disposal",
+  "route_strength": "control_route_not_circular_route",
+  "best_for": [
+    "blocked hazardous or unknown streams",
+    "materials without safe recovery route",
+    "compliance-sensitive waste"
+  ],
+  "not_suitable_for": [
+    "clean reusable/recyclable materials without assessing higher-value routes"
+  ],
+  "required_data": [
+    "waste classification",
+    "hazard status",
+    "authorised route",
+    "documentation"
+  ],
+  "required_evidence": [
+    "waste transfer/consignment documentation",
+    "carrier/contractor details",
+    "classification evidence"
+  ],
+  "implementation_steps": [
+    "confirm classification",
+    "use authorised handler",
+    "document transfer",
+    "review future prevention options"
+  ],
+  "claim_boundary": "Compliant disposal is a control action, not a circular economy achievement.",
+  "source_references": [
+    "govuk_waste_classification_v1",
+    "govuk_hazardous_waste_v1"
+  ]
+}

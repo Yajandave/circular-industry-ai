@@ -1,0 +1,75 @@
+{
+  "knowledge_id": "material_cardboard_packaging_v1",
+  "knowledge_type": "material_family",
+  "material_family": "cardboard_packaging",
+  "aliases": [
+    "cardboard",
+    "corrugated cardboard",
+    "cartons",
+    "paper packaging",
+    "cores",
+    "packaging waste"
+  ],
+  "common_streams": [
+    "corrugated cardboard cartons",
+    "damaged cardboard cores",
+    "mixed packaging waste"
+  ],
+  "typical_processes": [
+    "warehouse inbound logistics",
+    "dispatch",
+    "packaging",
+    "assembly support"
+  ],
+  "available_now_routes": [
+    "segregated recycling",
+    "supplier packaging take-back",
+    "returnable packaging review",
+    "packaging reduction"
+  ],
+  "pilot_ready_routes": [
+    "returnable transit packaging loop",
+    "supplier packaging redesign trial"
+  ],
+  "future_watch_routes": [
+    {
+      "route": "digital product/passport-linked packaging circularity data",
+      "maturity": "emerging",
+      "allowed_use": "future_watch_only",
+      "claim_boundary": "Use only as a future data-exchange route until supplier data systems exist."
+    }
+  ],
+  "blocked_by": [
+    "food/chemical contamination",
+    "wet material",
+    "mixed packaging contamination",
+    "laminated or composite structure"
+  ],
+  "evidence_required": [
+    "segregation method",
+    "contamination check",
+    "collection weights",
+    "supplier packaging specification",
+    "recycler/take-back acceptance criteria"
+  ],
+  "supplier_questions": [
+    "Can packaging be reduced or redesigned?",
+    "Can you provide returnable packaging?",
+    "Can you confirm recycled content and recyclability evidence?",
+    "Can you accept packaging back?"
+  ],
+  "human_review_triggers": [
+    "chemical contamination",
+    "wet or mouldy material",
+    "composite packaging uncertainty"
+  ],
+  "unsafe_claims": [
+    "verified recycling without collection/recycler evidence",
+    "recycled-content claim without supplier documentation"
+  ],
+  "default_claim_boundary": "Screening only until collection, supplier and recycler evidence exists.",
+  "source_references": [
+    "emf_principles_v1",
+    "iso_59040_v1"
+  ]
+}
