@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { api } from './api/client.js';
 import ActionPlan from './components/ActionPlan.jsx';
 import AIReasoningPanel from './components/AIReasoningPanel.jsx';
+import AgenticIntelligencePanel from './components/AgenticIntelligencePanel.jsx';
 import AIRuntimeStatus from './components/AIRuntimeStatus.jsx';
 import Controls from './components/Controls.jsx';
 import CircularResolutionPlans from './components/CircularResolutionPlans.jsx';
@@ -55,6 +56,9 @@ export default function App() {
   const [aiRuntimeStatus, setAiRuntimeStatus] = useState(null);
   const [aiReasoning, setAiReasoning] = useState(null);
   const [siteCopilotSummary, setSiteCopilotSummary] = useState(null);
+  const [agenticWorkflow, setAgenticWorkflow] = useState(null);
+  const [agenticInsightHistory, setAgenticInsightHistory] = useState([]);
+  const [evaluationSummary, setEvaluationSummary] = useState(null);
   const [materialPlaybooks, setMaterialPlaybooks] = useState([]);
   const [materialPlaybookSummary, setMaterialPlaybookSummary] = useState(null);
   const [supplierLoopPlans, setSupplierLoopPlans] = useState([]);
@@ -139,6 +143,9 @@ export default function App() {
       setReviewPack(null);
       setAiReasoning(null);
       setSiteCopilotSummary(null);
+      setAgenticWorkflow(null);
+      setAgenticInsightHistory([]);
+      setEvaluationSummary(null);
       setFilters(DEFAULT_FILTERS);
       setActiveView('dashboard');
       await refreshData();
@@ -165,6 +172,9 @@ export default function App() {
       setReviewPack(null);
       setAiReasoning(null);
       setSiteCopilotSummary(null);
+      setAgenticWorkflow(null);
+      setAgenticInsightHistory([]);
+      setEvaluationSummary(null);
       setFilters(DEFAULT_FILTERS);
       setActiveView('dashboard');
       await refreshData();
@@ -178,7 +188,11 @@ export default function App() {
       setCircularActionReport(null);
       setAiReasoning(null);
       setSiteCopilotSummary(null);
-      setReviewPack(null);      await api.runRecommendations();
+      setAgenticWorkflow(null);
+      setAgenticInsightHistory([]);
+      setEvaluationSummary(null);
+      setReviewPack(null);
+      await api.runRecommendations();
       await api.runResolutions().catch(() => null);
       await api.runSupplierLoops().catch(() => null);
       await refreshData();
@@ -221,6 +235,40 @@ export default function App() {
       const result = await api.siteAICopilotSummary();
       setSiteCopilotSummary(result);
       setActiveView('ai-copilot');
+    });
+  }
+
+  async function runAgenticWorkflow(streamId) {
+    await safeRun(`Agentic retrieval workflow generated for ${streamId}.`, async () => {
+      const result = await api.agenticRetrievalForStream(streamId);
+      setAgenticWorkflow(result);
+      setActiveView('agentic-intelligence');
+    });
+  }
+
+  async function runAndSaveAgenticWorkflow(streamId) {
+    await safeRun(`Agentic workflow generated and saved for ${streamId}.`, async () => {
+      const result = await api.agenticRetrievalRunAndSaveForStream(streamId);
+      setAgenticWorkflow(result);
+      const history = await api.insightHistory(streamId).catch(() => []);
+      setAgenticInsightHistory(history);
+      setActiveView('agentic-intelligence');
+    });
+  }
+
+  async function loadAgenticInsightHistory(streamId) {
+    await safeRun(`Insight history loaded for ${streamId}.`, async () => {
+      const result = await api.insightHistory(streamId);
+      setAgenticInsightHistory(result);
+      setActiveView('agentic-intelligence');
+    });
+  }
+
+  async function runEvaluationSummary() {
+    await safeRun('Retrieval and insight evaluation summary refreshed.', async () => {
+      const result = await api.evaluationSummary();
+      setEvaluationSummary(result);
+      setActiveView('agentic-intelligence');
     });
   }
   async function generateAiReasoning(streamId) {
@@ -349,6 +397,22 @@ export default function App() {
       )}
 
 
+
+      {activeView === 'agentic-intelligence' && (
+        <section className="workflow-panel agentic-intelligence-view">
+          <AgenticIntelligencePanel
+            streams={streams}
+            workflow={agenticWorkflow}
+            history={agenticInsightHistory}
+            evaluation={evaluationSummary}
+            onRunWorkflow={runAgenticWorkflow}
+            onRunAndSaveWorkflow={runAndSaveAgenticWorkflow}
+            onLoadHistory={loadAgenticInsightHistory}
+            onRunEvaluation={runEvaluationSummary}
+            busy={busy}
+          />
+        </section>
+      )}
       {activeView === 'ai-copilot' && (
         <section className="workflow-panel ai-copilot-view" id="site-ai-copilot-panel">
           <SiteAICopilotPanel
@@ -441,6 +505,8 @@ export default function App() {
     </main>
   );
 }
+
+
 
 
 

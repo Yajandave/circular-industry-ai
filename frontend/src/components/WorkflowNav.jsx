@@ -14,6 +14,13 @@ const TABS = [
     requiresRecommendations: false,
   },
   {
+    id: 'agentic-intelligence',
+    label: 'Agentic intelligence',
+    helper: 'Workflow steps, graph path, saved insights and evaluation checks',
+    requiresData: true,
+    requiresRecommendations: false,
+  },
+  {
     id: 'ai-copilot',
     label: 'AI Copilot',
     helper: 'Site-wide briefing for risk, evidence gaps, supplier actions and next steps',
@@ -139,4 +146,5 @@ export default function WorkflowNav({
     </section>
   );
 }
+
 
