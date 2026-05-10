@@ -1,0 +1,32 @@
+{
+  "knowledge_id": "evidence_hazardous_review_v1",
+  "knowledge_type": "evidence_rule",
+  "rule_name": "hazardous_unknown_review",
+  "triggers": [
+    "hazardous_flag=true",
+    "hazardous_flag=unknown",
+    "chemical contamination",
+    "battery damage",
+    "unknown residue",
+    "missing SDS"
+  ],
+  "required_evidence": [
+    "waste classification",
+    "SDS where relevant",
+    "competent review",
+    "authorised contractor acceptance",
+    "transfer/consignment records"
+  ],
+  "required_action": "Escalate to human/EHS/waste-specialist review before circular routing.",
+  "unsafe_claims": [
+    "safe reuse",
+    "safe recycling",
+    "legal compliance",
+    "non-hazardous status"
+  ],
+  "default_claim_boundary": "No circular routing or compliance claim until hazardous status and authorised route are confirmed.",
+  "source_references": [
+    "govuk_hazardous_waste_v1",
+    "govuk_waste_classification_v1"
+  ]
+}

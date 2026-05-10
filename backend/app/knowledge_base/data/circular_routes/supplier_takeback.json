@@ -1,0 +1,42 @@
+{
+  "knowledge_id": "route_supplier_takeback_v1",
+  "knowledge_type": "circular_route",
+  "route": "supplier_takeback",
+  "route_strength": "medium_to_high_when_supplier_confirmed",
+  "best_for": [
+    "packaging",
+    "clean production scrap",
+    "returnable transit materials",
+    "supplier-controlled materials"
+  ],
+  "not_suitable_for": [
+    "hazardous unknown waste",
+    "contaminated streams without supplier authorisation",
+    "low-volume streams without logistics route"
+  ],
+  "required_data": [
+    "supplier",
+    "material type",
+    "volume",
+    "contamination status",
+    "contract status"
+  ],
+  "required_evidence": [
+    "supplier acceptance criteria",
+    "contract clause or written confirmation",
+    "collection record",
+    "destination/treatment evidence"
+  ],
+  "implementation_steps": [
+    "identify supplier owner",
+    "request acceptance criteria",
+    "confirm logistics",
+    "run take-back pilot",
+    "track quantities and cost"
+  ],
+  "claim_boundary": "Supplier take-back can be described as under review until actual collection and destination records exist.",
+  "source_references": [
+    "iso_59040_v1",
+    "emf_principles_v1"
+  ]
+}

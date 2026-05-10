@@ -1,0 +1,84 @@
+{
+  "knowledge_id": "material_chemicals_solvents_v1",
+  "knowledge_type": "material_family",
+  "material_family": "chemicals_solvents",
+  "aliases": [
+    "chemical",
+    "solvent",
+    "acetone",
+    "oil",
+    "adhesive",
+    "paint",
+    "residue"
+  ],
+  "common_streams": [
+    "spent acetone solvent",
+    "expired adhesive cartridges",
+    "paint residue",
+    "used oils",
+    "contaminated containers"
+  ],
+  "typical_processes": [
+    "cleaning",
+    "coating",
+    "maintenance",
+    "chemical storage",
+    "laboratory operations"
+  ],
+  "available_now_routes": [
+    "hazardous waste review",
+    "specialist recovery or treatment",
+    "solvent recovery assessment",
+    "supplier return where authorised"
+  ],
+  "pilot_ready_routes": [
+    "solvent recovery trial with qualified contractor",
+    "chemical inventory reduction programme"
+  ],
+  "future_watch_routes": [
+    {
+      "route": "closed-loop solvent recovery service expansion",
+      "maturity": "pilot_ready",
+      "allowed_use": "pilot_exploration",
+      "claim_boundary": "Do not claim recovery until authorised contractor acceptance and movement records exist."
+    }
+  ],
+  "blocked_by": [
+    "unknown composition",
+    "hazardous classification",
+    "mixed chemical residues",
+    "missing SDS",
+    "unauthorised handler"
+  ],
+  "evidence_required": [
+    "SDS",
+    "waste classification",
+    "container labelling",
+    "contractor authorisation",
+    "consignment/transfer documentation",
+    "composition/contamination assessment"
+  ],
+  "supplier_questions": [
+    "Can the supplier accept unused or expired material back?",
+    "What documentation and packaging rules apply?",
+    "Is a licensed recovery route available?",
+    "What substitution/reduction options exist?"
+  ],
+  "human_review_triggers": [
+    "hazardous true or unknown",
+    "missing SDS",
+    "unknown composition",
+    "contaminated container",
+    "regulated storage/transport"
+  ],
+  "unsafe_claims": [
+    "safe reuse without classification",
+    "recovery route confirmed without authorised contractor evidence",
+    "compliance claim without documentation"
+  ],
+  "default_claim_boundary": "Human/EHS review required before circular routing. Screening only until classification, SDS and authorised route evidence exist.",
+  "source_references": [
+    "govuk_hazardous_waste_v1",
+    "govuk_waste_classification_v1"
+  ]
+}

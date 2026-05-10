@@ -1,0 +1,42 @@
+{
+  "knowledge_id": "route_specialist_recovery_v1",
+  "knowledge_type": "circular_route",
+  "route": "specialist_recovery",
+  "route_strength": "medium_when_authorised",
+  "best_for": [
+    "contaminated materials",
+    "complex composites",
+    "chemicals/solvents",
+    "batteries",
+    "WEEE"
+  ],
+  "not_suitable_for": [
+    "materials without authorised contractor route",
+    "unknown hazardous materials without classification"
+  ],
+  "required_data": [
+    "hazard status",
+    "composition",
+    "contamination profile",
+    "current handler",
+    "quantity"
+  ],
+  "required_evidence": [
+    "waste classification",
+    "authorised contractor evidence",
+    "acceptance criteria",
+    "consignment/transfer records"
+  ],
+  "implementation_steps": [
+    "classify material",
+    "engage authorised contractor",
+    "confirm acceptance",
+    "document movement",
+    "review recovery outcome"
+  ],
+  "claim_boundary": "Specialist recovery is not a circular claim unless the recovery outcome is documented and evidenced.",
+  "source_references": [
+    "govuk_waste_classification_v1",
+    "govuk_hazardous_waste_v1"
+  ]
+}

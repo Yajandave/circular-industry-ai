@@ -1,0 +1,40 @@
+{
+  "knowledge_id": "route_process_redesign_v1",
+  "knowledge_type": "circular_route",
+  "route": "process_redesign",
+  "route_strength": "high_for_prevention",
+  "best_for": [
+    "recurring scrap",
+    "avoidable rejects",
+    "material overuse",
+    "packaging excess"
+  ],
+  "not_suitable_for": [
+    "one-off waste with no process pattern",
+    "legally sensitive waste needing compliance action first"
+  ],
+  "required_data": [
+    "source process",
+    "quantity trend",
+    "reject cause",
+    "operator/process owner",
+    "cost exposure"
+  ],
+  "required_evidence": [
+    "baseline quantity",
+    "root-cause assessment",
+    "trial result",
+    "post-change quantity measurement"
+  ],
+  "implementation_steps": [
+    "identify root cause",
+    "set baseline",
+    "pilot change",
+    "measure reduction",
+    "standardise process"
+  ],
+  "claim_boundary": "Waste prevention or cost reduction is only verified after measured before/after operational evidence.",
+  "source_references": [
+    "emf_principles_v1"
+  ]
+}

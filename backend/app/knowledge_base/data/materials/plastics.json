@@ -1,0 +1,98 @@
+{
+  "knowledge_id": "material_plastics_v1",
+  "knowledge_type": "material_family",
+  "material_family": "plastics",
+  "aliases": [
+    "plastic",
+    "polymer",
+    "PET",
+    "HDPE",
+    "LDPE",
+    "ABS",
+    "mixed polymer",
+    "shrink wrap",
+    "purge material"
+  ],
+  "common_streams": [
+    "injection moulding rejects",
+    "PET sheet trim",
+    "LDPE shrink wrap",
+    "HDPE purge material",
+    "ABS casing rejects",
+    "contaminated plastic drums"
+  ],
+  "typical_processes": [
+    "injection moulding",
+    "extrusion",
+    "packaging",
+    "warehouse inbound logistics",
+    "assembly",
+    "chemical storage"
+  ],
+  "available_now_routes": [
+    "polymer segregation",
+    "supplier take-back review",
+    "specialist mechanical recycling",
+    "process redesign to reduce scrap",
+    "returnable packaging review"
+  ],
+  "pilot_ready_routes": [
+    "mono-polymer supplier return loop",
+    "segregated purge recovery trial",
+    "returnable packaging trial"
+  ],
+  "future_watch_routes": [
+    {
+      "route": "advanced or chemical recycling for difficult plastic streams",
+      "maturity": "emerging",
+      "allowed_use": "future_watch_only",
+      "claim_boundary": "Do not present as commercially confirmed without recycler capability, acceptance and operational evidence."
+    },
+    {
+      "route": "enzymatic recycling for PET-rich streams",
+      "maturity": "research_stage",
+      "allowed_use": "future_watch_only",
+      "claim_boundary": "Do not recommend as an operational route unless local commercial capability and polymer suitability are evidenced."
+    }
+  ],
+  "blocked_by": [
+    "mixed polymer types",
+    "food/chemical contamination",
+    "dark colours/additives",
+    "unknown drum residues",
+    "poor segregation",
+    "hazardous contents"
+  ],
+  "evidence_required": [
+    "polymer type",
+    "contamination assessment",
+    "colour/additive information where relevant",
+    "segregation method",
+    "supplier/recycler acceptance criteria",
+    "collection records"
+  ],
+  "supplier_questions": [
+    "Can you accept this polymer stream back?",
+    "What polymer, contamination and colour/additive limits apply?",
+    "Can you supply recycled-content alternatives?",
+    "What evidence can you provide for end destination?"
+  ],
+  "human_review_triggers": [
+    "chemical contamination",
+    "unknown drum contents",
+    "hazardous flag true or unknown",
+    "high contamination"
+  ],
+  "unsafe_claims": [
+    "verified recycling without recycler acceptance",
+    "closed-loop claim without end-destination evidence",
+    "carbon saving without accepted method"
+  ],
+  "default_claim_boundary": "Screening only until polymer identity, contamination status and recycler/supplier acceptance are confirmed.",
+  "source_references": [
+    "ceon_v1",
+    "emf_principles_v1",
+    "govuk_hazardous_waste_v1",
+    "eu_circular_economy_strategy_v1"
+  ]
+}

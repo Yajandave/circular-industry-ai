@@ -1,0 +1,89 @@
+{
+  "knowledge_id": "material_metals_v1",
+  "knowledge_type": "material_family",
+  "material_family": "metals",
+  "aliases": [
+    "metal",
+    "steel",
+    "stainless steel",
+    "aluminium",
+    "aluminum",
+    "copper",
+    "zinc",
+    "ferrous",
+    "non-ferrous",
+    "swarf",
+    "offcuts"
+  ],
+  "common_streams": [
+    "machining offcuts",
+    "sheet offcuts",
+    "mixed ferrous swarf",
+    "copper cable offcuts",
+    "rejected castings",
+    "paint-contaminated brackets"
+  ],
+  "typical_processes": [
+    "CNC machining",
+    "metal fabrication",
+    "assembly",
+    "cutting",
+    "casting",
+    "maintenance"
+  ],
+  "available_now_routes": [
+    "segregated scrap recycling",
+    "closed-loop recycler review",
+    "supplier or recycler take-back",
+    "grade-specific recovery"
+  ],
+  "pilot_ready_routes": [
+    "closed-loop material return with grade control",
+    "coolant-contaminated swarf dewatering and recovery trial"
+  ],
+  "future_watch_routes": [
+    {
+      "route": "digital traceability for alloy/material passports",
+      "maturity": "emerging",
+      "allowed_use": "future_watch_only",
+      "claim_boundary": "Do not claim product/material passport traceability unless data exchange and supplier participation are confirmed."
+    }
+  ],
+  "blocked_by": [
+    "mixed alloy grades",
+    "oil or coolant contamination",
+    "paint/coating contamination",
+    "unknown hazardous coating",
+    "poor segregation"
+  ],
+  "evidence_required": [
+    "alloy or grade",
+    "segregation method",
+    "contamination check",
+    "monthly weight records",
+    "recycler/supplier acceptance criteria",
+    "movement/collection records"
+  ],
+  "supplier_questions": [
+    "Can you accept segregated metal offcuts or swarf?",
+    "What alloy, grade, contamination and minimum-volume limits apply?",
+    "Can recovered material be returned into a closed-loop route?"
+  ],
+  "human_review_triggers": [
+    "unknown coating",
+    "hazardous contamination",
+    "coolant/oil contamination",
+    "unclear contractor route"
+  ],
+  "unsafe_claims": [
+    "verified carbon saving without accepted method",
+    "closed-loop recycling without recycler confirmation",
+    "legal compliance without waste-classification evidence"
+  ],
+  "default_claim_boundary": "Screening only until grade, contamination, acceptance criteria and movement records are available.",
+  "source_references": [
+    "ceon_v1",
+    "emf_principles_v1",
+    "govuk_waste_classification_v1"
+  ]
+}

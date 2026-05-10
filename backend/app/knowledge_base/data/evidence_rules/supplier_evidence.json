@@ -1,0 +1,27 @@
+{
+  "knowledge_id": "evidence_supplier_evidence_v1",
+  "knowledge_type": "evidence_rule",
+  "rule_name": "supplier_evidence_requirements",
+  "supplier_documents": [
+    "acceptance criteria",
+    "recycled-content declaration/certification where relevant",
+    "take-back process description",
+    "minimum volume/logistics requirements",
+    "destination/treatment evidence"
+  ],
+  "commercial_checks": [
+    "cost impact",
+    "minimum order/collection quantity",
+    "contract clause",
+    "collection frequency",
+    "responsibility split"
+  ],
+  "unsafe_claims": [
+    "supplier route confirmed without written confirmation",
+    "recycled content without supporting documentation"
+  ],
+  "default_claim_boundary": "Supplier information is unverified until documented and operationally tested.",
+  "source_references": [
+    "iso_59040_v1"
+  ]
+}

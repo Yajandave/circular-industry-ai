@@ -1,0 +1,95 @@
+{
+  "registry_id": "circular_industry_ai_source_registry_v1",
+  "last_curated": "2026-05-10",
+  "governance_note": "Sources are used to structure internal knowledge. They do not verify site-specific compliance, supplier acceptance or operational impact.",
+  "sources": [
+    {
+      "source_id": "ceon_v1",
+      "source_name": "Circular Economy Ontology Network",
+      "source_url": "https://liusemweb.github.io/CEON/",
+      "source_type": "ontology",
+      "source_category": "circular_economy_vocabulary",
+      "licence": "MIT-style project licence referenced by CEON documentation",
+      "use_in_product": "Vocabulary and knowledge-structure reference for actor, process, resource, material and circular value network concepts.",
+      "allowed_use": "knowledge_structure_reference",
+      "claim_boundary": "Use for concept alignment only. Do not treat as operational evidence."
+    },
+    {
+      "source_id": "olca_schema_v1",
+      "source_name": "openLCA schema",
+      "source_url": "https://github.com/GreenDelta/olca-schema",
+      "source_type": "schema",
+      "source_category": "lca_data_structure",
+      "licence": "CC0 1.0 Universal Public Domain Dedication",
+      "use_in_product": "Future compatibility reference for flows, processes, exchanges, sources and units.",
+      "allowed_use": "future_lca_structure_reference",
+      "claim_boundary": "Use for future environmental data modelling only. Do not calculate verified impacts without LCA data and method."
+    },
+    {
+      "source_id": "open_repair_data_v1",
+      "source_name": "Open Repair Alliance open repair data",
+      "source_url": "https://openrepair.org/open-data/downloads/",
+      "source_type": "open_dataset",
+      "source_category": "repair_outcome_learning",
+      "licence": "CC BY-SA 4.0",
+      "use_in_product": "Future outcome-learning reference for repairability and product life extension patterns.",
+      "allowed_use": "future_outcome_learning_reference",
+      "claim_boundary": "Use for repair/reuse learning only. Do not treat as industrial waste-stream compliance data."
+    },
+    {
+      "source_id": "iso_59040_v1",
+      "source_name": "ISO 59040:2025 Product Circularity Data Sheet",
+      "source_url": "https://www.iso.org/standard/82339.html",
+      "source_type": "international_standard",
+      "source_category": "product_circularity_data",
+      "licence": "Proprietary ISO standard summary referenced only",
+      "use_in_product": "Supplier/product circularity data structure and evidence-exchange inspiration.",
+      "allowed_use": "framework_alignment_reference",
+      "claim_boundary": "Use high-level public summary only unless the standard is legitimately accessed."
+    },
+    {
+      "source_id": "emf_principles_v1",
+      "source_name": "Ellen MacArthur Foundation circular economy principles",
+      "source_url": "https://www.ellenmacarthurfoundation.org/circular-economy-principles",
+      "source_type": "circular_economy_framework",
+      "source_category": "circular_economy_principles",
+      "licence": "Public webpage reference",
+      "use_in_product": "Core circular economy framing: eliminate waste and pollution, circulate products/materials, regenerate nature.",
+      "allowed_use": "strategic_principle_reference",
+      "claim_boundary": "Use for strategic framing, not as proof that a site-specific action is circular or verified."
+    },
+    {
+      "source_id": "govuk_waste_classification_v1",
+      "source_name": "GOV.UK classify waste guidance",
+      "source_url": "https://www.gov.uk/guidance/classify-different-types-of-waste-your-legal-responsibilities",
+      "source_type": "government_guidance",
+      "source_category": "waste_compliance_guardrail",
+      "licence": "Open Government Licence unless otherwise stated",
+      "use_in_product": "Waste-classification and duty-of-care caution logic.",
+      "allowed_use": "governance_guardrail",
+      "claim_boundary": "Use to trigger caution and review. Do not provide legal advice or final waste classification."
+    },
+    {
+      "source_id": "govuk_hazardous_waste_v1",
+      "source_name": "GOV.UK hazardous waste guidance",
+      "source_url": "https://www.gov.uk/dispose-hazardous-waste",
+      "source_type": "government_guidance",
+      "source_category": "hazardous_waste_guardrail",
+      "licence": "Open Government Licence unless otherwise stated",
+      "use_in_product": "Hazardous/unknown status review triggers and documentation caution.",
+      "allowed_use": "governance_guardrail",
+      "claim_boundary": "Use to trigger competent review. Do not confirm legal compliance."
+    },
+    {
+      "source_id": "eu_circular_economy_strategy_v1",
+      "source_name": "European Commission Circular Economy strategy pages",
+      "source_url": "https://environment.ec.europa.eu/strategy/circular-economy_en",
+      "source_type": "policy_reference",
+      "source_category": "future_policy_horizon",
+      "licence": "Public EU webpage reference",
+      "use_in_product": "Policy horizon scanning for product circularity, ecodesign and future regulatory direction.",
+      "allowed_use": "future_horizon_reference",
+      "claim_boundary": "Use for horizon scanning, not as site-specific compliance confirmation."
+    }
+  ]
+}

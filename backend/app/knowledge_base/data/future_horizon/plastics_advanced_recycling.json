@@ -1,0 +1,33 @@
+{
+  "knowledge_id": "future_plastics_advanced_recycling_v1",
+  "knowledge_type": "future_horizon",
+  "topic": "advanced recycling for difficult plastic streams",
+  "related_material_families": [
+    "plastics"
+  ],
+  "maturity": "emerging",
+  "confidence": "medium",
+  "current_use": "future_watch_only",
+  "when_to_suggest": [
+    "mixed or contaminated plastics where prevention, segregation and mechanical recycling are limited",
+    "PET-rich streams needing future monitoring",
+    "supplier/recycler innovation review"
+  ],
+  "evidence_needed_to_upgrade": [
+    "local recycler capability",
+    "polymer suitability",
+    "acceptance criteria",
+    "commercial price",
+    "documented treatment outcome"
+  ],
+  "do_not_claim": [
+    "commercial availability",
+    "closed-loop outcome",
+    "carbon benefit",
+    "verified diversion"
+  ],
+  "claim_boundary": "Future watch only until recycler capability, acceptance and operational evidence exist.",
+  "source_references": [
+    "eu_circular_economy_strategy_v1"
+  ]
+}
