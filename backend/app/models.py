@@ -127,3 +127,29 @@ class AnalysisRun(Base):
         default=lambda: datetime.now(timezone.utc),
         nullable=False,
     )
+
+
+# Milestone 9E: audit and traceability layer
+
+class AuditEvent(Base):
+    """Traceable product workflow event."""
+
+    __tablename__ = "audit_events"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    event_type: Mapped[str] = mapped_column(String(120), index=True, nullable=False)
+    entity_type: Mapped[str] = mapped_column(String(120), index=True, nullable=False)
+    entity_id: Mapped[str] = mapped_column(String(160), index=True, nullable=True)
+    actor_type: Mapped[str] = mapped_column(String(80), index=True, nullable=False, default="system")
+    actor_id: Mapped[str] = mapped_column(String(160), nullable=True)
+    source: Mapped[str] = mapped_column(String(120), index=True, nullable=False)
+    action: Mapped[str] = mapped_column(String(200), nullable=False)
+    summary: Mapped[str] = mapped_column(Text, nullable=False)
+    decision_source: Mapped[str] = mapped_column(String(120), index=True, nullable=False)
+    claim_boundary: Mapped[str] = mapped_column(Text, nullable=False)
+    metadata_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
