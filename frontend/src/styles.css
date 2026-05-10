@@ -3254,3 +3254,41 @@ button,
     text-align: left;
   }
 }
+
+/* Milestone 12A donut scale refinement */
+
+.donut-layout {
+  grid-template-columns: 190px minmax(0, 1fr);
+  gap: 22px;
+}
+
+.donut-chart {
+  width: 190px;
+  height: 190px;
+  margin: 0 auto;
+}
+
+.donut-chart > div {
+  width: 112px;
+  height: 112px;
+}
+
+.donut-chart strong {
+  font-size: 1.5rem;
+}
+
+@media (max-width: 760px) {
+  .donut-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .donut-chart {
+    width: 170px;
+    height: 170px;
+  }
+
+  .donut-chart > div {
+    width: 102px;
+    height: 102px;
+  }
+}
