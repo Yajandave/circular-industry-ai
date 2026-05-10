@@ -37,6 +37,7 @@ export const api = {
   resolutionSummary: () => request('/api/resolutions/summary'),
   resolutionPlan: (streamId) => request(`/api/resolutions/${encodeURIComponent(streamId)}`),
   aiReasoningStatus: () => request('/api/ai-reasoning/status'),
+  aiRuntimeStatus: () => request('/api/ai-runtime/status'),
   generateAiReasoning: (streamId) => request(`/api/ai-reasoning/${encodeURIComponent(streamId)}`, { method: 'POST' }),
   materialPlaybooks: () => request('/api/playbooks'),
   materialPlaybookSummary: () => request('/api/playbooks/summary'),
@@ -49,6 +50,7 @@ export const api = {
 };
 
 export { API_BASE_URL };
+
 
 
 
