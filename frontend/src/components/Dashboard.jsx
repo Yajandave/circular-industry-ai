@@ -1,4 +1,5 @@
 import { formatCurrency, formatKg } from '../utils/formatters.js';
+import VisualAnalyticsDashboard from './VisualAnalyticsDashboard.jsx';
 
 function BarList({ rows, labelKey, valueKey, formatter = (value) => value, emptyText = 'No data yet.' }) {
   const max = Math.max(...rows.map((row) => Number(row[valueKey]) || 0), 0);
@@ -56,6 +57,7 @@ export default function Dashboard({ dashboardData, agentSummary, onSelectReviewP
     controlledReview,
     totalCostExposure,
     totalDiversionPotential,
+    visualAnalytics,
   } = dashboardData;
 
   return (
@@ -99,6 +101,11 @@ export default function Dashboard({ dashboardData, agentSummary, onSelectReviewP
         </article>
       )}
 
+      <VisualAnalyticsDashboard
+        analytics={visualAnalytics}
+        onSelectReviewPack={onSelectReviewPack}
+      />
+
       <div className="dashboard-grid">
         <article className="chart-card wide">
           <h3>Recommended strategy mix</h3>
@@ -141,4 +148,5 @@ export default function Dashboard({ dashboardData, agentSummary, onSelectReviewP
     </section>
   );
 }
+
 
