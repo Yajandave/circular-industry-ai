@@ -18,9 +18,9 @@ export default function SummaryCards({ streamSummary, recommendationSummary, age
       helper: 'High-risk or evidence-sensitive streams',
     },
     {
-      label: 'Estimated annual cost exposure',
+      label: 'Screened annual cost exposure',
       value: formatCurrency(recommendationSummary?.total_estimated_annual_disposal_cost_avoided ?? streamSummary?.total_annual_disposal_cost),
-      helper: 'Screening estimate, not verified savings',
+      helper: 'Annualised disposal-cost exposure. Not verified savings.',
     },
   ];
 
