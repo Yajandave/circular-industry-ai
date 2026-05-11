@@ -1,27 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { api } from './api/client.js';
-import ActionPlan from './components/ActionPlan.jsx';
-import AIReasoningPanel from './components/AIReasoningPanel.jsx';
-import AgenticIntelligencePanel from './components/AgenticIntelligencePanel.jsx';
-import AIRuntimeStatus from './components/AIRuntimeStatus.jsx';
-import Controls from './components/Controls.jsx';
-import CircularResolutionPlans from './components/CircularResolutionPlans.jsx';
-import CircularActionReportPanel from './components/CircularActionReportPanel.jsx';
-import Dashboard from './components/Dashboard.jsx';
+import CircularCoreWorkspace from './components/CircularCoreWorkspace.jsx';
 import DomainWorkspace from './components/DomainWorkspace.jsx';
-import EvidenceRegister from './components/EvidenceRegister.jsx';
-import FiltersPanel from './components/FiltersPanel.jsx';
-import MaterialPlaybooks from './components/MaterialPlaybooks.jsx';
-import PortfolioSnapshot from './components/PortfolioSnapshot.jsx';
-import RecommendationsTable from './components/RecommendationsTable.jsx';
-import ReviewPackPanel from './components/ReviewPackPanel.jsx';
 import StatusPanel from './components/StatusPanel.jsx';
-import SiteAICopilotPanel from './components/SiteAICopilotPanel.jsx';
-import StreamsTable from './components/StreamsTable.jsx';
-import SummaryCards from './components/SummaryCards.jsx';
-import SupplierLoopIntelligence from './components/SupplierLoopIntelligence.jsx';
-import WorkflowNav from './components/WorkflowNav.jsx';
-import WorkflowPrerequisiteNotice from './components/WorkflowPrerequisiteNotice.jsx';
+import { DOMAIN_WORKSPACES, getDomainWorkspaceMeta } from './config/domainWorkspaces.js';
 import { applyRecommendationFilters, buildDashboardData, sortRecommendations } from './utils/analytics.js';
 
 const DEFAULT_FILTERS = {
@@ -35,52 +17,6 @@ const DEFAULT_FILTERS = {
   minEvidence: 0,
   sortBy: 'priority',
 };
-
-
-const DOMAIN_WORKSPACES = [
-  {
-    id: 'circular-core',
-    label: 'Circular Core',
-    eyebrow: 'Main system',
-    helper: 'Industrial material-flow, waste/resource stream and circular procurement decision support.',
-  },
-  {
-    id: 'esg',
-    label: 'ESG',
-    eyebrow: 'Supporting intelligence',
-    helper: 'ESG score, evidence and sustainability performance context.',
-  },
-  {
-    id: 'ghg-net-zero',
-    label: 'GHG & Net Zero',
-    eyebrow: 'Supporting intelligence',
-    helper: 'Scope 1, 2 and 3 emissions, reduction opportunities and net zero readiness.',
-  },
-  {
-    id: 'eia',
-    label: 'EIA',
-    eyebrow: 'Environmental Impact Assessment',
-    helper: 'Environmental Impact Assessment issue, receptor, mitigation, residual-effect and evidence-gap intelligence.',
-  },
-  {
-    id: 'greenwashing-claims',
-    label: 'Greenwashing / Claims',
-    eyebrow: 'Evidence control',
-    helper: 'Sustainability claim screening, evidence sufficiency and safer wording routes.',
-  },
-  {
-    id: 'supplier-procurement',
-    label: 'Supplier & Procurement',
-    eyebrow: 'Supporting intelligence',
-    helper: 'Supplier sustainability, circular procurement and evidence-request intelligence.',
-  },
-  {
-    id: 'data-profiler',
-    label: 'Data Profiler',
-    eyebrow: 'Fallback profiler',
-    helper: 'Generic CSV profiling, column intelligence and recommended analysis route detection.',
-  },
-];
 
 export default function App() {
   const [backendStatus, setBackendStatus] = useState('unknown');
@@ -140,7 +76,22 @@ export default function App() {
     setStreams(loadedStreams);
     setStreamSummary(loadedStreamSummary);
 
-    const [loadedRecs, recSummary, mgmtSummary, plan, evidence, evSummary, resolutions, resSummary, aiMode, runtimeMode, playbooks, playbookSummary, supplierLoops, supplierLoopsSummary] = await Promise.all([
+    const [
+      loadedRecs,
+      recSummary,
+      mgmtSummary,
+      plan,
+      evidence,
+      evSummary,
+      resolutions,
+      resSummary,
+      aiMode,
+      runtimeMode,
+      playbooks,
+      playbookSummary,
+      supplierLoops,
+      supplierLoopsSummary,
+    ] = await Promise.all([
       api.listRecommendations().catch(() => []),
       api.recommendationSummary().catch(() => null),
       api.managementSummary().catch(() => null),
@@ -175,27 +126,7 @@ export default function App() {
   async function loadSample() {
     await safeRun('Sample industrial stream dataset loaded.', async () => {
       await api.loadSample();
-      setRecommendations([]);
-      setRecommendationSummary(null);
-      setAgentSummary(null);
-      setActionPlan(null);
-      setEvidenceRecords([]);
-      setEvidenceSummary(null);
-      setEvidenceGapExplanation(null);
-      setResolutionPlans([]);
-      setResolutionSummary(null);
-      setSupplierLoopPlans([]);
-      setSupplierLoopSummary(null);
-      setSupplierEmailDraft(null);
-      setCircularActionReport(null);
-      setReviewPack(null);
-      setAiReasoning(null);
-      setSiteCopilotSummary(null);
-      setAgenticWorkflow(null);
-      setAgenticInsightHistory([]);
-      setEvaluationSummary(null);
-      setFilters(DEFAULT_FILTERS);
-      setActiveView('dashboard');
+      resetGeneratedOutputs();
       await refreshData();
     });
   }
@@ -204,29 +135,33 @@ export default function App() {
     if (!file) return;
     await safeRun(`Uploaded ${file.name}.`, async () => {
       await api.uploadCsv(file);
-      setRecommendations([]);
-      setRecommendationSummary(null);
-      setAgentSummary(null);
-      setActionPlan(null);
-      setEvidenceRecords([]);
-      setEvidenceSummary(null);
-      setEvidenceGapExplanation(null);
-      setResolutionPlans([]);
-      setResolutionSummary(null);
-      setSupplierLoopPlans([]);
-      setSupplierLoopSummary(null);
-      setSupplierEmailDraft(null);
-      setCircularActionReport(null);
-      setReviewPack(null);
-      setAiReasoning(null);
-      setSiteCopilotSummary(null);
-      setAgenticWorkflow(null);
-      setAgenticInsightHistory([]);
-      setEvaluationSummary(null);
-      setFilters(DEFAULT_FILTERS);
-      setActiveView('dashboard');
+      resetGeneratedOutputs();
       await refreshData();
     });
+  }
+
+  function resetGeneratedOutputs() {
+    setRecommendations([]);
+    setRecommendationSummary(null);
+    setAgentSummary(null);
+    setActionPlan(null);
+    setEvidenceRecords([]);
+    setEvidenceSummary(null);
+    setEvidenceGapExplanation(null);
+    setResolutionPlans([]);
+    setResolutionSummary(null);
+    setSupplierLoopPlans([]);
+    setSupplierLoopSummary(null);
+    setSupplierEmailDraft(null);
+    setCircularActionReport(null);
+    setReviewPack(null);
+    setAiReasoning(null);
+    setSiteCopilotSummary(null);
+    setAgenticWorkflow(null);
+    setAgenticInsightHistory([]);
+    setEvaluationSummary(null);
+    setFilters(DEFAULT_FILTERS);
+    setActiveView('dashboard');
   }
 
   async function runRecommendations() {
@@ -253,31 +188,28 @@ export default function App() {
       const result = await api.generateCircularActionReport(streamId);
       setCircularActionReport(result);
       setActiveView('action-report');
-      setTimeout(() => {
-        document.getElementById('circular-action-report')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 50);
+      scrollToPanel('circular-action-report');
     });
   }
+
   async function draftSupplierEmail(streamId) {
     await safeRun(`Supplier evidence request draft generated for ${streamId}.`, async () => {
       const result = await api.generateSupplierEmailDraft(streamId);
       setSupplierEmailDraft(result);
       setActiveView('supplier-loops');
-      setTimeout(() => {
-        document.getElementById('supplier-email-draft-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 50);
+      scrollToPanel('supplier-email-draft-panel');
     });
   }
+
   async function explainEvidenceGap(streamId) {
     await safeRun(`AI evidence gap explanation generated for ${streamId}.`, async () => {
       const result = await api.generateEvidenceGapExplanation(streamId);
       setEvidenceGapExplanation(result);
       setActiveView('evidence');
-      setTimeout(() => {
-        document.getElementById('evidence-gap-explainer')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 50);
+      scrollToPanel('evidence-gap-explainer');
     });
   }
+
   async function refreshSiteCopilot() {
     await safeRun('Site-wide AI copilot summary refreshed.', async () => {
       const result = await api.siteAICopilotSummary();
@@ -319,14 +251,13 @@ export default function App() {
       setActiveView('agentic-intelligence');
     });
   }
+
   async function generateAiReasoning(streamId) {
     await safeRun(`AI reasoning generated for ${streamId}.`, async () => {
       const result = await api.generateAiReasoning(streamId);
       setAiReasoning(result);
       setActiveView('ai-reasoning');
-      setTimeout(() => {
-        document.getElementById('ai-reasoning-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 50);
+      scrollToPanel('ai-reasoning-panel');
     });
   }
 
@@ -335,10 +266,14 @@ export default function App() {
       const pack = await api.reviewPack(streamId);
       setReviewPack(pack);
       setActiveView('review');
-      setTimeout(() => {
-        document.getElementById('review-pack-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 50);
+      scrollToPanel('review-pack-panel');
     });
+  }
+
+  function scrollToPanel(elementId) {
+    setTimeout(() => {
+      document.getElementById(elementId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 50);
   }
 
   useEffect(() => {
@@ -376,7 +311,59 @@ export default function App() {
     return sortRecommendations(filtered, filters.sortBy);
   }, [dashboardData.enriched, filters]);
 
-  const activeDomainMeta = DOMAIN_WORKSPACES.find((domain) => domain.id === activeDomain) || DOMAIN_WORKSPACES[0];
+  const activeDomainMeta = useMemo(() => getDomainWorkspaceMeta(activeDomain), [activeDomain]);
+
+  const coreWorkspaceProps = {
+    busy,
+    streams,
+    recommendations,
+    streamSummary,
+    recommendationSummary,
+    agentSummary,
+    actionPlan,
+    reviewPack,
+    evidenceRecords,
+    evidenceSummary,
+    evidenceGapExplanation,
+    resolutionPlans,
+    resolutionSummary,
+    aiStatus,
+    aiRuntimeStatus,
+    aiReasoning,
+    siteCopilotSummary,
+    agenticWorkflow,
+    agenticInsightHistory,
+    evaluationSummary,
+    materialPlaybooks,
+    materialPlaybookSummary,
+    supplierLoopPlans,
+    supplierLoopSummary,
+    supplierEmailDraft,
+    circularActionReport,
+    filters,
+    activeView,
+    dashboardData,
+    materials,
+    strategies,
+    priorities,
+    filteredRecommendations,
+    onLoadSample: loadSample,
+    onUploadCsv: uploadCsv,
+    onRunRecommendations: runRecommendations,
+    onRefresh: () => safeRun('View refreshed.', refreshData),
+    onViewChange: setActiveView,
+    onFiltersChange: setFilters,
+    onSelectReviewPack: openReviewPack,
+    onGenerateCircularActionReport: generateCircularActionReport,
+    onDraftSupplierEmail: draftSupplierEmail,
+    onExplainEvidenceGap: explainEvidenceGap,
+    onRefreshSiteCopilot: refreshSiteCopilot,
+    onRunAgenticWorkflow: runAgenticWorkflow,
+    onRunAndSaveAgenticWorkflow: runAndSaveAgenticWorkflow,
+    onLoadAgenticInsightHistory: loadAgenticInsightHistory,
+    onRunEvaluationSummary: runEvaluationSummary,
+    onGenerateAiReasoning: generateAiReasoning,
+  };
 
   return (
     <main>
@@ -396,6 +383,7 @@ export default function App() {
       </header>
 
       <StatusPanel status={backendStatus} message={message} error={error} />
+
       <section className="domain-workspace-shell" aria-label="Circular Industry AI domain workspaces">
         <div className="section-heading compact-heading">
           <div>
@@ -418,175 +406,17 @@ export default function App() {
               aria-selected={activeDomain === domain.id}
               title={domain.helper}
             >
-              <span>{domain.eyebrow}</span>
               <strong>{domain.label}</strong>
             </button>
           ))}
         </div>
       </section>
 
-      {activeDomain !== 'circular-core' && (
+      {activeDomain === 'circular-core' ? (
+        <CircularCoreWorkspace {...coreWorkspaceProps} />
+      ) : (
         <DomainWorkspace domain={activeDomainMeta} onBackToCore={() => setActiveDomain('circular-core')} />
       )}
-
-      <section className={activeDomain === 'circular-core' ? 'domain-core-workflow' : 'domain-core-workflow hidden'}>
-      <Controls
-        onLoadSample={loadSample}
-        onUploadCsv={uploadCsv}
-        onRunRecommendations={runRecommendations}
-        onRefresh={() => safeRun('View refreshed.', refreshData)}
-        busy={busy}
-      />
-      <SummaryCards streamSummary={streamSummary} recommendationSummary={recommendationSummary} agentSummary={agentSummary} />
-      <AIRuntimeStatus status={aiRuntimeStatus} />
-      <WorkflowNav
-        activeView={activeView}
-        onChange={setActiveView}
-        recommendationCount={recommendations.length}
-        reviewPack={reviewPack}
-        hasData={streams.length > 0}
-      />
-
-      {streams.length > 0 && recommendations.length === 0 && activeView !== 'dashboard' && activeView !== 'raw-data' && activeView !== 'recommendations' && (
-        <WorkflowPrerequisiteNotice
-          title="Run the locked rules engine first"
-          message="This workflow depends on generated recommendations. Load data, run recommendations, then reopen this workflow."
-          actions={[
-            'Use Load sample dataset or upload a valid CSV.',
-            'Click Run recommendations to generate locked decision records.',
-            'Then open evidence, supplier loops, AI reasoning or reports.',
-          ]}
-        />
-      )}
-      {activeView === 'dashboard' && (
-        <section className="workflow-panel dashboard-view">
-          <Dashboard dashboardData={dashboardData} agentSummary={agentSummary} onSelectReviewPack={openReviewPack} />
-          <PortfolioSnapshot dashboardData={dashboardData} agentSummary={agentSummary} />
-        </section>
-      )}
-
-      {activeView === 'recommendations' && (
-        <section className="workflow-panel recommendations-view">
-          <FiltersPanel
-            filters={filters}
-            onChange={setFilters}
-            materials={materials}
-            strategies={strategies}
-            priorities={priorities}
-            resultCount={filteredRecommendations.length}
-            totalCount={recommendations.length}
-          />
-          <RecommendationsTable recommendations={filteredRecommendations} onSelectReviewPack={openReviewPack} />
-        </section>
-      )}
-
-
-
-      {activeView === 'agentic-intelligence' && (
-        <section className="workflow-panel agentic-intelligence-view">
-          <AgenticIntelligencePanel
-            streams={streams}
-            workflow={agenticWorkflow}
-            history={agenticInsightHistory}
-            evaluation={evaluationSummary}
-            onRunWorkflow={runAgenticWorkflow}
-            onRunAndSaveWorkflow={runAndSaveAgenticWorkflow}
-            onLoadHistory={loadAgenticInsightHistory}
-            onRunEvaluation={runEvaluationSummary}
-            busy={busy}
-          />
-        </section>
-      )}
-      {activeView === 'ai-copilot' && (
-        <section className="workflow-panel ai-copilot-view" id="site-ai-copilot-panel">
-          <SiteAICopilotPanel
-            summary={siteCopilotSummary}
-            onRefresh={refreshSiteCopilot}
-            busy={busy}
-          />
-        </section>
-      )}
-      {activeView === 'ai-reasoning' && (
-        <section className="workflow-panel ai-reasoning-view" id="ai-reasoning-panel">
-          <AIReasoningPanel
-            plans={resolutionPlans}
-            recommendations={recommendations}
-            status={aiStatus}
-            reasoning={aiReasoning}
-            onGenerate={generateAiReasoning}
-            busy={busy}
-          />
-        </section>
-      )}
-
-      {activeView === 'resolutions' && (
-        <section className="workflow-panel resolution-view">
-          <CircularResolutionPlans plans={resolutionPlans} summary={resolutionSummary} />
-        </section>
-      )}
-
-
-
-      {activeView === 'playbooks' && (
-        <section className="workflow-panel playbooks-view">
-          <MaterialPlaybooks playbooks={materialPlaybooks} summary={materialPlaybookSummary} />
-        </section>
-      )}
-
-
-      {activeView === 'action-report' && (
-        <section className="workflow-panel action-report-view">
-          <CircularActionReportPanel
-            streams={streams}
-            recommendations={recommendations}
-            report={circularActionReport}
-            onGenerate={generateCircularActionReport}
-            busy={busy}
-          />
-        </section>
-      )}
-      {activeView === 'supplier-loops' && (
-        <section className="workflow-panel supplier-loops-view">
-          <SupplierLoopIntelligence
-            plans={supplierLoopPlans}
-            summary={supplierLoopSummary}
-            emailDraft={supplierEmailDraft}
-            onDraftEmail={draftSupplierEmail}
-            busy={busy}
-          />
-        </section>
-      )}
-
-      {activeView === 'review' && (
-        <section className="workflow-panel review-view">
-          <ReviewPackPanel reviewPack={reviewPack} />
-        </section>
-      )}
-
-      {activeView === 'action-plan' && (
-        <section className="workflow-panel action-view">
-          <ActionPlan actionPlan={actionPlan} />
-        </section>
-      )}
-
-      {activeView === 'evidence' && (
-        <section className="workflow-panel evidence-view">
-          <EvidenceRegister
-            records={evidenceRecords}
-            summary={evidenceSummary}
-            explanation={evidenceGapExplanation}
-            onExplain={explainEvidenceGap}
-            busy={busy}
-          />
-        </section>
-      )}
-
-      {activeView === 'raw-data' && (
-        <section className="workflow-panel raw-data-view">
-          <StreamsTable streams={streams} />
-        </section>
-      )}
-      </section>
     </main>
   );
 }
