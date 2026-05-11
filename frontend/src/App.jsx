@@ -8,6 +8,7 @@ import Controls from './components/Controls.jsx';
 import CircularResolutionPlans from './components/CircularResolutionPlans.jsx';
 import CircularActionReportPanel from './components/CircularActionReportPanel.jsx';
 import Dashboard from './components/Dashboard.jsx';
+import DomainWorkspace from './components/DomainWorkspace.jsx';
 import EvidenceRegister from './components/EvidenceRegister.jsx';
 import FiltersPanel from './components/FiltersPanel.jsx';
 import MaterialPlaybooks from './components/MaterialPlaybooks.jsx';
@@ -34,6 +35,52 @@ const DEFAULT_FILTERS = {
   minEvidence: 0,
   sortBy: 'priority',
 };
+
+
+const DOMAIN_WORKSPACES = [
+  {
+    id: 'circular-core',
+    label: 'Circular Core',
+    eyebrow: 'Main system',
+    helper: 'Industrial material-flow, waste/resource stream and circular procurement decision support.',
+  },
+  {
+    id: 'esg',
+    label: 'ESG',
+    eyebrow: 'Supporting intelligence',
+    helper: 'ESG score, evidence and sustainability performance context.',
+  },
+  {
+    id: 'ghg-net-zero',
+    label: 'GHG & Net Zero',
+    eyebrow: 'Supporting intelligence',
+    helper: 'Scope 1, 2 and 3 emissions, reduction opportunities and net zero readiness.',
+  },
+  {
+    id: 'eia',
+    label: 'EIA',
+    eyebrow: 'Environmental Impact Assessment',
+    helper: 'Environmental Impact Assessment issue, receptor, mitigation, residual-effect and evidence-gap intelligence.',
+  },
+  {
+    id: 'greenwashing-claims',
+    label: 'Greenwashing / Claims',
+    eyebrow: 'Evidence control',
+    helper: 'Sustainability claim screening, evidence sufficiency and safer wording routes.',
+  },
+  {
+    id: 'supplier-procurement',
+    label: 'Supplier & Procurement',
+    eyebrow: 'Supporting intelligence',
+    helper: 'Supplier sustainability, circular procurement and evidence-request intelligence.',
+  },
+  {
+    id: 'data-profiler',
+    label: 'Data Profiler',
+    eyebrow: 'Fallback profiler',
+    helper: 'Generic CSV profiling, column intelligence and recommended analysis route detection.',
+  },
+];
 
 export default function App() {
   const [backendStatus, setBackendStatus] = useState('unknown');
@@ -67,6 +114,7 @@ export default function App() {
   const [circularActionReport, setCircularActionReport] = useState(null);
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
   const [activeView, setActiveView] = useState('dashboard');
+  const [activeDomain, setActiveDomain] = useState('circular-core');
 
   async function safeRun(label, task) {
     setBusy(true);
@@ -328,6 +376,8 @@ export default function App() {
     return sortRecommendations(filtered, filters.sortBy);
   }, [dashboardData.enriched, filters]);
 
+  const activeDomainMeta = DOMAIN_WORKSPACES.find((domain) => domain.id === activeDomain) || DOMAIN_WORKSPACES[0];
+
   return (
     <main>
       <header className="hero">
@@ -346,6 +396,40 @@ export default function App() {
       </header>
 
       <StatusPanel status={backendStatus} message={message} error={error} />
+      <section className="domain-workspace-shell" aria-label="Circular Industry AI domain workspaces">
+        <div className="section-heading compact-heading">
+          <div>
+            <h2>Domain workspaces</h2>
+            <p>
+              Circular Core remains the main industrial circular economy workflow. ESG, GHG, EIA, claims,
+              supplier and data-profiler workspaces support adjacent professional intelligence without replacing the core system.
+            </p>
+          </div>
+          <span>{activeDomainMeta.eyebrow}</span>
+        </div>
+        <div className="domain-workspace-bar" role="tablist" aria-label="Professional sustainability domains">
+          {DOMAIN_WORKSPACES.map((domain) => (
+            <button
+              key={domain.id}
+              type="button"
+              className={`domain-workspace-tab ${activeDomain === domain.id ? 'active' : ''}`}
+              onClick={() => setActiveDomain(domain.id)}
+              role="tab"
+              aria-selected={activeDomain === domain.id}
+              title={domain.helper}
+            >
+              <span>{domain.eyebrow}</span>
+              <strong>{domain.label}</strong>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {activeDomain !== 'circular-core' && (
+        <DomainWorkspace domain={activeDomainMeta} onBackToCore={() => setActiveDomain('circular-core')} />
+      )}
+
+      <section className={activeDomain === 'circular-core' ? 'domain-core-workflow' : 'domain-core-workflow hidden'}>
       <Controls
         onLoadSample={loadSample}
         onUploadCsv={uploadCsv}
@@ -502,17 +586,7 @@ export default function App() {
           <StreamsTable streams={streams} />
         </section>
       )}
+      </section>
     </main>
   );
 }
-
-
-
-
-
-
-
-
-
-
-

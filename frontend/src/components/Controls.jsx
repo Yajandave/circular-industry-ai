@@ -3,10 +3,7 @@ export default function Controls({ onLoadSample, onUploadCsv, onRunRecommendatio
     <section className="controls-card">
       <div>
         <h2>Data and analysis controls</h2>
-        <p>
-          Load the sample manufacturing dataset or upload a CSV that follows the data dictionary. Then run the locked
-          rules engine before opening review packs.
-        </p>
+        <p>Use this Circular Core upload for industrial material/waste stream datasets that follow the data dictionary. ESG, GHG, EIA, claims, supplier and generic CSVs now have their own domain workspaces from the top bar.</p>
       </div>
       <div className="controls-row">
         <button onClick={onLoadSample} disabled={busy}>Load sample dataset</button>
