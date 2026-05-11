@@ -79,7 +79,7 @@ function buildIssueRegister(records) {
           ? 'Measured quantity, material specification, supplier documentation and action evidence.'
           : 'Maintain evidence trail, decision log and implementation records before making claims.',
       suggested_action: record.next_action || 'Review locked recommendation and collect missing evidence.',
-      claim_boundary: 'Screening and internal decision support only. Do not present as verified impact or external claim.',
+      claim_boundary: 'Screening and internal decision support only. Do not present as verified savings, diversion, impact or external claim.',
     };
   });
 }
@@ -206,8 +206,8 @@ function ExecutiveReport({ records, dashboardData }) {
       <div className="professional-report-grid">
         <MetricCard label="Records screened" value={formatNumber(records.length)} note="locked recommendation records" />
         <MetricCard label="Controlled review" value={formatNumber(controlled.length)} note="risk, evidence or review-gated records" />
-        <MetricCard label="Screened exposure" value={formatCurrency(dashboardData.totalCostExposure)} note="not verified savings" />
-        <MetricCard label="Diversion potential" value={formatKg(dashboardData.totalDiversionPotential)} note="screening estimate only" />
+        <MetricCard label="Screened cost exposure" value={formatCurrency(dashboardData.totalCostExposure)} note="not verified savings" />
+        <MetricCard label="Screened quantity opportunity" value={formatKg(dashboardData.totalDiversionPotential)} note="potential only; not verified diversion" />
       </div>
 
       <article className="professional-briefing-card wide">
@@ -219,7 +219,7 @@ function ExecutiveReport({ records, dashboardData }) {
         </p>
         <p className="professional-governance-note">
           This report is an operator decision-support briefing. It does not verify savings, diversion, environmental benefit,
-          supplier compliance, legal status or public claims.
+          supplier compliance, legal status, verified diversion or public claims.
         </p>
       </article>
 
@@ -447,7 +447,7 @@ export default function ProfessionalIntelligenceSuite({ dashboardData, onSelectR
       {activeView === 'scenarios' && <ScenarioComparison records={records} onSelectReviewPack={onSelectReviewPack} />}
 
       <p className="governance-strip professional-suite-governance">
-        This suite organises locked screening outputs into operator-facing professional intelligence. It does not change the rules-engine decision record or verify claims, savings, diversion, environmental benefit, legal status or supplier compliance.
+        This suite organises locked screening outputs into operator-facing professional intelligence. It does not change the rules-engine decision record or verify claims, savings, cost reduction, diversion, environmental benefit, legal status or supplier compliance.
       </p>
     </section>
   );

@@ -88,9 +88,9 @@ export default function Dashboard({ dashboardData, agentSummary, onSelectReviewP
           <small>Items below 70/100 evidence quality. These are data-improvement priorities.</small>
         </article>
         <article className="insight-card dark">
-          <span>Screened value exposure</span>
+          <span>Screened cost exposure</span>
           <strong>{formatCurrency(totalCostExposure)}</strong>
-          <small>Annual disposal cost exposure from recommendations. Not verified savings.</small>
+          <small>Annualised disposal-cost exposure from screening records. Not verified savings.</small>
         </article>
       </div>
 
@@ -133,14 +133,14 @@ export default function Dashboard({ dashboardData, agentSummary, onSelectReviewP
 
       <div className="candidate-grid">
         <CandidateList
-          title="Top cost-exposure candidates"
+          title="Top screened cost-exposure candidates"
           items={topCostCandidates}
           valueFormatter={formatCurrency}
           valueKey="estimated_annual_disposal_cost_avoided"
           onSelectReviewPack={onSelectReviewPack}
         />
         <CandidateList
-          title="Top diversion-potential candidates"
+          title="Top screened quantity-opportunity candidates"
           items={topDiversionCandidates}
           valueFormatter={formatKg}
           valueKey="estimated_annual_waste_diverted_kg"
@@ -149,11 +149,8 @@ export default function Dashboard({ dashboardData, agentSummary, onSelectReviewP
       </div>
 
       <p className="governance-strip">
-        Dashboard values are screening outputs. They support prioritisation but should not be presented as verified savings, verified diversion or verified environmental benefit until actions are completed and evidenced. Total screened diversion currently shown: {formatKg(totalDiversionPotential)}.
+        Dashboard values are screening outputs. They support prioritisation but should not be presented as verified savings, verified diversion, verified cost reduction or verified environmental benefit until actions are completed and evidenced. Total screened quantity opportunity currently shown: {formatKg(totalDiversionPotential)}.
       </p>
     </section>
   );
 }
-
-
-

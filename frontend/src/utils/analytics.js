@@ -44,11 +44,11 @@ export function mapObjectToSortedRows(map, { labelKey = 'label', valueKey = 'val
 export function getPriorityScore(rec) {
   const confidence = normaliseNumber(rec.confidence_score);
   const evidence = normaliseNumber(rec.evidence_quality_score);
-  const diversion = Math.min(normaliseNumber(rec.estimated_annual_waste_diverted_kg) / 1000, 40);
+  const quantityOpportunity = Math.min(normaliseNumber(rec.estimated_annual_waste_diverted_kg) / 1000, 40);
   const cost = Math.min(normaliseNumber(rec.estimated_annual_disposal_cost_avoided) / 250, 35);
   const reviewPenalty = rec.human_review_required ? 35 : 0;
   const riskPenalty = rec.risk_level === 'blocked' ? 50 : rec.risk_level === 'high' ? 35 : rec.risk_level === 'medium' ? 14 : 0;
-  return Math.max(0, Math.round(confidence * 0.34 + evidence * 0.26 + diversion + cost - reviewPenalty - riskPenalty));
+  return Math.max(0, Math.round(confidence * 0.34 + evidence * 0.26 + quantityOpportunity + cost - reviewPenalty - riskPenalty));
 }
 
 export function classifyPriority(rec) {
@@ -282,6 +282,8 @@ function buildDrilldownRecords(enriched) {
       human_review_required: Boolean(rec.human_review_required),
       estimated_annual_disposal_cost_avoided: normaliseNumber(rec.estimated_annual_disposal_cost_avoided),
       estimated_annual_waste_diverted_kg: normaliseNumber(rec.estimated_annual_waste_diverted_kg),
+      screened_cost_exposure: normaliseNumber(rec.estimated_annual_disposal_cost_avoided),
+      screened_quantity_opportunity_kg: normaliseNumber(rec.estimated_annual_waste_diverted_kg),
       recommended_circular_action: rec.recommended_circular_action || 'No recommendation recorded.',
       next_action: rec.next_action || 'No next action recorded.',
       opportunity_bucket: opportunity,
@@ -352,6 +354,8 @@ function buildVisualAnalyticsData(enriched, streams) {
 export function buildDashboardData(recommendations, streams) {
   const enriched = enrichRecommendations(recommendations, streams).map((rec) => ({
     ...rec,
+    screened_cost_exposure: normaliseNumber(rec.estimated_annual_disposal_cost_avoided),
+    screened_quantity_opportunity_kg: normaliseNumber(rec.estimated_annual_waste_diverted_kg),
     priority_band: classifyPriority(rec),
     priority_score: getPriorityScore(rec),
   }));

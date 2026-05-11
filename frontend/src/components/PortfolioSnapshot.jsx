@@ -44,7 +44,7 @@ export default function PortfolioSnapshot({ dashboardData, agentSummary }) {
       <div className="section-heading compact-heading">
         <div>
           <h2>Operational intelligence snapshot</h2>
-          <p>A site-level summary of screened material flows, review gates, value exposure and evidence-controlled circular opportunities.</p>
+          <p>A site-level summary of screened material flows, review gates, cost exposure, screened quantity opportunity and evidence-controlled circular opportunities.</p>
         </div>
         <span>Management briefing ready</span>
       </div>
@@ -52,8 +52,8 @@ export default function PortfolioSnapshot({ dashboardData, agentSummary }) {
       <div className="snapshot-grid">
         <SnapshotMetric label="Streams screened" value={agentSummary?.total_recommendations || dashboardData.enriched.length} note="industrial material and waste streams" />
         <SnapshotMetric label="Review gates" value={agentSummary?.human_review_required || dashboardData.controlledReview} note="hazard, risk or weak evidence controls" />
-        <SnapshotMetric label="Screened value exposure" value={formatCurrency(dashboardData.totalCostExposure)} note="not verified savings" />
-        <SnapshotMetric label="Diversion potential" value={formatKg(dashboardData.totalDiversionPotential)} note="screening estimate only" />
+        <SnapshotMetric label="Screened cost exposure" value={formatCurrency(dashboardData.totalCostExposure)} note="not verified savings" />
+        <SnapshotMetric label="Screened quantity opportunity" value={formatKg(dashboardData.totalDiversionPotential)} note="potential only; not verified diversion" />
       </div>
 
       <div className="snapshot-body">
@@ -66,14 +66,13 @@ export default function PortfolioSnapshot({ dashboardData, agentSummary }) {
           </p>
           <p className="snapshot-warning">
             The system supports opportunity screening. It does not verify savings, environmental benefit, supplier compliance,
-            legal waste status or carbon claims without completed actions and evidence.
+            legal waste status, verified diversion or carbon claims without completed actions and evidence.
           </p>
         </article>
 
-        <SnapshotList title="Priority validation opportunities" items={quickWins} valueKey="estimated_annual_waste_diverted_kg" valueFormatter={formatKg} />
-        <SnapshotList title="Controlled review priorities" items={controlledReview} valueKey="estimated_annual_disposal_cost_avoided" valueFormatter={formatCurrency} />
+        <SnapshotList title="Priority quantity-opportunity records" items={quickWins} valueKey="estimated_annual_waste_diverted_kg" valueFormatter={formatKg} />
+        <SnapshotList title="Controlled cost-exposure priorities" items={controlledReview} valueKey="estimated_annual_disposal_cost_avoided" valueFormatter={formatCurrency} />
       </div>
     </section>
   );
 }
-

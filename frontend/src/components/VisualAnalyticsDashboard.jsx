@@ -288,7 +288,7 @@ function DrilldownInspector({ record, onSelectReviewPack }) {
         <article><span>Locked risk</span><strong>{record.risk_level}</strong><small>Review: {record.human_review_required ? 'required' : 'clear'}</small></article>
         <article><span>Evidence quality</span><strong>{record.evidence_quality_score}/100</strong><small>Confidence: {record.confidence_score}/100</small></article>
         <article><span>Screened cost exposure</span><strong>{formatCurrency(record.estimated_annual_disposal_cost_avoided)}</strong><small>Not verified savings</small></article>
-        <article><span>Screened diversion</span><strong>{formatKg(record.estimated_annual_waste_diverted_kg)}</strong><small>Not verified impact</small></article>
+        <article><span>Screened quantity opportunity</span><strong>{formatKg(record.estimated_annual_waste_diverted_kg)}</strong><small>Potential only; not verified diversion or impact</small></article>
       </div>
 
       <div className="drilldown-detail-box">
@@ -358,7 +358,7 @@ function OperatorDrilldownPanel({
             <option value="priority">Priority score</option>
             <option value="cost">Screened cost exposure</option>
             <option value="evidence_weakness">Evidence weakness</option>
-            <option value="diversion">Screened diversion</option>
+            <option value="diversion">Screened quantity opportunity</option>
           </select>
         </label>
       </div>
@@ -448,7 +448,7 @@ export default function VisualAnalyticsDashboard({ analytics, onSelectReviewPack
 
         <article className="visual-card visual-card-wide">
           <h3>Material quantity Pareto</h3>
-          <p>Largest annual material-flow groups by screened quantity.</p>
+          <p>Largest annual material-flow groups by screened quantity. This is an input-volume screen, not verified diversion.</p>
           <ParetoList
             rows={analytics.materialPareto}
             formatter={formatKg}
@@ -514,8 +514,7 @@ export default function VisualAnalyticsDashboard({ analytics, onSelectReviewPack
         onSelectReviewPack={onSelectReviewPack}
       />
 
-      <p className="governance-strip visual-governance-strip">These visuals rank screening records for operator attention. They do not override locked risk, review gate, evidence control, claim boundary, legal/compliance status or verified impact.</p>
+      <p className="governance-strip visual-governance-strip">These visuals rank screening records for operator attention. They do not override locked risk, review gate, evidence control, claim boundary, legal/compliance status, verified savings, verified diversion or verified impact.</p>
     </section>
   );
 }
-

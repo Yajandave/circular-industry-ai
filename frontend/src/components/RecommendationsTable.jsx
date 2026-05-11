@@ -86,9 +86,9 @@ function RecommendationInspector({ rec, onSelectReviewPack }) {
       </div>
 
       <div className="operator-detail-section">
-        <span>Screened exposure</span>
+        <span>Screened cost exposure</span>
         <strong>{formatCurrency(rec.estimated_annual_disposal_cost_avoided)}</strong>
-        <p>{formatKg(rec.estimated_annual_waste_diverted_kg)} annual screened diversion. Not verified savings.</p>
+        <p>{formatKg(rec.estimated_annual_waste_diverted_kg)} screened annual quantity opportunity. Potential only; not verified diversion or savings.</p>
       </div>
 
       <div className="operator-detail-section">
@@ -97,7 +97,7 @@ function RecommendationInspector({ rec, onSelectReviewPack }) {
       </div>
 
       <div className="governance-strip compact">
-        Rules-engine recommendation. Use the review pack before making operational, supplier or claim decisions.
+        Rules-engine recommendation. Use the review pack before making operational, supplier, cost-saving, diversion or claim decisions.
       </div>
     </aside>
   );
@@ -125,7 +125,7 @@ export default function RecommendationsTable({ recommendations, onSelectReviewPa
         <div className="operator-list-panel">
           <div className="operator-list-header">
             <strong>Recommendation list</strong>
-            <small>ID, stream, risk and screened exposure</small>
+            <small>ID, stream, risk and screened cost exposure</small>
           </div>
           <div className="operator-list-scroll">
             {recommendations.map((rec) => (
