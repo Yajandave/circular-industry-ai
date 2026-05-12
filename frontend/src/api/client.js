@@ -47,6 +47,11 @@ export const api = {
   supplierLoopPlans: () => request('/api/procurement/supplier-loops'),
   supplierLoopSummary: () => request('/api/procurement/supplier-loops/summary'),
   generateSupplierEmailDraft: (streamId) => request(`/api/procurement/supplier-loops/${encodeURIComponent(streamId)}/email-draft`, { method: 'POST' }),
+  profileCsv: (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return request('/api/data-profiler/profile-csv', { method: 'POST', body: formData });
+  },
 };
 
 export { API_BASE_URL };
