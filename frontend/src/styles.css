@@ -4512,3 +4512,143 @@ button.donut-legend-row {
     font-size: 0.88rem;
   }
 }
+
+/* Milestone 14A: Data Profiler and column mapping UI */
+.data-profiler-panel,
+.profiler-report,
+.profiler-column-panel,
+.profiler-column-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.profiler-upload-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.profiler-confidence {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 3.75rem;
+  border-radius: 999px;
+  padding: 0.35rem 0.6rem;
+  font-weight: 800;
+  font-size: 0.82rem;
+  background: rgba(92, 111, 92, 0.12);
+  color: #284232;
+}
+
+.profiler-confidence.strong {
+  background: rgba(33, 91, 67, 0.14);
+}
+
+.profiler-confidence.medium {
+  background: rgba(211, 154, 47, 0.18);
+}
+
+.profiler-confidence.weak {
+  background: rgba(126, 74, 62, 0.16);
+}
+
+.profiler-overview-grid,
+.profiler-analysis-grid,
+.profiler-routes-grid {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.profiler-overview-grid {
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+
+.profiler-analysis-grid,
+.profiler-routes-grid {
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.profiler-overview-card,
+.profiler-list-card,
+.profiler-route-card,
+.profiler-column-panel {
+  border: 1px solid rgba(37, 54, 42, 0.12);
+  border-radius: 20px;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 14px 35px rgba(31, 48, 35, 0.06);
+}
+
+.profiler-overview-card span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.profiler-overview-card strong {
+  display: block;
+  margin: 0.2rem 0;
+  font-size: 1.55rem;
+}
+
+.profiler-route-topline,
+.profiler-column-header,
+.profiler-column-row {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+}
+
+.profiler-mini-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.85rem;
+}
+
+.profiler-mini-columns div,
+.profiler-column-meta {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.profiler-mini-columns small,
+.profiler-column-meta small,
+.profiler-column-meta em,
+.profiler-route-card p {
+  color: var(--muted);
+}
+
+.profiler-column-row {
+  align-items: flex-start;
+  border: 1px solid rgba(37, 54, 42, 0.1);
+  border-radius: 16px;
+  padding: 0.85rem;
+  background: rgba(248, 246, 238, 0.7);
+}
+
+.profiler-column-row strong,
+.profiler-column-row small,
+.profiler-column-row p {
+  display: block;
+}
+
+.profiler-column-row p {
+  margin: 0.35rem 0 0;
+  color: var(--muted);
+  font-size: 0.83rem;
+}
+
+.profiler-column-meta {
+  justify-items: end;
+  min-width: 110px;
+}
+
+.profiler-column-meta em {
+  font-style: normal;
+  font-weight: 800;
+}

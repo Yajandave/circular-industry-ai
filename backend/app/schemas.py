@@ -845,3 +845,70 @@ class EvaluationRunResult(BaseModel):
     review_checks: int
     results: list[EvaluationCaseResult]
     governance_note: str
+
+# Milestone 14A: Data Profiler and column alias mapping schemas
+
+class DataProfilerRoleCandidate(BaseModel):
+    role: str
+    label: str
+    confidence: int
+    reason: str
+
+
+class DataProfilerColumnProfile(BaseModel):
+    original_name: str
+    normalised_name: str
+    inferred_data_type: str
+    missing_count: int
+    missing_percentage: float
+    unique_count: int
+    sample_values: list[str]
+    mapped_role: str | None = None
+    mapped_role_label: str | None = None
+    role_confidence: int
+    role_reason: str
+    confirmation_required: bool
+    alternatives: list[DataProfilerRoleCandidate]
+
+
+class DataProfilerRoleMapping(BaseModel):
+    role: str
+    label: str
+    source_column: str
+    confidence: int
+    confirmation_required: bool
+
+
+class DataProfilerWorkspaceRole(BaseModel):
+    role: str
+    label: str
+
+
+class DataProfilerWorkspaceCompatibility(BaseModel):
+    workspace_id: str
+    label: str
+    score: int
+    status: str
+    matched_roles: list[DataProfilerWorkspaceRole]
+    missing_roles: list[DataProfilerWorkspaceRole]
+    available_analysis: list[str]
+    unavailable_analysis: list[str]
+    governance_boundary: str
+
+
+class DataProfilerReport(BaseModel):
+    dataset_label: str
+    total_rows: int
+    total_columns: int
+    duplicate_rows: int
+    detected_workspace: str
+    detected_workspace_label: str
+    workspace_confidence: int
+    workspace_status: str
+    columns: list[DataProfilerColumnProfile]
+    role_mapping: list[DataProfilerRoleMapping]
+    workspace_compatibility: list[DataProfilerWorkspaceCompatibility]
+    available_analysis_routes: list[str]
+    unavailable_analysis_routes: list[str]
+    recommended_next_action: str
+    governance_note: str
