@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from datetime import datetime
 from io import BytesIO
 import re
 
@@ -15,6 +14,7 @@ from app.data_profiler_config import (
     VALUE_HINTS,
     WORKSPACE_RULES,
 )
+from app.data_profiler_type_inference import infer_type, sample_values
 
 
 def _normalise(value: object) -> str:
@@ -26,80 +26,6 @@ def _normalise(value: object) -> str:
 
 def _tokens(value: object) -> set[str]:
     return {token for token in _normalise(value).split(" ") if token}
-
-
-def _samples(series: pd.Series, limit: int = 6) -> list[str]:
-    values = []
-    for value in series.dropna().astype(str).head(40).tolist():
-        cleaned = value.strip()
-        if cleaned and cleaned.lower() not in {"nan", "none", "null"} and cleaned not in values:
-            values.append(cleaned)
-        if len(values) >= limit:
-            break
-    return values
-
-_DATE_FORMATS = (
-    "%Y-%m-%d",
-    "%Y/%m/%d",
-    "%d/%m/%Y",
-    "%d-%m-%Y",
-    "%d.%m.%Y",
-    "%d/%m/%y",
-    "%d-%m-%y",
-    "%m/%d/%Y",
-    "%m-%d-%Y",
-)
-_DATE_LIKE_PATTERN = re.compile(
-    r"^(?:\d{4}[-/]\d{1,2}[-/]\d{1,2}|\d{1,2}[-/.]\d{1,2}[-/.]\d{2,4})$"
-)
-
-
-def _date_parse_success_ratio(non_null: pd.Series) -> float:
-    """Return deterministic date-like parse ratio without pandas format inference warnings.
-
-    The profiler only needs a safe column-type signal here. It should not infer,
-    normalise or verify actual reporting periods at this stage.
-    """
-
-    values = [
-        str(value).strip()
-        for value in non_null.tolist()
-        if str(value).strip().lower() not in {"", "nan", "none", "null"}
-    ]
-    if not values:
-        return 0.0
-
-    date_like_values = [value for value in values if _DATE_LIKE_PATTERN.match(value)]
-    if len(date_like_values) / len(values) < 0.75:
-        return 0.0
-
-    parsed_count = 0
-    for value in date_like_values:
-        if any(_matches_date_format(value, date_format) for date_format in _DATE_FORMATS):
-            parsed_count += 1
-
-    return parsed_count / len(values)
-
-
-def _matches_date_format(value: str, date_format: str) -> bool:
-    try:
-        datetime.strptime(value, date_format)
-    except ValueError:
-        return False
-    return True
-
-
-def _infer_type(series: pd.Series) -> str:
-    non_null = series.dropna()
-    if non_null.empty:
-        return "empty"
-    numeric = pd.to_numeric(non_null, errors="coerce")
-    if numeric.notna().mean() >= 0.85:
-        return "numeric"
-    if _date_parse_success_ratio(non_null) >= 0.75:
-        return "date"
-    unique_ratio = non_null.astype(str).nunique(dropna=True) / max(len(non_null), 1)
-    return "categorical" if unique_ratio <= 0.35 else "text"
 
 
 def _value_score(role: str, samples: list[str]) -> int:
@@ -122,8 +48,8 @@ def _type_score(role: str, inferred_type: str, header: str) -> int:
 def _role_candidates(header: str, series: pd.Series) -> list[dict]:
     normalised = _normalise(header)
     header_tokens = _tokens(header)
-    samples = _samples(series)
-    inferred_type = _infer_type(series)
+    samples = sample_values(series)
+    inferred_type = infer_type(series)
     candidates = []
 
     for role, aliases in ROLE_ALIASES.items():
@@ -163,11 +89,11 @@ def _column_profile(name: str, series: pd.Series) -> dict:
     return {
         "original_name": str(name),
         "normalised_name": _normalise(name),
-        "inferred_data_type": _infer_type(series),
+        "inferred_data_type": infer_type(series),
         "missing_count": missing,
         "missing_percentage": round((missing / total) * 100, 2) if total else 0.0,
         "unique_count": int(series.nunique(dropna=True)),
-        "sample_values": _samples(series),
+        "sample_values": sample_values(series),
         "mapped_role": top["role"] if top else None,
         "mapped_role_label": top["label"] if top else None,
         "role_confidence": top["confidence"] if top else 0,
