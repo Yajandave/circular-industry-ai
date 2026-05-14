@@ -106,6 +106,95 @@ const ROLE_OPTIONS = [
   { role: 'notes', label: 'Notes' },
 ];
 
+const CIRCULAR_CORE_REQUIRED_ROLES = [
+  { role: 'material', label: 'Material' },
+  { role: 'quantity', label: 'Quantity' },
+  { role: 'current_route', label: 'Current route' },
+];
+
+function getConfirmedRoles(mappingDraft) {
+  return new Set(
+    mappingDraft
+      .filter((item) => item.user_confirmed && item.target_role)
+      .map((item) => item.target_role),
+  );
+}
+
+function getDuplicateConfirmedRoles(mappingDraft) {
+  const counts = mappingDraft.reduce((accumulator, item) => {
+    if (!item.user_confirmed || !item.target_role) return accumulator;
+    accumulator[item.target_role] = (accumulator[item.target_role] || 0) + 1;
+    return accumulator;
+  }, {});
+
+  return Object.entries(counts)
+    .filter(([, count]) => count > 1)
+    .map(([role]) => role);
+}
+
+function RequiredRoleChecklist({ mappingDraft }) {
+  const confirmedRoles = getConfirmedRoles(mappingDraft);
+
+  return (
+    <div className="mapping-readiness-checklist">
+      <div>
+        <strong>Circular Core required roles</strong>
+        <small>These must be explicitly accepted before a mapped import can be considered later.</small>
+      </div>
+      <div className="mapping-required-role-grid">
+        {CIRCULAR_CORE_REQUIRED_ROLES.map((role) => {
+          const confirmed = confirmedRoles.has(role.role);
+          return (
+            <span className={`mapping-required-role ${confirmed ? 'ready' : 'missing'}`} key={role.role}>
+              {confirmed ? 'Confirmed' : 'Missing'}: {role.label}
+            </span>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function LocalMappingWarnings({ mappingDraft }) {
+  const confirmedRoles = getConfirmedRoles(mappingDraft);
+  const missingRequiredRoles = CIRCULAR_CORE_REQUIRED_ROLES.filter((role) => !confirmedRoles.has(role.role));
+  const duplicateRoles = getDuplicateConfirmedRoles(mappingDraft);
+  const hasWarnings = missingRequiredRoles.length > 0 || duplicateRoles.length > 0;
+
+  if (!hasWarnings) {
+    return (
+      <div className="mapping-local-warning success">
+        <strong>Local readiness check</strong>
+        <span>Required Circular Core roles are confirmed and no duplicate confirmed target roles are visible locally.</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mapping-local-warning">
+      <strong>Review before validation</strong>
+      {!!missingRequiredRoles.length && (
+        <span>Missing required roles: {missingRequiredRoles.map((role) => role.label).join(', ')}.</span>
+      )}
+      {!!duplicateRoles.length && (
+        <span>Duplicate confirmed target roles: {duplicateRoles.join(', ')}. Backend validation will block duplicates.</span>
+      )}
+    </div>
+  );
+}
+
+function MappingBoundaryNotice() {
+  return (
+    <div className="mapping-boundary-notice">
+      <strong>Boundary:</strong>
+      <span>
+        Validating a mapping only confirms that selected source columns can be used for a future controlled import. It does
+        not verify the uploaded data, supplier compliance, diversion, savings, carbon reduction or environmental benefit.
+      </span>
+    </div>
+  );
+}
+
 function buildInitialMappingDraft(report) {
   return (report?.columns || []).map((column) => ({
     source_column: column.original_name,
@@ -178,10 +267,19 @@ function UserConfirmedMappingPanel({ report, mappingDraft, setMappingDraft }) {
 
   if (!report) return null;
 
-  function updateMapping(index, updates) {
-    setMappingDraft((current) => current.map((item, itemIndex) => (itemIndex === index ? { ...item, ...updates } : item)));
+  const highConfidenceSuggestions = mappingDraft.filter(
+    (item) => item.target_role && item.mapping_state === 'suggested_by_system' && item.confidence >= 85,
+  );
+  const duplicateConfirmedRoles = getDuplicateConfirmedRoles(mappingDraft);
+
+  function clearValidationState() {
     setValidationReport(null);
     setMappingError('');
+  }
+
+  function updateMapping(index, updates) {
+    setMappingDraft((current) => current.map((item, itemIndex) => (itemIndex === index ? { ...item, ...updates } : item)));
+    clearValidationState();
   }
 
   function acceptMapping(index) {
@@ -191,6 +289,16 @@ function UserConfirmedMappingPanel({ report, mappingDraft, setMappingDraft }) {
       return;
     }
     updateMapping(index, { mapping_state: 'accepted_by_user', user_confirmed: true });
+  }
+
+  function acceptHighConfidenceSuggestions() {
+    setMappingDraft((current) => current.map((item) => {
+      if (item.target_role && item.mapping_state === 'suggested_by_system' && item.confidence >= 85) {
+        return { ...item, mapping_state: 'accepted_by_user', user_confirmed: true };
+      }
+      return item;
+    }));
+    clearValidationState();
   }
 
   function ignoreMapping(index) {
@@ -233,10 +341,30 @@ function UserConfirmedMappingPanel({ report, mappingDraft, setMappingDraft }) {
             readiness only; it does not verify source data, savings, diversion, carbon reduction or supplier compliance.
           </p>
         </div>
-        <button type="button" className="primary-button" onClick={validateMapping} disabled={mappingBusy || !mappingDraft.length}>
-          {mappingBusy ? 'Validating…' : 'Validate mapping'}
-        </button>
+        <div className="mapping-heading-actions">
+          <button
+            type="button"
+            className="secondary-button"
+            onClick={acceptHighConfidenceSuggestions}
+            disabled={!highConfidenceSuggestions.length}
+          >
+            Accept high-confidence suggestions
+          </button>
+          <button type="button" className="primary-button" onClick={validateMapping} disabled={mappingBusy || !mappingDraft.length}>
+            {mappingBusy ? 'Validating…' : 'Validate mapping'}
+          </button>
+        </div>
       </div>
+
+      <MappingBoundaryNotice />
+      <RequiredRoleChecklist mappingDraft={mappingDraft} />
+      <LocalMappingWarnings mappingDraft={mappingDraft} />
+
+      {!!duplicateConfirmedRoles.length && (
+        <p className="mapping-inline-warning">
+          Duplicate confirmed roles are visible locally. Resolve them before relying on the validation result.
+        </p>
+      )}
 
       <div className="mapping-draft-list">
         {mappingDraft.map((item, index) => (
@@ -283,6 +411,7 @@ function UserConfirmedMappingPanel({ report, mappingDraft, setMappingDraft }) {
     </section>
   );
 }
+
 
 
 export default function DataProfilerPanel() {

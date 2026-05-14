@@ -4829,4 +4829,106 @@ button.donut-legend-row {
   }
 }
 
+/* Milestone 17E: mapping validation UX hardening */
+.mapping-heading-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.mapping-boundary-notice,
+.mapping-readiness-checklist,
+.mapping-local-warning,
+.mapping-inline-warning {
+  margin-top: 14px;
+  border-radius: 16px;
+  padding: 13px 14px;
+  line-height: 1.45;
+}
+
+.mapping-boundary-notice {
+  display: flex;
+  gap: 8px;
+  background: #fff8e8;
+  border: 1px solid #eed9a7;
+  color: #604410;
+}
+
+.mapping-readiness-checklist {
+  display: grid;
+  gap: 12px;
+  border: 1px solid #dfe7e2;
+  background: #f5f8f6;
+}
+
+.mapping-readiness-checklist strong,
+.mapping-readiness-checklist small {
+  display: block;
+}
+
+.mapping-readiness-checklist small {
+  margin-top: 4px;
+  color: #66766e;
+}
+
+.mapping-required-role-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.mapping-required-role {
+  display: inline-flex;
+  width: fit-content;
+  border-radius: 999px;
+  padding: 7px 10px;
+  font-weight: 900;
+  font-size: 0.78rem;
+}
+
+.mapping-required-role.ready {
+  background: #e4f4eb;
+  color: #15613d;
+}
+
+.mapping-required-role.missing {
+  background: #fbe5e2;
+  color: #8f251d;
+}
+
+.mapping-local-warning {
+  display: grid;
+  gap: 5px;
+  background: #fff4dc;
+  border: 1px solid #ecd49b;
+  color: #6e4300;
+}
+
+.mapping-local-warning.success {
+  background: #e4f4eb;
+  border-color: #bfe4ce;
+  color: #15613d;
+}
+
+.mapping-local-warning strong,
+.mapping-local-warning span {
+  display: block;
+}
+
+.mapping-inline-warning {
+  background: #fbe5e2;
+  border: 1px solid #edc4bf;
+  color: #8f251d;
+  font-weight: 800;
+}
+
+@media (max-width: 900px) {
+  .mapping-heading-actions,
+  .mapping-boundary-notice {
+    display: grid;
+    justify-content: stretch;
+  }
+}
+
 
