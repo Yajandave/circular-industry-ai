@@ -912,3 +912,54 @@ class DataProfilerReport(BaseModel):
     unavailable_analysis_routes: list[str]
     recommended_next_action: str
     governance_note: str
+
+# Milestone 17A: user-confirmed mapping validation schemas
+
+class ConfirmedMappingItem(BaseModel):
+    source_column: str
+    target_role: str | None = None
+    mapping_state: str
+    confidence: int = Field(ge=0, le=100)
+    user_confirmed: bool = False
+
+
+class ConfirmedMappingValidationRequest(BaseModel):
+    target_workspace: str = "circular-core"
+    mappings: list[ConfirmedMappingItem]
+
+
+class ConfirmedMappingRoleStatus(BaseModel):
+    role: str
+    label: str
+
+
+class ConfirmedAcceptedMapping(BaseModel):
+    source_column: str
+    target_role: str
+    target_role_label: str
+    mapping_state: str
+    confidence: int
+    user_confirmed: bool
+
+
+class ConfirmedMappingIssue(BaseModel):
+    code: str
+    message: str
+    source_column: str | None = None
+    target_role: str | None = None
+    source_columns: list[str] | None = None
+
+
+class ConfirmedMappingValidationReport(BaseModel):
+    target_workspace: str
+    target_workspace_label: str
+    import_status: str
+    required_roles: list[ConfirmedMappingRoleStatus]
+    resolved_required_roles: list[ConfirmedMappingRoleStatus]
+    missing_required_roles: list[ConfirmedMappingRoleStatus]
+    accepted_mappings: list[ConfirmedAcceptedMapping]
+    ignored_columns: list[str]
+    blocking_errors: list[ConfirmedMappingIssue]
+    warnings: list[ConfirmedMappingIssue]
+    governance_note: str
+
