@@ -52,6 +52,11 @@ export const api = {
     formData.append('file', file);
     return request('/api/data-profiler/profile-csv', { method: 'POST', body: formData });
   },
+  validateMapping: (payload) => request('/api/data-profiler/validate-mapping', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  }),
 };
 
 export { API_BASE_URL };
