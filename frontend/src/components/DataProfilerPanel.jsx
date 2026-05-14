@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { api } from '../api/client.js';
 
@@ -87,11 +87,214 @@ function ColumnMappingTable({ columns }) {
   );
 }
 
+const ROLE_OPTIONS = [
+  { role: '', label: 'Unmapped / unresolved' },
+  { role: 'material', label: 'Material' },
+  { role: 'quantity', label: 'Quantity' },
+  { role: 'current_route', label: 'Current route' },
+  { role: 'stream_name', label: 'Stream name' },
+  { role: 'source_process', label: 'Source process' },
+  { role: 'disposal_cost_per_month', label: 'Disposal cost per month' },
+  { role: 'contamination_risk', label: 'Contamination risk' },
+  { role: 'hazardous_flag', label: 'Hazardous status' },
+  { role: 'supplier', label: 'Supplier' },
+  { role: 'department', label: 'Department' },
+  { role: 'quantity_unit', label: 'Quantity unit' },
+  { role: 'waste_stream_type', label: 'Waste / stream type' },
+  { role: 'supplier_takeback_available', label: 'Supplier takeback available' },
+  { role: 'recycled_content_available', label: 'Recycled content available' },
+  { role: 'notes', label: 'Notes' },
+];
+
+function buildInitialMappingDraft(report) {
+  return (report?.columns || []).map((column) => ({
+    source_column: column.original_name,
+    target_role: column.mapped_role || '',
+    suggested_role: column.mapped_role || '',
+    suggested_label: column.mapped_role_label || 'Unmapped',
+    mapping_state: column.mapped_role ? 'suggested_by_system' : 'unresolved',
+    confidence: Number(column.role_confidence) || 0,
+    user_confirmed: false,
+    sample_values: column.sample_values || [],
+    inferred_data_type: column.inferred_data_type,
+    role_reason: column.role_reason,
+  }));
+}
+
+function ValidationStatusPill({ status }) {
+  const tone = status === 'ready' ? 'strong' : status === 'ready_with_warnings' ? 'medium' : 'weak';
+  return <span className={`mapping-status-pill ${tone}`}>{status?.replaceAll('_', ' ') || 'not validated'}</span>;
+}
+
+function MappingValidationSummary({ report }) {
+  if (!report) return null;
+
+  return (
+    <article className="mapping-validation-result">
+      <div className="mapping-validation-topline">
+        <div>
+          <span className="eyebrow">Backend validation result</span>
+          <h3>{report.target_workspace_label}</h3>
+        </div>
+        <ValidationStatusPill status={report.import_status} />
+      </div>
+
+      <div className="mapping-validation-grid">
+        <div>
+          <strong>Resolved required roles</strong>
+          {!report.resolved_required_roles?.length && <small>None confirmed yet.</small>}
+          {report.resolved_required_roles?.map((role) => <small key={role.role}>{role.label}</small>)}
+        </div>
+        <div>
+          <strong>Missing required roles</strong>
+          {!report.missing_required_roles?.length && <small>No required-role gaps.</small>}
+          {report.missing_required_roles?.map((role) => <small key={role.role}>{role.label}</small>)}
+        </div>
+        <div>
+          <strong>Warnings</strong>
+          {!report.warnings?.length && <small>No warnings returned.</small>}
+          {report.warnings?.slice(0, 4).map((warning) => (
+            <small key={`${warning.code}-${warning.source_column || warning.target_role}`}>{warning.message}</small>
+          ))}
+        </div>
+        <div>
+          <strong>Blocking errors</strong>
+          {!report.blocking_errors?.length && <small>No blocking errors.</small>}
+          {report.blocking_errors?.slice(0, 4).map((error) => (
+            <small key={`${error.code}-${error.source_column || error.target_role}`}>{error.message}</small>
+          ))}
+        </div>
+      </div>
+
+      <p className="mapping-governance-note">{report.governance_note}</p>
+    </article>
+  );
+}
+
+function UserConfirmedMappingPanel({ report, mappingDraft, setMappingDraft }) {
+  const [validationReport, setValidationReport] = useState(null);
+  const [mappingError, setMappingError] = useState('');
+  const [mappingBusy, setMappingBusy] = useState(false);
+
+  if (!report) return null;
+
+  function updateMapping(index, updates) {
+    setMappingDraft((current) => current.map((item, itemIndex) => (itemIndex === index ? { ...item, ...updates } : item)));
+    setValidationReport(null);
+    setMappingError('');
+  }
+
+  function acceptMapping(index) {
+    const item = mappingDraft[index];
+    if (!item?.target_role) {
+      updateMapping(index, { mapping_state: 'unresolved', user_confirmed: false });
+      return;
+    }
+    updateMapping(index, { mapping_state: 'accepted_by_user', user_confirmed: true });
+  }
+
+  function ignoreMapping(index) {
+    updateMapping(index, { target_role: '', mapping_state: 'ignored_by_user', user_confirmed: false });
+  }
+
+  async function validateMapping() {
+    setMappingBusy(true);
+    setMappingError('');
+    setValidationReport(null);
+
+    const payload = {
+      target_workspace: report.detected_workspace === 'circular-core' ? 'circular-core' : report.detected_workspace,
+      mappings: mappingDraft.map((item) => ({
+        source_column: item.source_column,
+        target_role: item.target_role || null,
+        mapping_state: item.mapping_state,
+        confidence: item.confidence,
+        user_confirmed: item.user_confirmed,
+      })),
+    };
+
+    try {
+      setValidationReport(await api.validateMapping(payload));
+    } catch (err) {
+      setMappingError(err.message || 'Could not validate mapping.');
+    } finally {
+      setMappingBusy(false);
+    }
+  }
+
+  return (
+    <section className="mapping-confirmation-panel">
+      <div className="mapping-confirmation-heading">
+        <div>
+          <span className="eyebrow">User-confirmed mapping checkpoint</span>
+          <h3>Review and validate mapped columns</h3>
+          <p>
+            System suggestions are not import-ready until accepted by the operator. This validation checks mapping
+            readiness only; it does not verify source data, savings, diversion, carbon reduction or supplier compliance.
+          </p>
+        </div>
+        <button type="button" className="primary-button" onClick={validateMapping} disabled={mappingBusy || !mappingDraft.length}>
+          {mappingBusy ? 'Validating…' : 'Validate mapping'}
+        </button>
+      </div>
+
+      <div className="mapping-draft-list">
+        {mappingDraft.map((item, index) => (
+          <article className="mapping-draft-row" key={item.source_column}>
+            <div className="mapping-source-detail">
+              <span className="record-id">{item.source_column}</span>
+              <strong>Suggested: {item.suggested_label}</strong>
+              <small>{item.role_reason}</small>
+              {!!item.sample_values?.length && <p>Samples: {item.sample_values.slice(0, 4).join(', ')}</p>}
+            </div>
+            <div className="mapping-controls">
+              <label>
+                Target role
+                <select
+                  value={item.target_role}
+                  onChange={(event) => updateMapping(index, {
+                    target_role: event.target.value,
+                    mapping_state: event.target.value ? 'changed_by_user' : 'unresolved',
+                    user_confirmed: false,
+                  })}
+                >
+                  {ROLE_OPTIONS.map((option) => <option key={option.role || 'unmapped'} value={option.role}>{option.label}</option>)}
+                </select>
+              </label>
+              <div className="mapping-row-actions">
+                <ConfidencePill value={item.confidence} />
+                <button type="button" className="secondary-button" onClick={() => acceptMapping(index)} disabled={!item.target_role}>
+                  Accept
+                </button>
+                <button type="button" className="link-button" onClick={() => ignoreMapping(index)}>
+                  Ignore
+                </button>
+              </div>
+              <small className={`mapping-state ${item.user_confirmed ? 'confirmed' : ''}`}>
+                {item.user_confirmed ? 'User confirmed' : item.mapping_state.replaceAll('_', ' ')}
+              </small>
+            </div>
+          </article>
+        ))}
+      </div>
+
+      {mappingError && <p className="status-error">{mappingError}</p>}
+      <MappingValidationSummary report={validationReport} />
+    </section>
+  );
+}
+
+
 export default function DataProfilerPanel() {
   const [file, setFile] = useState(null);
   const [report, setReport] = useState(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [mappingDraft, setMappingDraft] = useState([]);
+
+  useEffect(() => {
+    setMappingDraft(buildInitialMappingDraft(report));
+  }, [report]);
 
   async function profileFile() {
     if (!file) return;
@@ -165,6 +368,7 @@ export default function DataProfilerPanel() {
 
           <WorkspaceRoutes routes={report.workspace_compatibility} />
           <ColumnMappingTable columns={report.columns} />
+          <UserConfirmedMappingPanel report={report} mappingDraft={mappingDraft} setMappingDraft={setMappingDraft} />
 
           <p className="governance-strip">{report.governance_note}</p>
         </div>
