@@ -6,6 +6,7 @@ from fastapi import APIRouter, File, HTTPException, UploadFile, status
 
 from app import schemas
 from app.data_profiler import profile_csv_bytes
+from app.mapping_validation import validate_confirmed_mapping
 
 router = APIRouter(prefix="/api/data-profiler", tags=["data profiler"])
 
@@ -30,4 +31,19 @@ async def profile_csv(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Could not profile uploaded CSV: {exc}",
+        ) from exc
+
+@router.post("/validate-mapping", response_model=schemas.ConfirmedMappingValidationReport)
+def validate_mapping(
+    payload: schemas.ConfirmedMappingValidationRequest,
+) -> schemas.ConfirmedMappingValidationReport:
+    """Validate user-confirmed mappings before future flexible import."""
+    try:
+        return validate_confirmed_mapping(payload)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Could not validate confirmed mapping: {exc}",
         ) from exc
