@@ -6,6 +6,7 @@ from fastapi import APIRouter, File, HTTPException, UploadFile, status
 
 from app import schemas
 from app.data_profiler import profile_csv_bytes
+from app.flexible_circular_import import build_flexible_circular_core_import
 from app.mapping_validation import validate_confirmed_mapping
 
 router = APIRouter(prefix="/api/data-profiler", tags=["data profiler"])
@@ -46,4 +47,25 @@ def validate_mapping(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Could not validate confirmed mapping: {exc}",
+        ) from exc
+
+@router.post(
+    "/build-circular-core-draft-import",
+    response_model=schemas.FlexibleCircularCoreImportReport,
+)
+def build_circular_core_draft_import(
+    payload: schemas.FlexibleCircularCoreImportRequest,
+) -> schemas.FlexibleCircularCoreImportReport:
+    """Build draft Circular Core rows from user-confirmed mapped source rows.
+
+    This endpoint does not persist rows, run recommendations or verify impact.
+    """
+    try:
+        return build_flexible_circular_core_import(payload)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Could not build Circular Core draft import: {exc}",
         ) from exc
