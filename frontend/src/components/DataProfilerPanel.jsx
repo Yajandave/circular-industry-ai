@@ -64,7 +64,7 @@ function ColumnMappingTable({ columns }) {
     <div className="profiler-column-panel">
       <div className="profiler-column-header">
         <strong>Detected column roles</strong>
-        <small>Uncertain mappings can be confirmed in the next milestone.</small>
+        <small>Review detected roles below, then confirm mappings in the checkpoint panel before future import.</small>
       </div>
       <div className="profiler-column-list">
         {columns.map((column) => (
@@ -89,21 +89,54 @@ function ColumnMappingTable({ columns }) {
 
 const ROLE_OPTIONS = [
   { role: '', label: 'Unmapped / unresolved' },
-  { role: 'material', label: 'Material' },
-  { role: 'quantity', label: 'Quantity' },
-  { role: 'current_route', label: 'Current route' },
+  { role: 'stream_id', label: 'Stream ID' },
   { role: 'stream_name', label: 'Stream name' },
+  { role: 'material', label: 'Material' },
+  { role: 'waste_stream_type', label: 'Waste / stream type' },
   { role: 'source_process', label: 'Source process' },
+  { role: 'quantity', label: 'Quantity' },
+  { role: 'quantity_unit', label: 'Quantity unit' },
+  { role: 'current_route', label: 'Current route' },
   { role: 'disposal_cost_per_month', label: 'Disposal cost per month' },
   { role: 'contamination_risk', label: 'Contamination risk' },
   { role: 'hazardous_flag', label: 'Hazardous status' },
-  { role: 'supplier', label: 'Supplier' },
   { role: 'department', label: 'Department' },
-  { role: 'quantity_unit', label: 'Quantity unit' },
-  { role: 'waste_stream_type', label: 'Waste / stream type' },
+  { role: 'supplier', label: 'Supplier' },
   { role: 'supplier_takeback_available', label: 'Supplier takeback available' },
   { role: 'recycled_content_available', label: 'Recycled content available' },
   { role: 'notes', label: 'Notes' },
+  { role: 'reporting_year', label: 'Reporting year' },
+  { role: 'esg_score', label: 'ESG score' },
+  { role: 'esg_rating', label: 'ESG rating' },
+  { role: 'esg_theme', label: 'ESG theme' },
+  { role: 'evidence', label: 'Evidence' },
+  { role: 'emission_scope', label: 'GHG scope' },
+  { role: 'emissions_quantity', label: 'Emissions quantity' },
+  { role: 'emission_source', label: 'Emission source' },
+  { role: 'emission_factor', label: 'Emission factor' },
+  { role: 'baseline_year', label: 'Baseline year' },
+  { role: 'target_year', label: 'Target year' },
+  { role: 'eia_topic', label: 'EIA topic' },
+  { role: 'receptor', label: 'Receptor' },
+  { role: 'impact', label: 'Impact' },
+  { role: 'magnitude', label: 'Magnitude' },
+  { role: 'sensitivity', label: 'Sensitivity' },
+  { role: 'significance', label: 'Significance' },
+  { role: 'mitigation', label: 'Mitigation' },
+  { role: 'residual_effect', label: 'Residual effect' },
+  { role: 'monitoring', label: 'Monitoring' },
+  { role: 'stakeholder', label: 'Stakeholder' },
+  { role: 'claim_text', label: 'Claim text' },
+  { role: 'claim_type', label: 'Claim type' },
+  { role: 'product', label: 'Product' },
+  { role: 'certificate', label: 'Certificate' },
+  { role: 'standard', label: 'Standard' },
+  { role: 'verification_status', label: 'Verification status' },
+  { role: 'geography', label: 'Geography' },
+  { role: 'spend', label: 'Spend' },
+  { role: 'procurement_category', label: 'Procurement category' },
+  { role: 'supplier_country', label: 'Supplier country' },
+  { role: 'contract_status', label: 'Contract status' },
 ];
 
 const CIRCULAR_CORE_REQUIRED_ROLES = [
@@ -255,7 +288,6 @@ function MappingValidationSummary({ report }) {
         </div>
       </div>
 
-      <p className="mapping-governance-note">{report.governance_note}</p>
     </article>
   );
 }
@@ -289,6 +321,20 @@ function UserConfirmedMappingPanel({ report, mappingDraft, setMappingDraft }) {
       return;
     }
     updateMapping(index, { mapping_state: 'accepted_by_user', user_confirmed: true });
+  }
+
+  function resetMappingToSuggestion(index) {
+    const item = mappingDraft[index];
+    updateMapping(index, {
+      target_role: item.suggested_role || '',
+      mapping_state: item.suggested_role ? 'suggested_by_system' : 'unresolved',
+      user_confirmed: false,
+    });
+  }
+
+  function restoreAllSuggestions() {
+    setMappingDraft(buildInitialMappingDraft(report));
+    clearValidationState();
   }
 
   function acceptHighConfidenceSuggestions() {
@@ -350,6 +396,9 @@ function UserConfirmedMappingPanel({ report, mappingDraft, setMappingDraft }) {
           >
             Accept high-confidence suggestions
           </button>
+          <button type="button" className="secondary-button" onClick={restoreAllSuggestions}>
+            Restore suggestions
+          </button>
           <button type="button" className="primary-button" onClick={validateMapping} disabled={mappingBusy || !mappingDraft.length}>
             {mappingBusy ? 'Validating…' : 'Validate mapping'}
           </button>
@@ -393,6 +442,9 @@ function UserConfirmedMappingPanel({ report, mappingDraft, setMappingDraft }) {
                 <ConfidencePill value={item.confidence} />
                 <button type="button" className="secondary-button" onClick={() => acceptMapping(index)} disabled={!item.target_role}>
                   Accept
+                </button>
+                <button type="button" className="link-button" onClick={() => resetMappingToSuggestion(index)}>
+                  Reset to suggestion
                 </button>
                 <button type="button" className="link-button" onClick={() => ignoreMapping(index)}>
                   Ignore
@@ -449,7 +501,7 @@ export default function DataProfilerPanel() {
             column roles, shows missing fields and recommends a valid workspace route without inventing data.
           </p>
           <p className="domain-parser-status">
-            14A profiles and routes data. It does not yet transform the CSV into a confirmed Circular Core import.
+            The profiler routes data and the checkpoint validates mappings only. It does not yet import rows into Circular Core.
           </p>
         </div>
         <div className="profiler-upload-actions">
