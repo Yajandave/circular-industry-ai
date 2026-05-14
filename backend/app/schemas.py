@@ -963,3 +963,52 @@ class ConfirmedMappingValidationReport(BaseModel):
     warnings: list[ConfirmedMappingIssue]
     governance_note: str
 
+# Milestone 18A: flexible Circular Core import contract schemas
+
+class FlexibleCircularCoreSourceRow(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+
+class FlexibleCircularCoreImportRequest(BaseModel):
+    mapping_validation: ConfirmedMappingValidationRequest
+    source_rows: list[dict[str, object]]
+
+
+class FlexibleCircularCoreDraftRow(BaseModel):
+    source_row_number: int
+    stream_id: str
+    stream_name: str
+    material: str
+    source_process: str
+    monthly_quantity_kg: float
+    current_route: str
+    disposal_cost_per_month: float
+    contamination_risk: str
+    hazardous_flag: str
+    department: str
+    supplier: str
+    supplier_takeback_available: str
+    recycled_content_available: str
+    notes: str
+    draft_status: str
+    claim_boundary: str
+
+
+class FlexibleCircularCoreImportIssue(BaseModel):
+    code: str
+    message: str
+    source_row_number: int | None = None
+    source_column: str | None = None
+    target_role: str | None = None
+
+
+class FlexibleCircularCoreImportReport(BaseModel):
+    import_status: str
+    draft_row_count: int
+    source_row_count: int
+    draft_rows: list[FlexibleCircularCoreDraftRow]
+    row_warnings: list[FlexibleCircularCoreImportIssue]
+    blocking_errors: list[FlexibleCircularCoreImportIssue]
+    mapping_validation: ConfirmedMappingValidationReport
+    governance_note: str
+
