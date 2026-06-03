@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 
 import { api } from '../api/client.js';
 
@@ -328,6 +328,194 @@ function DraftImportStatusPill({ status }) {
   return <span className={`draft-import-status-pill ${tone}`}>{status?.replaceAll('_', ' ') || 'not built'}</span>;
 }
 
+function getDraftImportStage(report) {
+  if (!report) {
+    return {
+      tone: 'weak',
+      title: 'No draft preview built yet',
+      detail: 'Validate the mapping, then build a draft preview to review generated rows and warnings.',
+      action: 'No data has been saved or analysed.',
+    };
+  }
+
+  if (report.import_status === 'ready') {
+    return {
+      tone: 'strong',
+      title: 'Preview ready for operator review',
+      detail: 'Draft rows were generated without blocking errors. Review the row details before designing any future import step.',
+      action: 'Next safe action: review rows, then continue to a controlled import-design milestone.',
+    };
+  }
+
+  if (report.import_status === 'ready_with_warnings') {
+    return {
+      tone: 'medium',
+      title: 'Preview generated with warnings',
+      detail: 'Draft rows were generated, but one or more rows need operator attention before any future import.',
+      action: 'Next safe action: inspect warnings and correct source data or mappings where needed.',
+    };
+  }
+
+  return {
+    tone: 'weak',
+    title: 'Draft import blocked by validation controls',
+    detail: 'The backend returned a controlled blocked report. This is not a frontend failure.',
+    action: 'Next safe action: resolve blocking errors, then rebuild the draft preview.',
+  };
+}
+
+function groupImportIssues(issues = []) {
+  const groups = issues.reduce((accumulator, issue) => {
+    const code = issue.code || 'uncategorised_issue';
+
+    if (!accumulator[code]) {
+      accumulator[code] = {
+        code,
+        count: 0,
+        items: [],
+      };
+    }
+
+    accumulator[code].count += 1;
+    accumulator[code].items.push(issue);
+    return accumulator;
+  }, {});
+
+  return Object.values(groups).sort((left, right) => right.count - left.count);
+}
+
+function DraftImportStageGuidance({ report }) {
+  const stage = getDraftImportStage(report);
+
+  return (
+    <section className={`draft-import-guidance-card ${stage.tone}`}>
+      <div>
+        <span className="eyebrow">Operator review state</span>
+        <h4>{stage.title}</h4>
+        <p>{stage.detail}</p>
+      </div>
+      <strong>{stage.action}</strong>
+    </section>
+  );
+}
+
+function DraftImportFutureControls({ status }) {
+  const blocked = status === 'blocked';
+
+  return (
+    <section className="draft-import-future-controls">
+      <div>
+        <span className="eyebrow">Future import controls</span>
+        <h4>{blocked ? 'Import controls remain locked' : 'Import controls intentionally disabled'}</h4>
+        <p>
+          These controls are placeholders for a later milestone. 18E does not save rows, create audit events or run the
+          Circular Core rules engine.
+        </p>
+      </div>
+      <div className="draft-import-disabled-actions">
+        <button type="button" disabled>Save draft rows â€” planned for 19A</button>
+        <button type="button" disabled>Run rules engine â€” after controlled import</button>
+      </div>
+    </section>
+  );
+}
+
+function ImportIssueGroupList({ title, issues, emptyText }) {
+  const groupedIssues = groupImportIssues(issues);
+
+  return (
+    <article>
+      <h4>{title}</h4>
+      {!groupedIssues.length && <small>{emptyText}</small>}
+      {groupedIssues.map((group) => {
+        const affectedRows = [...new Set(group.items.map((issue) => issue.source_row_number).filter(Boolean))];
+
+        return (
+          <div className="draft-import-issue-group" key={group.code}>
+            <strong>{group.code.replaceAll('_', ' ')}</strong>
+            <span>
+              {group.count} issue{group.count === 1 ? '' : 's'}
+              {!!affectedRows.length && ` across row${affectedRows.length === 1 ? '' : 's'} ${affectedRows.slice(0, 6).join(', ')}`}
+            </span>
+            {group.items.slice(0, 3).map((issue, index) => (
+              <small key={`${group.code}-${issue.source_row_number || 'mapping'}-${issue.source_column || issue.target_role || index}`}>
+                {issue.source_row_number ? `Row ${issue.source_row_number}: ` : ''}
+                {issue.message}
+              </small>
+            ))}
+          </div>
+        );
+      })}
+    </article>
+  );
+}
+
+function DraftRowInspector({ row, rowWarnings }) {
+  if (!row) {
+    return (
+      <section className="draft-row-inspector empty">
+        <h4>No draft row selected</h4>
+        <p>Build a ready or warning preview to inspect individual draft rows.</p>
+      </section>
+    );
+  }
+
+  return (
+    <section className="draft-row-inspector">
+      <div className="draft-row-inspector-heading">
+        <div>
+          <span className="eyebrow">Selected draft row</span>
+          <h4>{row.stream_name}</h4>
+          <p>Source row {row.source_row_number} Â· {row.stream_id}</p>
+        </div>
+        <strong>{row.draft_status?.replaceAll('_', ' ')}</strong>
+      </div>
+
+      <div className="draft-row-detail-grid">
+        <article>
+          <span>Material</span>
+          <strong>{row.material}</strong>
+        </article>
+        <article>
+          <span>Current route</span>
+          <strong>{row.current_route}</strong>
+        </article>
+        <article>
+          <span>Quantity</span>
+          <strong>{row.monthly_quantity_kg} kg/month</strong>
+        </article>
+        <article>
+          <span>Cost exposure</span>
+          <strong>{row.disposal_cost_per_month}</strong>
+        </article>
+        <article>
+          <span>Department</span>
+          <strong>{row.department}</strong>
+        </article>
+        <article>
+          <span>Supplier</span>
+          <strong>{row.supplier}</strong>
+        </article>
+      </div>
+
+      <div className="draft-row-review-box">
+        <strong>Claim boundary</strong>
+        <p>{row.claim_boundary}</p>
+      </div>
+
+      <div className="draft-row-review-box">
+        <strong>Row warnings</strong>
+        {!rowWarnings.length && <p>No row-specific warnings for this selected draft row.</p>}
+        {rowWarnings.map((warning) => (
+          <p key={`${warning.code}-${warning.source_column || warning.target_role || warning.message}`}>
+            {warning.message}
+          </p>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function MappingValidationSummary({ report }) {
   if (!report) return null;
 
@@ -372,11 +560,15 @@ function MappingValidationSummary({ report }) {
 }
 
 function DraftImportPreviewReport({ report }) {
+  const [selectedSourceRowNumber, setSelectedSourceRowNumber] = useState(null);
+
   if (!report) return null;
 
-  const previewRows = report.draft_rows?.slice(0, 5) || [];
+  const previewRows = report.draft_rows?.slice(0, 8) || [];
   const rowWarnings = report.row_warnings || [];
   const blockingErrors = report.blocking_errors || [];
+  const selectedRow = previewRows.find((row) => row.source_row_number === selectedSourceRowNumber) || previewRows[0];
+  const selectedRowWarnings = rowWarnings.filter((warning) => warning.source_row_number === selectedRow?.source_row_number);
 
   return (
     <article className="draft-import-preview-result">
@@ -390,6 +582,8 @@ function DraftImportPreviewReport({ report }) {
         </div>
         <DraftImportStatusPill status={report.import_status} />
       </div>
+
+      <DraftImportStageGuidance report={report} />
 
       <div className="draft-import-summary-grid">
         <article>
@@ -405,7 +599,7 @@ function DraftImportPreviewReport({ report }) {
         <article>
           <span>Row warnings</span>
           <strong>{rowWarnings.length}</strong>
-          <small>review before import</small>
+          <small>grouped for operator review</small>
         </article>
         <article>
           <span>Blocking errors</span>
@@ -415,36 +609,53 @@ function DraftImportPreviewReport({ report }) {
       </div>
 
       {!!previewRows.length && (
-        <div className="draft-import-table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Row</th>
-                <th>Stream</th>
-                <th>Material</th>
-                <th>Quantity kg/month</th>
-                <th>Current route</th>
-                <th>Cost/month</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {previewRows.map((row) => (
-                <tr key={`${row.source_row_number}-${row.stream_id}`}>
-                  <td>{row.source_row_number}</td>
-                  <td>
-                    <strong>{row.stream_name}</strong>
-                    <small>{row.stream_id}</small>
-                  </td>
-                  <td>{row.material}</td>
-                  <td>{row.monthly_quantity_kg}</td>
-                  <td>{row.current_route}</td>
-                  <td>{row.disposal_cost_per_month}</td>
-                  <td>{row.draft_status?.replaceAll('_', ' ')}</td>
+        <div className="draft-import-detail-layout">
+          <div className="draft-import-table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Review</th>
+                  <th>Row</th>
+                  <th>Stream</th>
+                  <th>Material</th>
+                  <th>Quantity kg/month</th>
+                  <th>Current route</th>
+                  <th>Cost/month</th>
+                  <th>Status</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {previewRows.map((row) => (
+                  <tr
+                    className={selectedRow?.source_row_number === row.source_row_number ? 'selected-draft-row' : ''}
+                    key={`${row.source_row_number}-${row.stream_id}`}
+                  >
+                    <td>
+                      <button
+                        type="button"
+                        className="link-button compact draft-row-select-button"
+                        onClick={() => setSelectedSourceRowNumber(row.source_row_number)}
+                      >
+                        Inspect
+                      </button>
+                    </td>
+                    <td>{row.source_row_number}</td>
+                    <td>
+                      <strong>{row.stream_name}</strong>
+                      <small>{row.stream_id}</small>
+                    </td>
+                    <td>{row.material}</td>
+                    <td>{row.monthly_quantity_kg}</td>
+                    <td>{row.current_route}</td>
+                    <td>{row.disposal_cost_per_month}</td>
+                    <td>{row.draft_status?.replaceAll('_', ' ')}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <DraftRowInspector row={selectedRow} rowWarnings={selectedRowWarnings} />
         </div>
       )}
 
@@ -455,27 +666,19 @@ function DraftImportPreviewReport({ report }) {
       )}
 
       <div className="draft-import-warning-grid">
-        <article>
-          <h4>Row warnings</h4>
-          {!rowWarnings.length && <small>No row warnings returned.</small>}
-          {rowWarnings.slice(0, 8).map((warning) => (
-            <small key={`${warning.code}-${warning.source_row_number || 'mapping'}-${warning.source_column || warning.target_role || 'field'}`}>
-              {warning.source_row_number ? `Row ${warning.source_row_number}: ` : ''}
-              {warning.message}
-            </small>
-          ))}
-        </article>
-        <article>
-          <h4>Blocking errors</h4>
-          {!blockingErrors.length && <small>No blocking errors returned.</small>}
-          {blockingErrors.slice(0, 8).map((error) => (
-            <small key={`${error.code}-${error.source_row_number || 'mapping'}-${error.source_column || error.target_role || 'field'}`}>
-              {error.source_row_number ? `Row ${error.source_row_number}: ` : ''}
-              {error.message}
-            </small>
-          ))}
-        </article>
+        <ImportIssueGroupList
+          title="Grouped row warnings"
+          issues={rowWarnings}
+          emptyText="No row warnings returned."
+        />
+        <ImportIssueGroupList
+          title="Grouped blocking errors"
+          issues={blockingErrors}
+          emptyText="No blocking errors returned."
+        />
       </div>
+
+      <DraftImportFutureControls status={report.import_status} />
 
       <p className="draft-import-governance">{report.governance_note}</p>
     </article>
@@ -615,7 +818,7 @@ function UserConfirmedMappingPanel({ report, mappingDraft, setMappingDraft, sour
             Restore suggestions
           </button>
           <button type="button" className="primary-button" onClick={validateMapping} disabled={mappingBusy || !mappingDraft.length}>
-            {mappingBusy ? 'Validating…' : 'Validate mapping'}
+            {mappingBusy ? 'Validatingâ€¦' : 'Validate mapping'}
           </button>
         </div>
       </div>
@@ -688,7 +891,7 @@ function UserConfirmedMappingPanel({ report, mappingDraft, setMappingDraft, sour
               </p>
             </div>
             <button type="button" className="primary-button" onClick={buildDraftImportPreview} disabled={draftImportBusy || !sourceFile}>
-              {draftImportBusy ? 'Building preview…' : 'Build draft preview'}
+              {draftImportBusy ? 'Building previewâ€¦' : 'Build draft preview'}
             </button>
           </div>
 
@@ -752,7 +955,7 @@ export default function DataProfilerPanel() {
             <input type="file" accept=".csv" onChange={(event) => setFile(event.target.files?.[0] || null)} />
           </label>
           <button type="button" className="primary-button" onClick={profileFile} disabled={!file || busy}>
-            {busy ? 'Profiling…' : 'Profile CSV'}
+            {busy ? 'Profilingâ€¦' : 'Profile CSV'}
           </button>
         </div>
       </div>
@@ -804,3 +1007,4 @@ export default function DataProfilerPanel() {
     </section>
   );
 }
+
