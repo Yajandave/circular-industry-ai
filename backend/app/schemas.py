@@ -1012,3 +1012,21 @@ class FlexibleCircularCoreImportReport(BaseModel):
     mapping_validation: ConfirmedMappingValidationReport
     governance_note: str
 
+
+# Milestone 19A: controlled SQLite draft import persistence schemas
+
+class CircularCoreDraftImportCommitRequest(BaseModel):
+    draft_import_report: FlexibleCircularCoreImportReport
+    operator_approval: bool = False
+    approval_note: str | None = None
+    replace_existing_streams: bool = True
+
+
+class CircularCoreDraftImportCommitResponse(BaseModel):
+    import_status: str
+    rows_imported: int
+    replaced_existing_streams: bool
+    recommendations_cleared: bool
+    imported_stream_ids: list[str]
+    message: str
+    governance_note: str
