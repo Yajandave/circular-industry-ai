@@ -57,12 +57,11 @@ export const api = {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   }),
+  buildCircularCoreDraftImport: (payload) => request('/api/data-profiler/build-circular-core-draft-import', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  }),
 };
 
 export { API_BASE_URL };
-
-
-
-
-
-
