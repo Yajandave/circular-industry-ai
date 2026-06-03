@@ -5344,3 +5344,177 @@ button.donut-legend-row {
     grid-template-columns: 1fr;
   }
 }
+
+
+/* Milestone 19C: frontend controlled import action */
+
+.controlled-import-action {
+  margin-top: 1rem;
+  border-radius: 1.2rem;
+  border: 1px solid #dfe7e2;
+  background: #ffffff;
+  padding: 1rem;
+}
+
+.controlled-import-action.ready {
+  border-color: #b8d8c6;
+  background: #fbfdfb;
+}
+
+.controlled-import-action.locked {
+  border-color: #efc7c2;
+  background: #fff7f7;
+}
+
+.controlled-import-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.controlled-import-heading h4 {
+  margin: 0.25rem 0 0.45rem;
+}
+
+.controlled-import-heading p {
+  margin: 0;
+  color: #60716a;
+  line-height: 1.5;
+}
+
+.controlled-import-lock {
+  margin-top: 1rem;
+  border-radius: 1rem;
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 0.9rem 1rem;
+}
+
+.controlled-import-lock strong,
+.controlled-import-lock span {
+  display: block;
+}
+
+.controlled-import-lock strong {
+  margin-bottom: 0.25rem;
+}
+
+.controlled-import-approval {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.75rem;
+  align-items: start;
+  margin-top: 1rem;
+  border: 1px solid #dfe7e2;
+  border-radius: 1rem;
+  background: #f8fbf9;
+  padding: 0.9rem;
+  color: #33443d;
+  line-height: 1.5;
+  font-weight: 750;
+}
+
+.controlled-import-approval input {
+  margin-top: 0.25rem;
+}
+
+.controlled-import-note {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin-top: 0.9rem;
+  color: #56675f;
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.controlled-import-note textarea {
+  width: 100%;
+  resize: vertical;
+  border: 1px solid #cadbd1;
+  border-radius: 0.9rem;
+  padding: 0.85rem;
+  color: #18231f;
+  background: #ffffff;
+  font: inherit;
+  line-height: 1.45;
+}
+
+.controlled-import-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+  align-items: center;
+  margin-top: 0.9rem;
+}
+
+.controlled-import-actions small {
+  color: #60716a;
+  line-height: 1.4;
+  max-width: 720px;
+}
+
+.controlled-import-result {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.85rem;
+  margin-top: 1rem;
+  border: 1px solid #b8d8c6;
+  border-radius: 1rem;
+  background: #ecf6f0;
+  padding: 1rem;
+}
+
+.controlled-import-result div {
+  border-radius: 0.9rem;
+  background: #ffffff;
+  border: 1px solid #dfe7e2;
+  padding: 0.8rem;
+}
+
+.controlled-import-result span {
+  display: block;
+  color: #60716a;
+  font-size: 0.78rem;
+  font-weight: 850;
+  margin-bottom: 0.35rem;
+}
+
+.controlled-import-result strong {
+  display: block;
+  color: #1f5b43;
+  overflow-wrap: anywhere;
+}
+
+.controlled-import-result p,
+.controlled-import-result small {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: #33443d;
+  line-height: 1.5;
+}
+
+.controlled-import-result small {
+  color: #7b4c00;
+  border-radius: 0.9rem;
+  border: 1px solid #eed9a7;
+  background: #fff8e8;
+  padding: 0.8rem;
+}
+
+.controlled-import-streams {
+  font-weight: 750;
+}
+
+@media (max-width: 900px) {
+  .controlled-import-heading,
+  .controlled-import-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .controlled-import-result {
+    grid-template-columns: 1fr;
+  }
+}
