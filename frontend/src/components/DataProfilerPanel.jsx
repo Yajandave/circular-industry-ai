@@ -409,6 +409,13 @@ function ControlledDraftImportAction({
   importError,
   importResult,
   onImportDraft,
+  recommendationGateConfirmed,
+  setRecommendationGateConfirmed,
+  recommendationRunBusy,
+  recommendationRunError,
+  recommendationRunResult,
+  recommendationSummary,
+  onRunRecommendations,
 }) {
   if (!report) return null;
 
@@ -507,6 +514,107 @@ function ControlledDraftImportAction({
               Imported stream IDs: {importResult.imported_stream_ids.slice(0, 10).join(', ')}
             </p>
           )}
+        </div>
+      )}
+
+      <PostImportRecommendationGate
+        importResult={importResult}
+        recommendationGateConfirmed={recommendationGateConfirmed}
+        setRecommendationGateConfirmed={setRecommendationGateConfirmed}
+        recommendationRunBusy={recommendationRunBusy}
+        recommendationRunError={recommendationRunError}
+        recommendationRunResult={recommendationRunResult}
+        recommendationSummary={recommendationSummary}
+        onRunRecommendations={onRunRecommendations}
+      />
+    </section>
+  );
+}
+
+
+function PostImportRecommendationGate({
+  importResult,
+  recommendationGateConfirmed,
+  setRecommendationGateConfirmed,
+  recommendationRunBusy,
+  recommendationRunError,
+  recommendationRunResult,
+  recommendationSummary,
+  onRunRecommendations,
+}) {
+  if (!importResult) return null;
+
+  return (
+    <section className="post-import-recommendation-gate">
+      <div className="post-import-recommendation-heading">
+        <div>
+          <span className="eyebrow">Post-import recommendation gate</span>
+          <h4>Run rules engine on imported rows</h4>
+          <p>
+            Imported rows are now saved to SQLite. Running recommendations is a separate operator action and creates
+            screening recommendations only, not verified circular economy, cost or environmental impact claims.
+          </p>
+        </div>
+        <span className="recommendation-gate-pill">Manual action</span>
+      </div>
+
+      <label className="recommendation-gate-approval">
+        <input
+          type="checkbox"
+          checked={recommendationGateConfirmed}
+          onChange={(event) => setRecommendationGateConfirmed(event.target.checked)}
+        />
+        <span>
+          I understand this will run the locked rules engine against the currently loaded streams. Outputs are
+          decision-support recommendations and must be reviewed before any claim is made.
+        </span>
+      </label>
+
+      <div className="recommendation-gate-actions">
+        <button
+          type="button"
+          className="primary-button"
+          onClick={onRunRecommendations}
+          disabled={!recommendationGateConfirmed || recommendationRunBusy}
+        >
+          {recommendationRunBusy ? 'Running recommendations...' : 'Run recommendations'}
+        </button>
+        <small>
+          This step happens after import. It does not change the imported source data and does not verify savings,
+          diversion, supplier compliance, carbon reduction or environmental benefit.
+        </small>
+      </div>
+
+      {recommendationRunError && <p className="status-error">{recommendationRunError}</p>}
+
+      {recommendationRunResult && (
+        <div className="recommendation-run-result">
+          <div>
+            <span>Analysed streams</span>
+            <strong>{recommendationRunResult.analysed_streams}</strong>
+          </div>
+          <div>
+            <span>Recommendations</span>
+            <strong>{recommendationRunResult.recommendations_created}</strong>
+          </div>
+          <div>
+            <span>Human review</span>
+            <strong>{recommendationRunResult.human_review_required}</strong>
+          </div>
+          <div>
+            <span>High priority</span>
+            <strong>{recommendationRunResult.high_priority_items}</strong>
+          </div>
+          <p>{recommendationRunResult.message}</p>
+        </div>
+      )}
+
+      {recommendationSummary && (
+        <div className="recommendation-summary-after-run">
+          <strong>Recommendation summary after run</strong>
+          <span>Total recommendations: {recommendationSummary.total_recommendations}</span>
+          <span>Human review required: {recommendationSummary.human_review_required}</span>
+          <span>Estimated values remain modelled screening outputs, not verified claims.</span>
         </div>
       )}
     </section>
@@ -662,6 +770,13 @@ function DraftImportPreviewReport({
   importError,
   importResult,
   onImportDraft,
+  recommendationGateConfirmed,
+  setRecommendationGateConfirmed,
+  recommendationRunBusy,
+  recommendationRunError,
+  recommendationRunResult,
+  recommendationSummary,
+  onRunRecommendations,
 }) {
   const [selectedSourceRowNumber, setSelectedSourceRowNumber] = useState(null);
 
@@ -792,6 +907,13 @@ function DraftImportPreviewReport({
         importError={importError}
         importResult={importResult}
         onImportDraft={onImportDraft}
+        recommendationGateConfirmed={recommendationGateConfirmed}
+        setRecommendationGateConfirmed={setRecommendationGateConfirmed}
+        recommendationRunBusy={recommendationRunBusy}
+        recommendationRunError={recommendationRunError}
+        recommendationRunResult={recommendationRunResult}
+        recommendationSummary={recommendationSummary}
+        onRunRecommendations={onRunRecommendations}
       />
 
       <p className="draft-import-governance">{report.governance_note}</p>
@@ -828,11 +950,19 @@ function UserConfirmedMappingPanel({ report, mappingDraft, setMappingDraft, sour
     setCommitImportBusy(false);
     setOperatorApproval(false);
     setApprovalNote('');
+    setRecommendationGateConfirmed(false);
+    setRecommendationRunError('');
+    setRecommendationRunResult(null);
+    setRecommendationSummary(null);
     setDraftImportError('');
     setCommitImportResult(null);
     setCommitImportError('');
     setOperatorApproval(false);
     setApprovalNote('');
+    setRecommendationGateConfirmed(false);
+    setRecommendationRunError('');
+    setRecommendationRunResult(null);
+    setRecommendationSummary(null);
   }
 
   function updateMapping(index, updates) {
@@ -887,11 +1017,19 @@ function UserConfirmedMappingPanel({ report, mappingDraft, setMappingDraft, sour
     setCommitImportBusy(false);
     setOperatorApproval(false);
     setApprovalNote('');
+    setRecommendationGateConfirmed(false);
+    setRecommendationRunError('');
+    setRecommendationRunResult(null);
+    setRecommendationSummary(null);
     setDraftImportError('');
     setCommitImportResult(null);
     setCommitImportError('');
     setOperatorApproval(false);
     setApprovalNote('');
+    setRecommendationGateConfirmed(false);
+    setRecommendationRunError('');
+    setRecommendationRunResult(null);
+    setRecommendationSummary(null);
 
     try {
       setValidationReport(await api.validateMapping(buildMappingValidationPayload(report, mappingDraft)));
@@ -909,12 +1047,20 @@ function UserConfirmedMappingPanel({ report, mappingDraft, setMappingDraft, sour
     setCommitImportError('');
     setOperatorApproval(false);
     setApprovalNote('');
+    setRecommendationGateConfirmed(false);
+    setRecommendationRunError('');
+    setRecommendationRunResult(null);
+    setRecommendationSummary(null);
     setDraftImportReport(null);
     setCommitImportResult(null);
     setCommitImportError('');
     setCommitImportBusy(false);
     setOperatorApproval(false);
     setApprovalNote('');
+    setRecommendationGateConfirmed(false);
+    setRecommendationRunError('');
+    setRecommendationRunResult(null);
+    setRecommendationSummary(null);
 
     try {
       if (!sourceFile) {
@@ -957,11 +1103,40 @@ function UserConfirmedMappingPanel({ report, mappingDraft, setMappingDraft, sour
         replace_existing_streams: true,
       };
 
-      setCommitImportResult(await api.importCircularCoreDraft(payload));
+      const importResponse = await api.importCircularCoreDraft(payload);
+      setCommitImportResult(importResponse);
+      setRecommendationGateConfirmed(false);
+      setRecommendationRunError('');
+      setRecommendationRunResult(null);
+      setRecommendationSummary(null);
     } catch (err) {
       setCommitImportError(err.message || 'Could not save approved draft rows.');
     } finally {
       setCommitImportBusy(false);
+    }
+  }
+  async function runPostImportRecommendations() {
+    setRecommendationRunBusy(true);
+    setRecommendationRunError('');
+    setRecommendationRunResult(null);
+    setRecommendationSummary(null);
+
+    try {
+      if (!commitImportResult) {
+        throw new Error('Save approved draft rows before running recommendations.');
+      }
+
+      if (!recommendationGateConfirmed) {
+        throw new Error('Confirm the recommendation gate before running the rules engine.');
+      }
+
+      const runResult = await api.runRecommendations();
+      setRecommendationRunResult(runResult);
+      setRecommendationSummary(await api.recommendationSummary());
+    } catch (err) {
+      setRecommendationRunError(err.message || 'Could not run recommendations after import.');
+    } finally {
+      setRecommendationRunBusy(false);
     }
   }
   return (
@@ -1084,6 +1259,13 @@ function UserConfirmedMappingPanel({ report, mappingDraft, setMappingDraft, sour
             importError={commitImportError}
             importResult={commitImportResult}
             onImportDraft={commitDraftImport}
+            recommendationGateConfirmed={recommendationGateConfirmed}
+            setRecommendationGateConfirmed={setRecommendationGateConfirmed}
+            recommendationRunBusy={recommendationRunBusy}
+            recommendationRunError={recommendationRunError}
+            recommendationRunResult={recommendationRunResult}
+            recommendationSummary={recommendationSummary}
+            onRunRecommendations={runPostImportRecommendations}
           />
         </section>
       )}
@@ -1187,5 +1369,6 @@ export default function DataProfilerPanel() {
     </section>
   );
 }
+
 
 
