@@ -5121,3 +5121,226 @@ button.donut-legend-row {
     grid-template-columns: 1fr;
   }
 }
+
+
+/* Milestone 18E: draft import UX hardening and review controls */
+
+.draft-import-guidance-card {
+  margin-top: 1rem;
+  border-radius: 1.15rem;
+  border: 1px solid #dfe7e2;
+  background: #f8fbf9;
+  padding: 1rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 0.55fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.draft-import-guidance-card h4 {
+  margin: 0.25rem 0 0.45rem;
+}
+
+.draft-import-guidance-card p {
+  margin: 0;
+  color: #60716a;
+  line-height: 1.5;
+}
+
+.draft-import-guidance-card > strong {
+  display: block;
+  border-radius: 1rem;
+  padding: 0.9rem;
+  line-height: 1.45;
+}
+
+.draft-import-guidance-card.strong > strong {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.draft-import-guidance-card.medium > strong {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.draft-import-guidance-card.weak > strong {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.draft-import-detail-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.65fr);
+  gap: 1rem;
+  align-items: start;
+  margin-top: 1rem;
+}
+
+.draft-import-table-wrap tr.selected-draft-row {
+  background: #ecf6f0;
+}
+
+.draft-row-select-button {
+  min-width: 86px;
+  text-align: center;
+}
+
+.draft-row-inspector {
+  border: 1px solid #dfe7e2;
+  border-radius: 1.15rem;
+  background: #ffffff;
+  padding: 1rem;
+  min-width: 0;
+}
+
+.draft-row-inspector.empty {
+  background: #f8fbf9;
+  color: #60716a;
+}
+
+.draft-row-inspector-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+  margin-bottom: 0.9rem;
+}
+
+.draft-row-inspector-heading h4 {
+  margin: 0.25rem 0 0.35rem;
+  overflow-wrap: anywhere;
+}
+
+.draft-row-inspector-heading p {
+  margin: 0;
+  color: #60716a;
+}
+
+.draft-row-inspector-heading > strong {
+  border-radius: 999px;
+  padding: 0.4rem 0.65rem;
+  background: #eef3ef;
+  color: #25513f;
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
+.draft-row-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.draft-row-detail-grid article,
+.draft-row-review-box {
+  border: 1px solid #dfe7e2;
+  border-radius: 0.9rem;
+  background: #fbfdfb;
+  padding: 0.8rem;
+  min-width: 0;
+}
+
+.draft-row-detail-grid span {
+  display: block;
+  color: #60716a;
+  font-size: 0.78rem;
+  font-weight: 850;
+  margin-bottom: 0.3rem;
+}
+
+.draft-row-detail-grid strong {
+  display: block;
+  color: #20342c;
+  overflow-wrap: anywhere;
+}
+
+.draft-row-review-box {
+  margin-top: 0.75rem;
+}
+
+.draft-row-review-box strong,
+.draft-row-review-box p {
+  display: block;
+}
+
+.draft-row-review-box p {
+  margin: 0.35rem 0 0;
+  color: #33443d;
+  line-height: 1.45;
+}
+
+.draft-import-issue-group {
+  border: 1px solid #e2e8f0;
+  border-radius: 0.9rem;
+  background: #ffffff;
+  padding: 0.8rem;
+}
+
+.draft-import-issue-group + .draft-import-issue-group {
+  margin-top: 0.65rem;
+}
+
+.draft-import-issue-group strong,
+.draft-import-issue-group span,
+.draft-import-issue-group small {
+  display: block;
+}
+
+.draft-import-issue-group strong {
+  color: #20342c;
+  text-transform: capitalize;
+}
+
+.draft-import-issue-group span {
+  color: #60716a;
+  margin: 0.25rem 0 0.45rem;
+  font-weight: 750;
+}
+
+.draft-import-future-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 0.65fr);
+  gap: 1rem;
+  align-items: start;
+  margin-top: 1rem;
+  border-radius: 1.15rem;
+  border: 1px solid #dfe7e2;
+  background: #f8fbf9;
+  padding: 1rem;
+}
+
+.draft-import-future-controls h4 {
+  margin: 0.25rem 0 0.45rem;
+}
+
+.draft-import-future-controls p {
+  margin: 0;
+  color: #60716a;
+  line-height: 1.5;
+}
+
+.draft-import-disabled-actions {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.draft-import-disabled-actions button {
+  width: 100%;
+  justify-content: center;
+  background: #e2e8f0;
+  color: #475569;
+  box-shadow: none;
+}
+
+@media (max-width: 1080px) {
+  .draft-import-guidance-card,
+  .draft-import-detail-layout,
+  .draft-import-future-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .draft-row-detail-grid {
+    grid-template-columns: 1fr;
+  }
+}
