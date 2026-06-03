@@ -1,4 +1,4 @@
-"""Pydantic schemas used by the API."""
+﻿"""Pydantic schemas used by the API."""
 
 from __future__ import annotations
 
@@ -1027,6 +1027,10 @@ class CircularCoreDraftImportCommitResponse(BaseModel):
     rows_imported: int
     replaced_existing_streams: bool
     recommendations_cleared: bool
+    audit_event_created: bool = False
+    audit_event_id: int | None = None
     imported_stream_ids: list[str]
     message: str
+    traceability_note: str | None = None
     governance_note: str
+

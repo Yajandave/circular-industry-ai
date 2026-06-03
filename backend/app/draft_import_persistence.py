@@ -1,4 +1,4 @@
-"""Milestone 19A controlled persistence for approved Circular Core draft imports."""
+"""Controlled persistence and audit traceability for approved Circular Core draft imports."""
 
 from __future__ import annotations
 
@@ -11,6 +11,12 @@ GOVERNANCE_NOTE = (
     "Controlled draft import persistence saves operator-approved draft rows into SQLite only. "
     "It does not run recommendations, verify savings, verify diversion, confirm supplier compliance, "
     "verify carbon reduction or prove environmental benefit."
+)
+
+AUDIT_CLAIM_BOUNDARY = (
+    "This audit event records that operator-approved draft rows were saved into SQLite. "
+    "It does not verify legal compliance, supplier capability, circular economy impact, "
+    "financial savings, carbon reduction, diversion or environmental benefit."
 )
 
 
@@ -46,7 +52,7 @@ def _validate_commit_request(payload: schemas.CircularCoreDraftImportCommitReque
         raise ValueError("Operator approval is required before draft rows can be saved to SQLite.")
 
     if not payload.replace_existing_streams:
-        raise ValueError("Milestone 19A only supports controlled replacement import. Append/merge import is not available yet.")
+        raise ValueError("Milestone 19A/19B only supports controlled replacement import. Append/merge import is not available yet.")
 
     if report.import_status == "blocked" or report.blocking_errors:
         raise ValueError("Blocked draft import reports cannot be saved. Resolve blocking errors and rebuild the preview first.")
@@ -75,36 +81,95 @@ def _validate_commit_request(payload: schemas.CircularCoreDraftImportCommitReque
     ]
     if invalid_status_rows:
         raise ValueError(
-            "Only draft_only_not_imported rows can be saved in Milestone 19A. "
+            "Only draft_only_not_imported rows can be saved in Milestone 19A/19B. "
             f"Invalid source rows: {', '.join(invalid_status_rows)}"
         )
+
+
+def _create_draft_import_audit_event(
+    db: Session,
+    *,
+    payload: schemas.CircularCoreDraftImportCommitRequest,
+    rows_imported: int,
+    imported_stream_ids: list[str],
+) -> schemas.AuditEventRead:
+    report = payload.draft_import_report
+
+    warning_codes: dict[str, int] = {}
+    for warning in report.row_warnings:
+        warning_codes[warning.code] = warning_codes.get(warning.code, 0) + 1
+
+    return crud.create_audit_event(
+        db,
+        event_type="draft_import_committed",
+        entity_type="circular_core_import",
+        entity_id="controlled_draft_import",
+        actor_type="operator",
+        actor_id="local_user",
+        source="data_profiler_import",
+        action="commit_approved_draft_rows",
+        summary=(
+            f"Operator-approved draft import saved {rows_imported} Circular Core stream rows to SQLite. "
+            "Existing stream rows were replaced and stale recommendations were cleared. "
+            "No recommendation engine execution was performed."
+        ),
+        decision_source="operator_approved_draft_import",
+        claim_boundary=AUDIT_CLAIM_BOUNDARY,
+        metadata={
+            "rows_imported": rows_imported,
+            "source_row_count": report.source_row_count,
+            "draft_row_count": report.draft_row_count,
+            "import_status": report.import_status,
+            "row_warning_count": len(report.row_warnings),
+            "blocking_error_count": len(report.blocking_errors),
+            "warning_code_breakdown": warning_codes,
+            "imported_stream_ids": imported_stream_ids,
+            "replace_existing_streams": payload.replace_existing_streams,
+            "recommendations_cleared": True,
+            "recommendations_run": False,
+            "approval_note_present": bool(payload.approval_note),
+        },
+    )
 
 
 def import_circular_core_draft_rows(
     db: Session,
     payload: schemas.CircularCoreDraftImportCommitRequest,
 ) -> schemas.CircularCoreDraftImportCommitResponse:
-    """Persist approved draft rows as IndustrialStream records.
+    """Persist approved draft rows as IndustrialStream records and record traceability.
 
     This is intentionally controlled replacement persistence only. It clears stale
     recommendations through the existing bulk_replace_streams helper but does not run
-    the recommendation engine or create audit records in this milestone.
+    the recommendation engine.
     """
     _validate_commit_request(payload)
 
     streams = [_draft_row_to_stream(row) for row in payload.draft_import_report.draft_rows]
+    imported_stream_ids = [stream.stream_id for stream in streams]
     rows_imported = crud.bulk_replace_streams(db, streams)
+    audit_event = _create_draft_import_audit_event(
+        db,
+        payload=payload,
+        rows_imported=rows_imported,
+        imported_stream_ids=imported_stream_ids,
+    )
 
     return schemas.CircularCoreDraftImportCommitResponse(
         import_status="imported_to_sqlite",
         rows_imported=rows_imported,
         replaced_existing_streams=True,
         recommendations_cleared=True,
-        imported_stream_ids=[stream.stream_id for stream in streams],
+        audit_event_created=True,
+        audit_event_id=audit_event.id,
+        imported_stream_ids=imported_stream_ids,
         message=(
             f"Saved {rows_imported} operator-approved draft rows to SQLite. "
             "Existing stream rows were replaced and previous recommendations were cleared. "
-            "No recommendations were run."
+            "No recommendations were run. A traceability audit event was recorded."
+        ),
+        traceability_note=(
+            "The audit event records the controlled import action and metadata only; it is not evidence of verified "
+            "savings, diversion, supplier compliance, carbon reduction or environmental benefit."
         ),
         governance_note=GOVERNANCE_NOTE,
     )
