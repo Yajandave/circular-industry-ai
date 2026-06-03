@@ -1,12 +1,15 @@
-"""Data profiler API endpoints for Milestone 14A."""
+﻿"""Data profiler API endpoints for Milestone 14A."""
 
 from __future__ import annotations
 
-from fastapi import APIRouter, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from sqlalchemy.orm import Session
 
 from app import schemas
+from app.database import get_db
 from app.data_profiler import profile_csv_bytes
 from app.flexible_circular_import import build_flexible_circular_core_import
+from app.draft_import_persistence import import_circular_core_draft_rows
 from app.mapping_validation import validate_confirmed_mapping
 
 router = APIRouter(prefix="/api/data-profiler", tags=["data profiler"])
@@ -69,3 +72,26 @@ def build_circular_core_draft_import(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Could not build Circular Core draft import: {exc}",
         ) from exc
+
+@router.post(
+    "/import-circular-core-draft",
+    response_model=schemas.CircularCoreDraftImportCommitResponse,
+)
+def import_circular_core_draft(
+    payload: schemas.CircularCoreDraftImportCommitRequest,
+    db: Session = Depends(get_db),
+) -> schemas.CircularCoreDraftImportCommitResponse:
+    """Persist operator-approved Circular Core draft rows into SQLite.
+
+    This endpoint does not run recommendations, create audit events or verify impact claims.
+    """
+    try:
+        return import_circular_core_draft_rows(db, payload)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Could not import Circular Core draft rows: {exc}",
+        ) from exc
+
