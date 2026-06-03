@@ -165,6 +165,81 @@ function getDuplicateConfirmedRoles(mappingDraft) {
     .map(([role]) => role);
 }
 
+function buildMappingValidationPayload(report, mappingDraft) {
+  return {
+    target_workspace: report.detected_workspace === 'circular-core' ? 'circular-core' : report.detected_workspace,
+    mappings: mappingDraft.map((item) => ({
+      source_column: item.source_column,
+      target_role: item.target_role || null,
+      mapping_state: item.mapping_state,
+      confidence: item.confidence,
+      user_confirmed: item.user_confirmed,
+    })),
+  };
+}
+
+function parseCsvRecords(text) {
+  const records = [];
+  let row = [];
+  let cell = '';
+  let inQuotes = false;
+
+  for (let index = 0; index < text.length; index += 1) {
+    const char = text[index];
+    const next = text[index + 1];
+
+    if (char === '"') {
+      if (inQuotes && next === '"') {
+        cell += '"';
+        index += 1;
+      } else {
+        inQuotes = !inQuotes;
+      }
+      continue;
+    }
+
+    if (char === ',' && !inQuotes) {
+      row.push(cell);
+      cell = '';
+      continue;
+    }
+
+    if ((char === '\n' || char === '\r') && !inQuotes) {
+      if (char === '\r' && next === '\n') index += 1;
+      row.push(cell);
+      if (row.some((value) => String(value).trim() !== '')) {
+        records.push(row);
+      }
+      row = [];
+      cell = '';
+      continue;
+    }
+
+    cell += char;
+  }
+
+  row.push(cell);
+  if (row.some((value) => String(value).trim() !== '')) {
+    records.push(row);
+  }
+
+  return records;
+}
+
+function parseCsvTextToRows(text) {
+  const records = parseCsvRecords(text);
+  if (records.length < 2) return [];
+
+  const headers = records[0].map((header) => String(header || '').trim());
+
+  return records.slice(1)
+    .filter((record) => record.some((value) => String(value).trim() !== ''))
+    .map((record) => headers.reduce((row, header, index) => {
+      if (header) row[header] = record[index] ?? '';
+      return row;
+    }, {}));
+}
+
 function RequiredRoleChecklist({ mappingDraft }) {
   const confirmedRoles = getConfirmedRoles(mappingDraft);
 
@@ -248,6 +323,11 @@ function ValidationStatusPill({ status }) {
   return <span className={`mapping-status-pill ${tone}`}>{status?.replaceAll('_', ' ') || 'not validated'}</span>;
 }
 
+function DraftImportStatusPill({ status }) {
+  const tone = status === 'ready' ? 'strong' : status === 'ready_with_warnings' ? 'medium' : 'weak';
+  return <span className={`draft-import-status-pill ${tone}`}>{status?.replaceAll('_', ' ') || 'not built'}</span>;
+}
+
 function MappingValidationSummary({ report }) {
   if (!report) return null;
 
@@ -287,15 +367,128 @@ function MappingValidationSummary({ report }) {
           ))}
         </div>
       </div>
-
     </article>
   );
 }
 
-function UserConfirmedMappingPanel({ report, mappingDraft, setMappingDraft }) {
+function DraftImportPreviewReport({ report }) {
+  if (!report) return null;
+
+  const previewRows = report.draft_rows?.slice(0, 5) || [];
+  const rowWarnings = report.row_warnings || [];
+  const blockingErrors = report.blocking_errors || [];
+
+  return (
+    <article className="draft-import-preview-result">
+      <div className="draft-import-result-heading">
+        <div>
+          <span className="eyebrow">Draft import preview</span>
+          <h3>Circular Core draft rows</h3>
+          <p>
+            These rows are preview-only. They have not been saved, imported, analysed by the rules engine or verified.
+          </p>
+        </div>
+        <DraftImportStatusPill status={report.import_status} />
+      </div>
+
+      <div className="draft-import-summary-grid">
+        <article>
+          <span>Source rows</span>
+          <strong>{report.source_row_count}</strong>
+          <small>read from selected CSV in browser</small>
+        </article>
+        <article>
+          <span>Draft rows</span>
+          <strong>{report.draft_row_count}</strong>
+          <small>not saved to SQLite</small>
+        </article>
+        <article>
+          <span>Row warnings</span>
+          <strong>{rowWarnings.length}</strong>
+          <small>review before import</small>
+        </article>
+        <article>
+          <span>Blocking errors</span>
+          <strong>{blockingErrors.length}</strong>
+          <small>controlled validation outcome</small>
+        </article>
+      </div>
+
+      {!!previewRows.length && (
+        <div className="draft-import-table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Row</th>
+                <th>Stream</th>
+                <th>Material</th>
+                <th>Quantity kg/month</th>
+                <th>Current route</th>
+                <th>Cost/month</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {previewRows.map((row) => (
+                <tr key={`${row.source_row_number}-${row.stream_id}`}>
+                  <td>{row.source_row_number}</td>
+                  <td>
+                    <strong>{row.stream_name}</strong>
+                    <small>{row.stream_id}</small>
+                  </td>
+                  <td>{row.material}</td>
+                  <td>{row.monthly_quantity_kg}</td>
+                  <td>{row.current_route}</td>
+                  <td>{row.disposal_cost_per_month}</td>
+                  <td>{row.draft_status?.replaceAll('_', ' ')}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {!previewRows.length && (
+        <p className="draft-import-empty">
+          No draft rows returned. If the report is blocked, review the blocking errors before attempting a future import.
+        </p>
+      )}
+
+      <div className="draft-import-warning-grid">
+        <article>
+          <h4>Row warnings</h4>
+          {!rowWarnings.length && <small>No row warnings returned.</small>}
+          {rowWarnings.slice(0, 8).map((warning) => (
+            <small key={`${warning.code}-${warning.source_row_number || 'mapping'}-${warning.source_column || warning.target_role || 'field'}`}>
+              {warning.source_row_number ? `Row ${warning.source_row_number}: ` : ''}
+              {warning.message}
+            </small>
+          ))}
+        </article>
+        <article>
+          <h4>Blocking errors</h4>
+          {!blockingErrors.length && <small>No blocking errors returned.</small>}
+          {blockingErrors.slice(0, 8).map((error) => (
+            <small key={`${error.code}-${error.source_row_number || 'mapping'}-${error.source_column || error.target_role || 'field'}`}>
+              {error.source_row_number ? `Row ${error.source_row_number}: ` : ''}
+              {error.message}
+            </small>
+          ))}
+        </article>
+      </div>
+
+      <p className="draft-import-governance">{report.governance_note}</p>
+    </article>
+  );
+}
+
+function UserConfirmedMappingPanel({ report, mappingDraft, setMappingDraft, sourceFile }) {
   const [validationReport, setValidationReport] = useState(null);
   const [mappingError, setMappingError] = useState('');
   const [mappingBusy, setMappingBusy] = useState(false);
+  const [draftImportReport, setDraftImportReport] = useState(null);
+  const [draftImportError, setDraftImportError] = useState('');
+  const [draftImportBusy, setDraftImportBusy] = useState(false);
 
   if (!report) return null;
 
@@ -307,6 +500,8 @@ function UserConfirmedMappingPanel({ report, mappingDraft, setMappingDraft }) {
   function clearValidationState() {
     setValidationReport(null);
     setMappingError('');
+    setDraftImportReport(null);
+    setDraftImportError('');
   }
 
   function updateMapping(index, updates) {
@@ -355,24 +550,44 @@ function UserConfirmedMappingPanel({ report, mappingDraft, setMappingDraft }) {
     setMappingBusy(true);
     setMappingError('');
     setValidationReport(null);
-
-    const payload = {
-      target_workspace: report.detected_workspace === 'circular-core' ? 'circular-core' : report.detected_workspace,
-      mappings: mappingDraft.map((item) => ({
-        source_column: item.source_column,
-        target_role: item.target_role || null,
-        mapping_state: item.mapping_state,
-        confidence: item.confidence,
-        user_confirmed: item.user_confirmed,
-      })),
-    };
+    setDraftImportReport(null);
+    setDraftImportError('');
 
     try {
-      setValidationReport(await api.validateMapping(payload));
+      setValidationReport(await api.validateMapping(buildMappingValidationPayload(report, mappingDraft)));
     } catch (err) {
       setMappingError(err.message || 'Could not validate mapping.');
     } finally {
       setMappingBusy(false);
+    }
+  }
+
+  async function buildDraftImportPreview() {
+    setDraftImportBusy(true);
+    setDraftImportError('');
+    setDraftImportReport(null);
+
+    try {
+      if (!sourceFile) {
+        throw new Error('Select and profile a CSV before building a draft import preview.');
+      }
+
+      const sourceRows = parseCsvTextToRows(await sourceFile.text());
+
+      if (!sourceRows.length) {
+        throw new Error('The selected CSV did not contain any source rows to preview.');
+      }
+
+      const payload = {
+        mapping_validation: buildMappingValidationPayload(report, mappingDraft),
+        source_rows: sourceRows,
+      };
+
+      setDraftImportReport(await api.buildCircularCoreDraftImport(payload));
+    } catch (err) {
+      setDraftImportError(err.message || 'Could not build Circular Core draft import preview.');
+    } finally {
+      setDraftImportBusy(false);
     }
   }
 
@@ -460,11 +675,38 @@ function UserConfirmedMappingPanel({ report, mappingDraft, setMappingDraft }) {
 
       {mappingError && <p className="status-error">{mappingError}</p>}
       <MappingValidationSummary report={validationReport} />
+
+      {validationReport && (
+        <section className="draft-import-preview-panel">
+          <div className="draft-import-preview-heading">
+            <div>
+              <span className="eyebrow">Circular Core draft import</span>
+              <h3>Build preview from confirmed mapping</h3>
+              <p>
+                This uses the selected CSV and the current confirmed mapping to build draft rows only. It does not save,
+                overwrite, analyse or verify anything.
+              </p>
+            </div>
+            <button type="button" className="primary-button" onClick={buildDraftImportPreview} disabled={draftImportBusy || !sourceFile}>
+              {draftImportBusy ? 'Building preview…' : 'Build draft preview'}
+            </button>
+          </div>
+
+          <div className="draft-import-boundary">
+            <strong>Preview boundary:</strong>
+            <span>
+              Draft rows are generated for operator review only. They are not imported into SQLite and do not create Circular
+              Core recommendations, verified savings, verified diversion or supplier-compliance claims.
+            </span>
+          </div>
+
+          {draftImportError && <p className="status-error">{draftImportError}</p>}
+          <DraftImportPreviewReport report={draftImportReport} />
+        </section>
+      )}
     </section>
   );
 }
-
-
 
 export default function DataProfilerPanel() {
   const [file, setFile] = useState(null);
@@ -549,7 +791,12 @@ export default function DataProfilerPanel() {
 
           <WorkspaceRoutes routes={report.workspace_compatibility} />
           <ColumnMappingTable columns={report.columns} />
-          <UserConfirmedMappingPanel report={report} mappingDraft={mappingDraft} setMappingDraft={setMappingDraft} />
+          <UserConfirmedMappingPanel
+            report={report}
+            mappingDraft={mappingDraft}
+            setMappingDraft={setMappingDraft}
+            sourceFile={file}
+          />
 
           <p className="governance-strip">{report.governance_note}</p>
         </div>
