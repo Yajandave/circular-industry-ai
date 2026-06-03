@@ -399,23 +399,116 @@ function DraftImportStageGuidance({ report }) {
   );
 }
 
-function DraftImportFutureControls({ status }) {
-  const blocked = status === 'blocked';
+function ControlledDraftImportAction({
+  report,
+  operatorApproval,
+  setOperatorApproval,
+  approvalNote,
+  setApprovalNote,
+  importBusy,
+  importError,
+  importResult,
+  onImportDraft,
+}) {
+  if (!report) return null;
+
+  const blockingErrors = report.blocking_errors || [];
+  const readyForImport = (
+    ['ready', 'ready_with_warnings'].includes(report.import_status)
+    && !!report.draft_rows?.length
+    && blockingErrors.length === 0
+  );
 
   return (
-    <section className="draft-import-future-controls">
-      <div>
-        <span className="eyebrow">Future import controls</span>
-        <h4>{blocked ? 'Import controls remain locked' : 'Import controls intentionally disabled'}</h4>
-        <p>
-          These controls are placeholders for a later milestone. 18E does not save rows, create audit events or run the
-          Circular Core rules engine.
-        </p>
+    <section className={`controlled-import-action ${readyForImport ? 'ready' : 'locked'}`}>
+      <div className="controlled-import-heading">
+        <div>
+          <span className="eyebrow">Controlled import action</span>
+          <h4>{readyForImport ? 'Save approved draft rows to SQLite' : 'Import action locked'}</h4>
+          <p>
+            This action saves the reviewed draft rows as Circular Core stream records and creates an audit event. It does
+            not run recommendations or verify any savings, diversion, supplier compliance or environmental benefit.
+          </p>
+        </div>
+        <DraftImportStatusPill status={report.import_status} />
       </div>
-      <div className="draft-import-disabled-actions">
-        <button type="button" disabled>Save draft rows â€” planned for 19A</button>
-        <button type="button" disabled>Run rules engine â€” after controlled import</button>
-      </div>
+
+      {!readyForImport && (
+        <div className="controlled-import-lock">
+          <strong>Import unavailable</strong>
+          <span>
+            Resolve blocking errors or rebuild a ready draft preview before saving rows. Blocked previews are controlled
+            validation outcomes, not frontend failures.
+          </span>
+        </div>
+      )}
+
+      {readyForImport && (
+        <>
+          <label className="controlled-import-approval">
+            <input
+              type="checkbox"
+              checked={operatorApproval}
+              onChange={(event) => setOperatorApproval(event.target.checked)}
+            />
+            <span>
+              I have reviewed the draft rows, warnings and claim boundary. I understand this saves rows to SQLite only
+              and does not run recommendations or verify impact claims.
+            </span>
+          </label>
+
+          <label className="controlled-import-note">
+            Approval note
+            <textarea
+              value={approvalNote}
+              onChange={(event) => setApprovalNote(event.target.value)}
+              placeholder="Optional: record what was reviewed before import."
+              rows={3}
+            />
+          </label>
+
+          <div className="controlled-import-actions">
+            <button
+              type="button"
+              className="primary-button"
+              onClick={onImportDraft}
+              disabled={!operatorApproval || importBusy}
+            >
+              {importBusy ? 'Saving approved draft rows...' : 'Save approved draft rows'}
+            </button>
+            <small>
+              Existing stream rows will be replaced and stale recommendations cleared. New recommendations will not be
+              created in this step.
+            </small>
+          </div>
+        </>
+      )}
+
+      {importError && <p className="status-error">{importError}</p>}
+
+      {importResult && (
+        <div className="controlled-import-result">
+          <div>
+            <span>Rows imported</span>
+            <strong>{importResult.rows_imported}</strong>
+          </div>
+          <div>
+            <span>Audit event</span>
+            <strong>{importResult.audit_event_created ? `#${importResult.audit_event_id}` : 'Not recorded'}</strong>
+          </div>
+          <div>
+            <span>Recommendations</span>
+            <strong>{importResult.recommendations_cleared ? 'Cleared, not run' : 'Not run'}</strong>
+          </div>
+          <p>{importResult.message}</p>
+          {importResult.traceability_note && <small>{importResult.traceability_note}</small>}
+          {!!importResult.imported_stream_ids?.length && (
+            <p className="controlled-import-streams">
+              Imported stream IDs: {importResult.imported_stream_ids.slice(0, 10).join(', ')}
+            </p>
+          )}
+        </div>
+      )}
     </section>
   );
 }
@@ -559,7 +652,17 @@ function MappingValidationSummary({ report }) {
   );
 }
 
-function DraftImportPreviewReport({ report }) {
+function DraftImportPreviewReport({
+  report,
+  operatorApproval,
+  setOperatorApproval,
+  approvalNote,
+  setApprovalNote,
+  importBusy,
+  importError,
+  importResult,
+  onImportDraft,
+}) {
   const [selectedSourceRowNumber, setSelectedSourceRowNumber] = useState(null);
 
   if (!report) return null;
@@ -577,7 +680,8 @@ function DraftImportPreviewReport({ report }) {
           <span className="eyebrow">Draft import preview</span>
           <h3>Circular Core draft rows</h3>
           <p>
-            These rows are preview-only. They have not been saved, imported, analysed by the rules engine or verified.
+            These rows are preview-only until the operator explicitly approves the controlled import action.
+            Importing saves rows to SQLite but does not run recommendations or verify claims.
           </p>
         </div>
         <DraftImportStatusPill status={report.import_status} />
@@ -594,7 +698,7 @@ function DraftImportPreviewReport({ report }) {
         <article>
           <span>Draft rows</span>
           <strong>{report.draft_row_count}</strong>
-          <small>not saved to SQLite</small>
+          <small>ready for controlled approval only</small>
         </article>
         <article>
           <span>Row warnings</span>
@@ -678,7 +782,17 @@ function DraftImportPreviewReport({ report }) {
         />
       </div>
 
-      <DraftImportFutureControls status={report.import_status} />
+      <ControlledDraftImportAction
+        report={report}
+        operatorApproval={operatorApproval}
+        setOperatorApproval={setOperatorApproval}
+        approvalNote={approvalNote}
+        setApprovalNote={setApprovalNote}
+        importBusy={importBusy}
+        importError={importError}
+        importResult={importResult}
+        onImportDraft={onImportDraft}
+      />
 
       <p className="draft-import-governance">{report.governance_note}</p>
     </article>
@@ -692,6 +806,11 @@ function UserConfirmedMappingPanel({ report, mappingDraft, setMappingDraft, sour
   const [draftImportReport, setDraftImportReport] = useState(null);
   const [draftImportError, setDraftImportError] = useState('');
   const [draftImportBusy, setDraftImportBusy] = useState(false);
+  const [commitImportResult, setCommitImportResult] = useState(null);
+  const [commitImportError, setCommitImportError] = useState('');
+  const [commitImportBusy, setCommitImportBusy] = useState(false);
+  const [operatorApproval, setOperatorApproval] = useState(false);
+  const [approvalNote, setApprovalNote] = useState('');
 
   if (!report) return null;
 
@@ -704,7 +823,16 @@ function UserConfirmedMappingPanel({ report, mappingDraft, setMappingDraft, sour
     setValidationReport(null);
     setMappingError('');
     setDraftImportReport(null);
+    setCommitImportResult(null);
+    setCommitImportError('');
+    setCommitImportBusy(false);
+    setOperatorApproval(false);
+    setApprovalNote('');
     setDraftImportError('');
+    setCommitImportResult(null);
+    setCommitImportError('');
+    setOperatorApproval(false);
+    setApprovalNote('');
   }
 
   function updateMapping(index, updates) {
@@ -754,7 +882,16 @@ function UserConfirmedMappingPanel({ report, mappingDraft, setMappingDraft, sour
     setMappingError('');
     setValidationReport(null);
     setDraftImportReport(null);
+    setCommitImportResult(null);
+    setCommitImportError('');
+    setCommitImportBusy(false);
+    setOperatorApproval(false);
+    setApprovalNote('');
     setDraftImportError('');
+    setCommitImportResult(null);
+    setCommitImportError('');
+    setOperatorApproval(false);
+    setApprovalNote('');
 
     try {
       setValidationReport(await api.validateMapping(buildMappingValidationPayload(report, mappingDraft)));
@@ -768,7 +905,16 @@ function UserConfirmedMappingPanel({ report, mappingDraft, setMappingDraft, sour
   async function buildDraftImportPreview() {
     setDraftImportBusy(true);
     setDraftImportError('');
+    setCommitImportResult(null);
+    setCommitImportError('');
+    setOperatorApproval(false);
+    setApprovalNote('');
     setDraftImportReport(null);
+    setCommitImportResult(null);
+    setCommitImportError('');
+    setCommitImportBusy(false);
+    setOperatorApproval(false);
+    setApprovalNote('');
 
     try {
       if (!sourceFile) {
@@ -794,6 +940,30 @@ function UserConfirmedMappingPanel({ report, mappingDraft, setMappingDraft, sour
     }
   }
 
+  async function commitDraftImport() {
+    setCommitImportBusy(true);
+    setCommitImportError('');
+    setCommitImportResult(null);
+
+    try {
+      if (!draftImportReport) {
+        throw new Error('Build a draft import preview before saving approved rows.');
+      }
+
+      const payload = {
+        draft_import_report: draftImportReport,
+        operator_approval: operatorApproval,
+        approval_note: approvalNote || null,
+        replace_existing_streams: true,
+      };
+
+      setCommitImportResult(await api.importCircularCoreDraft(payload));
+    } catch (err) {
+      setCommitImportError(err.message || 'Could not save approved draft rows.');
+    } finally {
+      setCommitImportBusy(false);
+    }
+  }
   return (
     <section className="mapping-confirmation-panel">
       <div className="mapping-confirmation-heading">
@@ -904,7 +1074,17 @@ function UserConfirmedMappingPanel({ report, mappingDraft, setMappingDraft, sour
           </div>
 
           {draftImportError && <p className="status-error">{draftImportError}</p>}
-          <DraftImportPreviewReport report={draftImportReport} />
+          <DraftImportPreviewReport
+            report={draftImportReport}
+            operatorApproval={operatorApproval}
+            setOperatorApproval={setOperatorApproval}
+            approvalNote={approvalNote}
+            setApprovalNote={setApprovalNote}
+            importBusy={commitImportBusy}
+            importError={commitImportError}
+            importResult={commitImportResult}
+            onImportDraft={commitDraftImport}
+          />
         </section>
       )}
     </section>
@@ -1007,4 +1187,5 @@ export default function DataProfilerPanel() {
     </section>
   );
 }
+
 
