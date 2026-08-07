@@ -149,7 +149,7 @@ Milestone 5 adds a frontend-facing CSV upload route:
 POST /api/streams/upload-csv
 ```
 
-This endpoint accepts a custom CSV file matching `data/data_dictionary.md`, validates required columns, normalises hazard status, replaces existing stream rows, and returns the number of rows loaded.
+This endpoint accepts a custom CSV file matching `data/data_dictionary.md`, validates required columns and values, normalises hazard status, replaces existing stream rows, and returns the number of rows loaded. Uploads are limited to 5 MB, 5,000 rows and 100 columns. Dataset replacement and its audit event commit in one transaction, so a failed import leaves the previous dataset intact.
 
 The frontend uses this route for user-uploaded industrial stream datasets while retaining the sample loader for demonstrations.
 

@@ -77,7 +77,7 @@ def build_fallback_evidence_gap_explanation(stream: Any, recommendation: Any, ev
         "stream_name": stream.stream_name,
         "decision_lock_status": "Rules engine locked. Evidence explainer advisory only.",
         "evidence_gap_summary": f"{stream.stream_id} is currently classified as '{evidence.get('evidence_status')}'. The main evidence issue is: {evidence.get('missing_data')}.",
-        "claim_readiness_explanation": f"Claim readiness is '{claim_readiness}'. The screened diversion and cost values remain estimates, not verified claims, until the missing evidence and review gate are resolved.",
+        "claim_readiness_explanation": f"Claim readiness is '{claim_readiness}'. The annualised quantity and disposal-cost exposure values are screening inputs, not verified diversion or savings, until the missing evidence and review gate are resolved.",
         "evidence_to_collect": evidence_to_collect,
         "supplier_documents_required": supplier_documents,
         "process_checks_required": process_checks,
@@ -92,5 +92,4 @@ def build_fallback_evidence_gap_explanation(stream: Any, recommendation: Any, ev
         "locked_claim_readiness": evidence.get("claim_readiness"),
         "locked_review_gate": evidence.get("review_gate"),
     }
-
 

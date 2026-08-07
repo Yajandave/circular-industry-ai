@@ -118,7 +118,7 @@ function ResolutionPlanCard({ plan }) {
         </div>
         <div>
           <span>Screened exposure</span>
-          <p>{formatCurrency(plan.estimated_annual_disposal_cost_avoided)} · {formatKg(plan.estimated_annual_waste_diverted_kg)}</p>
+          <p>{formatCurrency(plan.estimated_annual_disposal_cost_avoided)} cost exposure · {formatKg(plan.estimated_annual_waste_diverted_kg)} quantity exposure</p>
         </div>
       </div>
     </article>
@@ -181,7 +181,7 @@ export default function CircularResolutionPlans({ plans = [], summary = null }) 
             {(summary?.top_validation_candidates || []).map((candidate) => (
               <div className="resolution-candidate" key={candidate.stream_id}>
                 <strong>{candidate.stream_id} · {candidate.stream_name}</strong>
-                <small>{formatKg(candidate.estimated_annual_waste_diverted_kg)} · {formatCurrency(candidate.estimated_annual_disposal_cost_avoided)}</small>
+                <small>{formatKg(candidate.estimated_annual_waste_diverted_kg)} quantity exposure · {formatCurrency(candidate.estimated_annual_disposal_cost_avoided)} cost exposure</small>
                 <p>{candidate.specific_resolution_idea}</p>
               </div>
             ))}
@@ -211,5 +211,4 @@ export default function CircularResolutionPlans({ plans = [], summary = null }) 
     </section>
   );
 }
-
 

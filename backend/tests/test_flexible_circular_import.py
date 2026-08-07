@@ -120,7 +120,7 @@ def test_flexible_import_converts_tonnes_to_kg():
     assert report["draft_rows"][0]["monthly_quantity_kg"] == 1500
 
 
-def test_flexible_import_warns_on_invalid_quantity():
+def test_flexible_import_blocks_invalid_quantity():
     payload = FlexibleCircularCoreImportRequest(
         mapping_validation=_ready_mapping(),
         source_rows=[
@@ -138,8 +138,76 @@ def test_flexible_import_warns_on_invalid_quantity():
 
     report = build_flexible_circular_core_import(payload)
 
-    assert report["import_status"] == "ready_with_warnings"
-    assert report["draft_rows"][0]["monthly_quantity_kg"] == 0
-    assert report["draft_rows"][0]["disposal_cost_per_month"] == 0
-    assert any(warning["code"] == "invalid_quantity" for warning in report["row_warnings"])
-    assert any(warning["code"] == "invalid_numeric_value" for warning in report["row_warnings"])
+    assert report["import_status"] == "blocked"
+    assert report["draft_rows"] == []
+    assert any(error["code"] == "invalid_quantity" for error in report["blocking_errors"])
+
+
+def test_flexible_import_blocks_unsupported_quantity_unit_without_guessing_kg():
+    payload = FlexibleCircularCoreImportRequest(
+        mapping_validation=_ready_mapping(),
+        source_rows=[
+            {
+                "Stream ID": "S012",
+                "Waste Stream": "Process water",
+                "Waste Material": "Water",
+                "Monthly Weight": "1250",
+                "Weight Unit": "litres",
+                "Disposal Method": "Drain",
+                "Monthly Disposal Cost": "100",
+            }
+        ],
+    )
+
+    report = build_flexible_circular_core_import(payload)
+
+    assert report["import_status"] == "blocked"
+    assert report["draft_rows"] == []
+    assert any(error["code"] == "unsupported_quantity_unit" for error in report["blocking_errors"])
+
+
+def test_flexible_import_requires_a_confirmed_quantity_unit_mapping():
+    payload = FlexibleCircularCoreImportRequest(
+        mapping_validation=_ready_mapping(unit_role=False),
+        source_rows=[
+            {
+                "Stream ID": "S013",
+                "Waste Stream": "Mixed material",
+                "Waste Material": "Plastic",
+                "Monthly Weight": "1250",
+                "Disposal Method": "General waste",
+                "Monthly Disposal Cost": "100",
+            }
+        ],
+    )
+
+    report = build_flexible_circular_core_import(payload)
+
+    assert report["import_status"] == "blocked"
+    assert any(error["code"] == "quantity_unit_not_confirmed" for error in report["blocking_errors"])
+
+
+def test_flexible_import_blocks_missing_required_row_value():
+    payload = FlexibleCircularCoreImportRequest(
+        mapping_validation=_ready_mapping(),
+        source_rows=[
+            {
+                "Stream ID": "S014",
+                "Waste Stream": "Unnamed material",
+                "Waste Material": "",
+                "Monthly Weight": "1250",
+                "Weight Unit": "kg",
+                "Disposal Method": "General waste",
+                "Monthly Disposal Cost": "100",
+            }
+        ],
+    )
+
+    report = build_flexible_circular_core_import(payload)
+
+    assert report["import_status"] == "blocked"
+    assert report["draft_rows"] == []
+    assert any(
+        error["code"] == "missing_required_value" and error["target_role"] == "material"
+        for error in report["blocking_errors"]
+    )

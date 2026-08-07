@@ -15,6 +15,7 @@ from app.data_profiler_config import (
 )
 from app.data_profiler_role_scoring import normalise, role_candidates
 from app.data_profiler_type_inference import infer_type, sample_values
+from app.utils.upload_security import MAX_CSV_COLUMNS, MAX_CSV_ROWS
 
 
 def _column_profile(name: str, series: pd.Series) -> dict:
@@ -114,6 +115,12 @@ def profile_csv_bytes(file_bytes: bytes, dataset_label: str = "uploaded dataset"
         raise ValueError(f"Could not parse uploaded CSV: {exc}") from exc
     if len(df.columns) == 0:
         raise ValueError("Uploaded CSV does not contain columns.")
+    if len(df.columns) > MAX_CSV_COLUMNS:
+        raise ValueError(f"CSV contains more than the {MAX_CSV_COLUMNS}-column limit.")
+    if len(df) > MAX_CSV_ROWS:
+        raise ValueError(f"CSV contains more than the {MAX_CSV_ROWS}-row limit.")
+    if not df.columns.is_unique:
+        raise ValueError("CSV contains duplicate column names.")
 
     columns = [_column_profile(column, df[column]) for column in df.columns]
     mapping = _role_mapping(columns)

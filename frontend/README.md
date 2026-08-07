@@ -15,7 +15,7 @@ Milestone 7: evidence register, audit trail and export workflow.
 - Shows dashboard cards for material quantity, human review, value exposure and recommendation portfolio status.
 - Displays visual breakdowns for strategy mix, risk profile, priority bands and annual material quantity by material type.
 - Provides advanced filters for search, material, strategy, risk, review status, priority band, confidence and evidence score.
-- Sorts recommendations by priority, annual cost exposure, diversion potential, risk, confidence or evidence maturity.
+- Sorts recommendations by priority, annual cost exposure, screened quantity exposure, risk, confidence or evidence maturity.
 - Opens controlled agentic review packs for evidence, risk, procurement, industrial symbiosis and resource-efficiency context.
 - Shows a ranked action plan while keeping the rules engine as the locked decision source.
 - Provides an Evidence Register tab with missing data, review gates, claim boundaries and CSV exports.
@@ -49,7 +49,7 @@ Then delete `node_modules` and `package-lock.json`, reinstall, and run the front
 
 ## Governance note
 
-Dashboard figures are screening outputs. They should not be presented as verified savings, verified diversion or verified environmental benefit until actions are completed and evidenced.
+Dashboard figures annualise uploaded monthly inputs by multiplying them by 12. They show maximum screened quantity and disposal-cost exposure, not forecasts, verified savings, verified diversion or verified environmental benefit.
 
 
 ## Milestone 6B polish

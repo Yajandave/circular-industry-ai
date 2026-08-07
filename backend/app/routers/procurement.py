@@ -15,6 +15,7 @@ from app.database import get_db
 from app.evidence_register import build_evidence_record
 from app.procurement.supplier_loop_engine import build_supplier_loop_plans, build_supplier_loop_summary
 from app.supplier_drafting.service import generate_supplier_email_draft
+from app.utils.csv_export import protect_csv_rows
 
 router = APIRouter(prefix="/api", tags=["circular procurement and supplier loops"])
 
@@ -37,6 +38,7 @@ def _csv_response(rows: Iterable[dict], filename: str) -> StreamingResponse:
         for row in rows:
             flat = {key: "; ".join(value) if isinstance(value, list) else value for key, value in row.items()}
             flattened.append(flat)
+        flattened = protect_csv_rows(flattened)
         writer = csv.DictWriter(buffer, fieldnames=list(flattened[0].keys()))
         writer.writeheader()
         writer.writerows(flattened)
@@ -105,5 +107,4 @@ def draft_supplier_evidence_email(stream_id: str, db: Session = Depends(get_db))
 def export_supplier_loop_plans(db: Session = Depends(get_db)):
     """Export supplier-loop and circular procurement plans as CSV."""
     return _csv_response(_require_supplier_loop_plans(db), "circular-industry-ai-supplier-loop-plans.csv")
-
 

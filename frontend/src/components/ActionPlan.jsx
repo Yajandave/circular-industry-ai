@@ -22,7 +22,7 @@ export default function ActionPlan({ actionPlan }) {
                   <RiskBadge value={item.risk_level} />
                 </div>
                 <p>{item.recommended_circular_action}</p>
-                <small>{formatKg(item.estimated_annual_waste_diverted_kg)} · {formatCurrency(item.estimated_annual_disposal_cost_avoided)}</small>
+                <small>{formatKg(item.estimated_annual_waste_diverted_kg)} quantity exposure · {formatCurrency(item.estimated_annual_disposal_cost_avoided)} cost exposure</small>
               </div>
             ))}
           </article>

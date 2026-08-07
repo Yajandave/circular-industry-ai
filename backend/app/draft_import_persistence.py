@@ -86,21 +86,19 @@ def _validate_commit_request(payload: schemas.CircularCoreDraftImportCommitReque
         )
 
 
-def _create_draft_import_audit_event(
-    db: Session,
+def _draft_import_audit_fields(
     *,
     payload: schemas.CircularCoreDraftImportCommitRequest,
     rows_imported: int,
     imported_stream_ids: list[str],
-) -> schemas.AuditEventRead:
+) -> dict:
     report = payload.draft_import_report
 
     warning_codes: dict[str, int] = {}
     for warning in report.row_warnings:
         warning_codes[warning.code] = warning_codes.get(warning.code, 0) + 1
 
-    return crud.create_audit_event(
-        db,
+    return dict(
         event_type="draft_import_committed",
         entity_type="circular_core_import",
         entity_id="controlled_draft_import",
@@ -146,12 +144,15 @@ def import_circular_core_draft_rows(
 
     streams = [_draft_row_to_stream(row) for row in payload.draft_import_report.draft_rows]
     imported_stream_ids = [stream.stream_id for stream in streams]
-    rows_imported = crud.bulk_replace_streams(db, streams)
-    audit_event = _create_draft_import_audit_event(
-        db,
+    audit_fields = _draft_import_audit_fields(
         payload=payload,
-        rows_imported=rows_imported,
+        rows_imported=len(streams),
         imported_stream_ids=imported_stream_ids,
+    )
+    rows_imported, audit_event = crud.replace_streams_with_audit_event(
+        db,
+        streams,
+        **audit_fields,
     )
 
     return schemas.CircularCoreDraftImportCommitResponse(
