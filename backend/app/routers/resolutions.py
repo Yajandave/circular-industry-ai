@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 from app import crud, schemas
 from app.circular_resolution.resolution_engine import build_resolution_plans, build_resolution_summary
 from app.database import get_db
+from app.utils.csv_export import protect_csv_rows
 
 router = APIRouter(prefix="/api", tags=["circular resolution engine"])
 
@@ -41,6 +42,7 @@ def _csv_response(rows: Iterable[dict], filename: str) -> StreamingResponse:
                 for key, value in row.items()
             }
             flattened.append(flat)
+        flattened = protect_csv_rows(flattened)
         writer = csv.DictWriter(buffer, fieldnames=list(flattened[0].keys()))
         writer.writeheader()
         writer.writerows(flattened)

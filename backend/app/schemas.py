@@ -62,8 +62,12 @@ class CircularRecommendationBase(BaseModel):
     evidence_quality_score: int
     missing_data: str
     human_review_required: bool
-    estimated_annual_waste_diverted_kg: float
-    estimated_annual_disposal_cost_avoided: float
+    estimated_annual_waste_diverted_kg: float = Field(
+        description="Legacy field name: maximum annualised screened quantity exposure, not verified diversion."
+    )
+    estimated_annual_disposal_cost_avoided: float = Field(
+        description="Legacy field name: maximum annualised disposal-cost exposure, not verified savings."
+    )
     supplier_procurement_action: str
     industrial_symbiosis_opportunity: str
     next_action: str
@@ -97,8 +101,12 @@ class RecommendationSummary(BaseModel):
     medium_risk: int
     high_risk: int
     blocked: int
-    total_estimated_annual_waste_diverted_kg: float
-    total_estimated_annual_disposal_cost_avoided: float
+    total_estimated_annual_waste_diverted_kg: float = Field(
+        description="Legacy field name: total maximum annualised screened quantity exposure."
+    )
+    total_estimated_annual_disposal_cost_avoided: float = Field(
+        description="Legacy field name: total maximum annualised disposal-cost exposure."
+    )
 
 
 # Milestone 4: advanced agentic decision-support schemas
@@ -925,7 +933,7 @@ class ConfirmedMappingItem(BaseModel):
 
 class ConfirmedMappingValidationRequest(BaseModel):
     target_workspace: str = "circular-core"
-    mappings: list[ConfirmedMappingItem]
+    mappings: list[ConfirmedMappingItem] = Field(max_length=100)
 
 
 class ConfirmedMappingRoleStatus(BaseModel):
@@ -971,7 +979,7 @@ class FlexibleCircularCoreSourceRow(BaseModel):
 
 class FlexibleCircularCoreImportRequest(BaseModel):
     mapping_validation: ConfirmedMappingValidationRequest
-    source_rows: list[dict[str, object]]
+    source_rows: list[dict[str, object]] = Field(min_length=1, max_length=5_000)
 
 
 class FlexibleCircularCoreDraftRow(BaseModel):
@@ -1033,4 +1041,3 @@ class CircularCoreDraftImportCommitResponse(BaseModel):
     message: str
     traceability_note: str | None = None
     governance_note: str
-

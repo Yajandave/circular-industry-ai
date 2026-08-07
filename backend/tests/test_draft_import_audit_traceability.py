@@ -26,7 +26,7 @@ def _ready_payload():
                 "Stream ID": "AUDIT-001",
                 "Waste Stream": "Steel offcuts",
                 "Waste Material": "Steel",
-                "Monthly Weight": "not known",
+                "Monthly Weight": "1250",
                 "Weight Unit": "kg",
                 "Disposal Method": "Recycling",
                 "Monthly Disposal Cost": "780",
@@ -52,8 +52,7 @@ def _draft_report_with_warning():
     response = client.post("/api/data-profiler/build-circular-core-draft-import", json=_ready_payload())
     assert response.status_code == 200
     report = response.json()
-    assert report["import_status"] == "ready_with_warnings"
-    assert report["row_warnings"]
+    assert report["import_status"] == "ready"
     return report
 
 
@@ -96,13 +95,13 @@ def test_import_circular_core_draft_creates_traceability_audit_event():
     assert metadata["rows_imported"] == 2
     assert metadata["draft_row_count"] == 2
     assert metadata["source_row_count"] == 2
-    assert metadata["row_warning_count"] >= 1
+    assert metadata["row_warning_count"] == 0
     assert metadata["blocking_error_count"] == 0
     assert metadata["recommendations_cleared"] is True
     assert metadata["recommendations_run"] is False
     assert metadata["approval_note_present"] is True
     assert metadata["imported_stream_ids"] == ["AUDIT-001", "AUDIT-002"]
-    assert "invalid_quantity" in metadata["warning_code_breakdown"]
+    assert metadata["warning_code_breakdown"] == {}
 
 
 def test_import_circular_core_draft_audit_summary_counts_import_events():

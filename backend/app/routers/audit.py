@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, Query
+import os
+
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app import crud, schemas
@@ -43,6 +45,14 @@ def create_manual_audit_event(
     This is useful for Alpha/Beta testing, operator notes and later UI-driven
     review checkpoints. It should not be used to fabricate verification evidence.
     """
+    if os.getenv("ALLOW_MANUAL_AUDIT_EVENTS", "false").strip().lower() != "true":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=(
+                "Manual audit-event creation is disabled until authenticated operator roles are available. "
+                "Set ALLOW_MANUAL_AUDIT_EVENTS=true only for controlled local testing."
+            ),
+        )
     return crud.create_audit_event(
         db,
         event_type=event.event_type,

@@ -1,8 +1,8 @@
 # Circular Industry AI
 
-**Professional product direction:** industrial circular economy, ESG, EIA and sustainability intelligence dashboard.
+**Professional product direction:** industrial circular opportunity screening and evidence-controlled action planning.
 
-Circular Industry AI is a professional decision-support platform for industrial circular economy and sustainability intelligence. It converts raw operational material-flow data into rules-locked circular recommendations, evidence controls, supplier-loop actions, ESG/EIA-relevant risk signals, claim-readiness checks, agentic insight workflows and operator-facing analytics.
+Circular Industry AI is a development-stage decision-support platform for industrial circular economy screening. It converts operational material-flow data into rules-locked circular recommendations, evidence controls, supplier-loop actions, claim-readiness checks, agentic insight workflows and operator-facing analytics.
 
 It is designed as an operator-facing intelligence system, not a generic chatbot and not a presentation-only dashboard.
 
@@ -11,6 +11,8 @@ It is designed as an operator-facing intelligence system, not a generic chatbot 
 The repository currently implements the controlled local workflow through **Milestone 19D**. This includes CSV profiling, operator-confirmed mapping, draft transformation and preview, approval-gated SQLite persistence, import audit traceability, and a separate operator-triggered recommendation run.
 
 The project remains a development-stage decision-support product. Its outputs are screening and workflow records, not externally verified environmental performance, legal conclusions or production assurance.
+
+The ESG, GHG, EIA, greenwashing and generic supplier workspaces currently provide separated profiling and workflow guidance only. Their specialist calculations, regulatory methodologies and verification logic are not active product capabilities.
 
 ---
 
@@ -53,7 +55,7 @@ AI/LLM features may explain, summarise, draft and support investigation, but the
 - legal/compliance status
 - verified impact
 
-Dashboard values are screening outputs. They support prioritisation and operator attention. They are not verified savings, verified diversion, verified environmental benefit, supplier compliance confirmation or externally validated sustainability claims.
+Dashboard values are screening outputs. Quantity and disposal-cost figures annualise the uploaded monthly inputs by multiplying them by 12. They show maximum screened exposure under the assumption that the uploaded month is representative and the full recorded stream is in scope. They are not forecasts, verified savings, verified diversion, verified environmental benefit, supplier compliance confirmation or externally validated sustainability claims.
 
 ---
 
@@ -104,6 +106,9 @@ Users can profile uploaded CSV data before it enters Circular Core. The controll
 - preview and selected-row inspection
 - explicit operator approval before persistence
 - SQLite import with duplicate-ID protection
+- a 5 MB upload limit, 5,000-row limit and 100-column limit
+- required-value, duplicate-ID, numeric and media-type validation
+- rejection of unsupported quantity units instead of silently treating them as kilograms
 - import audit traceability
 - a separate operator confirmation gate before recommendations run
 
@@ -123,8 +128,8 @@ Each stream receives:
 - evidence quality score
 - missing data
 - human-review flag
-- estimated annual waste diversion
-- estimated annual disposal cost exposure
+- maximum screened annual quantity exposure
+- maximum screened annual disposal-cost exposure
 - supplier/procurement action
 - industrial symbiosis opportunity flag
 - next action

@@ -49,8 +49,9 @@ def build_fallback_site_summary(context: dict[str, Any]) -> dict[str, Any]:
             f"The system contains {scope['total_streams']} industrial streams and "
             f"{scope['total_recommendations']} generated recommendations. "
             f"{scope['human_review_required']} streams require human review. "
-            f"Estimated annual diversion is {scope['total_estimated_annual_waste_diverted_kg']} kg and "
-            f"estimated annual disposal cost avoided is {scope['total_estimated_annual_disposal_cost_avoided']}."
+            f"Maximum screened annual quantity exposure is {scope['total_estimated_annual_waste_diverted_kg']} kg and "
+            f"maximum screened annual disposal-cost exposure is {scope['total_estimated_annual_disposal_cost_avoided']}. "
+            "These annualised inputs are not verified diversion or savings."
         ),
         "risk_summary": (
             f"Risk breakdown: {risk}. Blocked and high-risk streams should be treated as controlled-review items."

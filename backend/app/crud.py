@@ -19,10 +19,14 @@ def create_stream(db: Session, stream: schemas.IndustrialStreamCreate) -> models
 
 
 def bulk_replace_streams(db: Session, streams: list[schemas.IndustrialStreamCreate]) -> int:
-    db.execute(delete(models.CircularRecommendation))
-    db.execute(delete(models.IndustrialStream))
-    db.add_all([models.IndustrialStream(**stream.model_dump()) for stream in streams])
-    db.commit()
+    try:
+        db.execute(delete(models.CircularRecommendation))
+        db.execute(delete(models.IndustrialStream))
+        db.add_all([models.IndustrialStream(**stream.model_dump()) for stream in streams])
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
     return len(streams)
 
 
@@ -276,7 +280,45 @@ def create_audit_event(
     metadata: dict | None = None,
 ) -> schemas.AuditEventRead:
     """Create and return a traceable audit event."""
-    event = models.AuditEvent(
+    event = _new_audit_event(
+        event_type=event_type,
+        entity_type=entity_type,
+        entity_id=entity_id,
+        actor_type=actor_type,
+        actor_id=actor_id,
+        source=source,
+        action=action,
+        summary=summary,
+        decision_source=decision_source,
+        claim_boundary=claim_boundary,
+        metadata=metadata,
+    )
+    try:
+        db.add(event)
+        db.commit()
+        db.refresh(event)
+    except Exception:
+        db.rollback()
+        raise
+    return _audit_read(event)
+
+
+def _new_audit_event(
+    *,
+    event_type: str,
+    entity_type: str,
+    entity_id: str | None,
+    actor_type: str,
+    actor_id: str | None,
+    source: str,
+    action: str,
+    summary: str,
+    decision_source: str,
+    claim_boundary: str,
+    metadata: dict | None = None,
+) -> models.AuditEvent:
+    """Build an audit row without committing, for use in larger transactions."""
+    return models.AuditEvent(
         event_type=event_type,
         entity_type=entity_type,
         entity_id=entity_id,
@@ -289,10 +331,49 @@ def create_audit_event(
         claim_boundary=claim_boundary,
         metadata_json=json.dumps(metadata or {}, ensure_ascii=False),
     )
-    db.add(event)
-    db.commit()
-    db.refresh(event)
-    return _audit_read(event)
+
+
+def replace_streams_with_audit_event(
+    db: Session,
+    streams: list[schemas.IndustrialStreamCreate],
+    *,
+    event_type: str,
+    entity_type: str,
+    entity_id: str | None,
+    actor_type: str,
+    actor_id: str | None,
+    source: str,
+    action: str,
+    summary: str,
+    decision_source: str,
+    claim_boundary: str,
+    metadata: dict | None = None,
+) -> tuple[int, schemas.AuditEventRead]:
+    """Replace streams and add its audit record in one database transaction."""
+    event = _new_audit_event(
+        event_type=event_type,
+        entity_type=entity_type,
+        entity_id=entity_id,
+        actor_type=actor_type,
+        actor_id=actor_id,
+        source=source,
+        action=action,
+        summary=summary,
+        decision_source=decision_source,
+        claim_boundary=claim_boundary,
+        metadata=metadata,
+    )
+    try:
+        db.execute(delete(models.CircularRecommendation))
+        db.execute(delete(models.IndustrialStream))
+        db.add_all([models.IndustrialStream(**stream.model_dump()) for stream in streams])
+        db.add(event)
+        db.commit()
+        db.refresh(event)
+    except Exception:
+        db.rollback()
+        raise
+    return len(streams), _audit_read(event)
 
 
 def get_audit_events(

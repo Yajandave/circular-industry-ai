@@ -11,6 +11,7 @@ from app.data_profiler import profile_csv_bytes
 from app.flexible_circular_import import build_flexible_circular_core_import
 from app.draft_import_persistence import import_circular_core_draft_rows
 from app.mapping_validation import validate_confirmed_mapping
+from app.utils.upload_security import read_limited_csv_upload
 
 router = APIRouter(prefix="/api/data-profiler", tags=["data profiler"])
 
@@ -20,14 +21,8 @@ async def profile_csv(
     file: UploadFile = File(..., description="CSV file to profile without saving or strict-template loading."),
 ) -> schemas.DataProfilerReport:
     """Profile an uploaded CSV and recommend a workspace route without loading it."""
-    if not file.filename or not file.filename.lower().endswith(".csv"):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Upload must be a .csv file.",
-        )
-
     try:
-        file_bytes = await file.read()
+        file_bytes = await read_limited_csv_upload(file)
         return profile_csv_bytes(file_bytes, dataset_label=file.filename)
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
@@ -94,4 +89,3 @@ def import_circular_core_draft(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Could not import Circular Core draft rows: {exc}",
         ) from exc
-

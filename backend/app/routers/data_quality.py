@@ -9,6 +9,7 @@ from app import crud, schemas
 from app.data_quality import build_data_quality_report
 from app.database import get_db
 from app.utils.csv_loader import load_streams_from_upload_bytes
+from app.utils.upload_security import read_limited_csv_upload
 
 router = APIRouter(prefix="/api/data-quality", tags=["data quality"])
 
@@ -25,14 +26,8 @@ async def validate_csv_without_loading(
     file: UploadFile = File(..., description="CSV file to validate without replacing current data."),
 ) -> schemas.DataQualityReport:
     """Validate an uploaded CSV and return a data-quality report without saving it."""
-    if not file.filename or not file.filename.lower().endswith(".csv"):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Upload must be a .csv file.",
-        )
-
     try:
-        file_bytes = await file.read()
+        file_bytes = await read_limited_csv_upload(file)
         streams = load_streams_from_upload_bytes(file_bytes)
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc

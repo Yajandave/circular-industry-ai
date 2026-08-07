@@ -15,6 +15,7 @@ from app.circular_resolution.advanced_playbooks import (
     get_advanced_playbook_dict,
     list_advanced_playbooks,
 )
+from app.utils.csv_export import protect_csv_rows
 
 router = APIRouter(prefix="/api", tags=["material circular playbooks"])
 
@@ -27,6 +28,7 @@ def _csv_response(rows: Iterable[dict], filename: str) -> StreamingResponse:
         for row in rows:
             flat = {key: "; ".join(value) if isinstance(value, list) else value for key, value in row.items()}
             flattened.append(flat)
+        flattened = protect_csv_rows(flattened)
         writer = csv.DictWriter(buffer, fieldnames=list(flattened[0].keys()))
         writer.writeheader()
         writer.writerows(flattened)

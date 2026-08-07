@@ -7,7 +7,8 @@ from app.main import app
 client = TestClient(app)
 
 
-def test_manual_audit_event_can_be_created_and_listed():
+def test_manual_audit_event_can_be_created_and_listed_for_controlled_local_testing(monkeypatch):
+    monkeypatch.setenv("ALLOW_MANUAL_AUDIT_EVENTS", "true")
     payload = {
         "event_type": "manual_review_note",
         "entity_type": "workflow",
@@ -32,6 +33,29 @@ def test_manual_audit_event_can_be_created_and_listed():
     assert list_response.status_code == 200
     events = list_response.json()
     assert any(event["entity_id"] == "manual-test" for event in events)
+
+
+def test_manual_audit_event_creation_is_disabled_by_default(monkeypatch):
+    monkeypatch.delenv("ALLOW_MANUAL_AUDIT_EVENTS", raising=False)
+
+    response = client.post(
+        "/api/audit/events",
+        json={
+            "event_type": "forged_verification",
+            "entity_type": "workflow",
+            "entity_id": "blocked-test",
+            "actor_type": "operator",
+            "source": "untrusted",
+            "action": "forge evidence",
+            "summary": "This must not be accepted by default.",
+            "decision_source": "untrusted",
+            "claim_boundary": "none",
+            "metadata_json": {},
+        },
+    )
+
+    assert response.status_code == 403
+    assert "disabled" in response.json()["detail"].lower()
 
 
 def test_core_workflow_writes_audit_events(monkeypatch):

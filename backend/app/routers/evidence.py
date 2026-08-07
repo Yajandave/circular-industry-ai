@@ -14,6 +14,7 @@ from app import crud, schemas
 from app.database import get_db
 from app.evidence_explainer.service import generate_evidence_gap_explanation
 from app.evidence_register import build_evidence_record, build_evidence_register, build_evidence_summary
+from app.utils.csv_export import protect_csv_rows
 
 router = APIRouter(prefix="/api", tags=["evidence and exports"])
 
@@ -32,7 +33,7 @@ def _require_register(db: Session) -> list[dict]:
 
 
 def _csv_response(rows: Iterable[dict], filename: str) -> StreamingResponse:
-    rows = list(rows)
+    rows = protect_csv_rows(rows)
     buffer = StringIO()
     if rows:
         writer = csv.DictWriter(buffer, fieldnames=list(rows[0].keys()))
@@ -95,8 +96,9 @@ def export_recommendations(db: Session = Depends(get_db)):
             "confidence_score": rec.confidence_score,
             "evidence_quality_score": rec.evidence_quality_score,
             "human_review_required": rec.human_review_required,
-            "estimated_annual_waste_diverted_kg": rec.estimated_annual_waste_diverted_kg,
-            "estimated_annual_disposal_cost_avoided": rec.estimated_annual_disposal_cost_avoided,
+            "maximum_screened_annual_quantity_exposure_kg": rec.estimated_annual_waste_diverted_kg,
+            "maximum_screened_annual_disposal_cost_exposure": rec.estimated_annual_disposal_cost_avoided,
+            "screening_basis": "Monthly input multiplied by 12; not verified diversion or savings.",
             "missing_data": rec.missing_data,
             "next_action": rec.next_action,
             "dashboard_priority": rec.dashboard_priority,
@@ -105,5 +107,3 @@ def export_recommendations(db: Session = Depends(get_db)):
         for rec in recommendations
     ]
     return _csv_response(rows, "circular-industry-ai-recommendations.csv")
-
-

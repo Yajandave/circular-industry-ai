@@ -68,7 +68,6 @@ def test_build_circular_core_draft_import_endpoint_returns_blocked_report_for_un
 
 def test_build_circular_core_draft_import_endpoint_returns_row_warnings():
     payload = _ready_payload()
-    payload["source_rows"][0]["Monthly Weight"] = "not known"
     payload["source_rows"][0]["Monthly Disposal Cost"] = "not available"
 
     response = client.post("/api/data-profiler/build-circular-core-draft-import", json=payload)
@@ -76,6 +75,5 @@ def test_build_circular_core_draft_import_endpoint_returns_row_warnings():
     assert response.status_code == 200
     data = response.json()
     assert data["import_status"] == "ready_with_warnings"
-    assert data["draft_rows"][0]["monthly_quantity_kg"] == 0
-    assert any(warning["code"] == "invalid_quantity" for warning in data["row_warnings"])
+    assert data["draft_rows"][0]["monthly_quantity_kg"] == 1250
     assert any(warning["code"] == "invalid_numeric_value" for warning in data["row_warnings"])

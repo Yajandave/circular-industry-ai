@@ -6,6 +6,8 @@ rows. It does not write to the database, run recommendations or verify impacts.
 
 from __future__ import annotations
 
+import math
+
 from app.mapping_validation import validate_confirmed_mapping
 
 
@@ -16,6 +18,20 @@ GOVERNANCE_NOTE = (
 )
 
 UNKNOWN = "Unknown"
+SUPPORTED_QUANTITY_UNITS = {
+    "g",
+    "gram",
+    "grams",
+    "kg",
+    "kilogram",
+    "kilograms",
+    "kgs",
+    "metric tonne",
+    "metric tonnes",
+    "t",
+    "tonne",
+    "tonnes",
+}
 
 
 def build_flexible_circular_core_import(payload) -> dict:
@@ -52,6 +68,19 @@ def build_flexible_circular_core_import(payload) -> dict:
         for mapping in validation_report["accepted_mappings"]
     }
 
+    row_blocking_errors = _row_blocking_errors(payload.source_rows, role_to_source)
+    if row_blocking_errors:
+        return {
+            "import_status": "blocked",
+            "draft_row_count": 0,
+            "source_row_count": len(payload.source_rows),
+            "draft_rows": [],
+            "row_warnings": [],
+            "blocking_errors": row_blocking_errors,
+            "mapping_validation": validation_report,
+            "governance_note": GOVERNANCE_NOTE,
+        }
+
     draft_rows = []
     row_warnings = []
 
@@ -83,6 +112,72 @@ def _blocked_report(payload, validation_report: dict, blocking_error: dict) -> d
         "mapping_validation": validation_report,
         "governance_note": GOVERNANCE_NOTE,
     }
+
+
+def _row_blocking_errors(source_rows: list[dict], role_to_source: dict[str, str]) -> list[dict]:
+    """Reject rows whose required values cannot be converted without guessing."""
+    errors: list[dict] = []
+    unit_column = role_to_source.get("quantity_unit")
+    if not unit_column:
+        return [
+            {
+                "code": "quantity_unit_not_confirmed",
+                "message": "A confirmed quantity-unit mapping is required before quantities can be converted to kilograms.",
+                "source_row_number": None,
+                "source_column": None,
+                "target_role": "quantity_unit",
+            }
+        ]
+
+    for row_number, source_row in enumerate(source_rows, start=1):
+        for role in ("material", "quantity", "current_route", "quantity_unit"):
+            source_column = role_to_source.get(role)
+            cleaned = _clean_text(source_row.get(source_column)) if source_column else ""
+            if not cleaned:
+                errors.append(
+                    {
+                        "code": "missing_required_value",
+                        "message": f"Required role '{role}' has an empty value in this row.",
+                        "source_row_number": row_number,
+                        "source_column": source_column,
+                        "target_role": role,
+                    }
+                )
+
+        quantity_column = role_to_source.get("quantity")
+        quantity = _clean_text(source_row.get(quantity_column)) if quantity_column else ""
+        if quantity:
+            try:
+                numeric = float(quantity.replace(",", "").strip())
+                if not math.isfinite(numeric) or numeric < 0:
+                    raise ValueError
+            except ValueError:
+                errors.append(
+                    {
+                        "code": "invalid_quantity",
+                        "message": "Quantity must be a non-negative number before import.",
+                        "source_row_number": row_number,
+                        "source_column": quantity_column,
+                        "target_role": "quantity",
+                    }
+                )
+
+        unit = _clean_text(source_row.get(unit_column)).lower()
+        if unit and unit not in SUPPORTED_QUANTITY_UNITS:
+            errors.append(
+                {
+                    "code": "unsupported_quantity_unit",
+                    "message": (
+                        f"Quantity unit '{source_row.get(unit_column)}' is unsupported. "
+                        "Use grams, kilograms or metric tonnes, or convert the source data before import."
+                    ),
+                    "source_row_number": row_number,
+                    "source_column": unit_column,
+                    "target_role": "quantity_unit",
+                }
+            )
+
+    return errors
 
 
 def _transform_row(row_number: int, source_row: dict, role_to_source: dict[str, str]) -> tuple[dict, list[dict]]:
@@ -231,16 +326,7 @@ def _quantity_to_kg(row_number: int, value: object, unit: str, warnings: list[di
     if normalised_unit in {"g", "gram", "grams"}:
         return numeric / 1000
 
-    warnings.append(
-        _warning(
-            row_number,
-            "unknown_quantity_unit",
-            None,
-            "quantity_unit",
-            f"Quantity unit '{unit}' is not recognised; value was treated as kilograms for draft review.",
-        )
-    )
-    return numeric
+    raise ValueError(f"Unsupported quantity unit reached conversion: {unit}")
 
 
 def _warning(row_number: int, code: str, source_column: str | None, target_role: str | None, message: str) -> dict:

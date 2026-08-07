@@ -13,6 +13,13 @@ from typing import Protocol
 from app.scoring import score_stream
 
 
+SCREENING_BASIS = (
+    "Screening basis: monthly quantity and disposal cost are multiplied by 12 to show maximum annualised "
+    "exposure. This assumes the uploaded month is representative and 100% of the recorded stream is in scope. "
+    "It is not a forecast, verified diversion or verified saving."
+)
+
+
 class StreamLike(Protocol):
     stream_id: str
     stream_name: str
@@ -58,7 +65,7 @@ def _contains_any(text: str, terms: list[str]) -> bool:
     return any(term in text for term in terms)
 
 
-def _annual_diversion(stream: StreamLike, action: str, human_review_required: bool) -> float:
+def _annual_quantity_exposure(stream: StreamLike, action: str, human_review_required: bool) -> float:
     if human_review_required and "human review" in action.lower():
         return 0.0
     if stream.monthly_quantity_kg <= 0:
@@ -66,7 +73,7 @@ def _annual_diversion(stream: StreamLike, action: str, human_review_required: bo
     return round(stream.monthly_quantity_kg * 12, 2)
 
 
-def _annual_cost_avoided(stream: StreamLike, action: str, human_review_required: bool) -> float:
+def _annual_cost_exposure(stream: StreamLike, action: str, human_review_required: bool) -> float:
     if human_review_required and "human review" in action.lower():
         return 0.0
     if stream.disposal_cost_per_month <= 0:
@@ -235,24 +242,26 @@ def _base_decision(stream: StreamLike) -> tuple[str, str, str, str, str, int]:
 def recommend_for_stream(stream: StreamLike) -> RuleRecommendation:
     action, category, reasoning, next_action, rule_applied, rule_strength = _base_decision(stream)
     scores = score_stream(stream, rule_strength=rule_strength)
-    annual_diversion = _annual_diversion(stream, action, scores.human_review_required)
-    annual_cost = _annual_cost_avoided(stream, action, scores.human_review_required)
+    annual_quantity_exposure = _annual_quantity_exposure(stream, action, scores.human_review_required)
+    annual_cost_exposure = _annual_cost_exposure(stream, action, scores.human_review_required)
     supplier_action = _supplier_action(stream, action)
     symbiosis = _symbiosis_flag(_clean(stream.material), action, scores.risk_level)
-    priority = _priority(stream, scores.risk_level, scores.confidence_score, annual_cost)
+    priority = _priority(stream, scores.risk_level, scores.confidence_score, annual_cost_exposure)
 
     return RuleRecommendation(
         stream_id=stream.stream_id,
         recommended_circular_action=action,
         circular_strategy_category=category,
-        reasoning=reasoning,
+        reasoning=f"{reasoning} {SCREENING_BASIS}",
         risk_level=scores.risk_level,
         confidence_score=scores.confidence_score,
         evidence_quality_score=scores.evidence_quality_score,
         missing_data="; ".join(scores.missing_data) if scores.missing_data else "none identified for MVP fields",
         human_review_required=scores.human_review_required,
-        estimated_annual_waste_diverted_kg=annual_diversion,
-        estimated_annual_disposal_cost_avoided=annual_cost,
+        # Legacy API field names are retained for compatibility. Values represent
+        # maximum screened exposure, not achieved diversion or avoided cost.
+        estimated_annual_waste_diverted_kg=annual_quantity_exposure,
+        estimated_annual_disposal_cost_avoided=annual_cost_exposure,
         supplier_procurement_action=supplier_action,
         industrial_symbiosis_opportunity=symbiosis,
         next_action=next_action,
