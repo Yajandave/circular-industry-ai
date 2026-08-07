@@ -6,6 +6,12 @@ Circular Industry AI is a professional decision-support platform for industrial 
 
 It is designed as an operator-facing intelligence system, not a generic chatbot and not a presentation-only dashboard.
 
+## Development status
+
+The repository currently implements the controlled local workflow through **Milestone 19D**. This includes CSV profiling, operator-confirmed mapping, draft transformation and preview, approval-gated SQLite persistence, import audit traceability, and a separate operator-triggered recommendation run.
+
+The project remains a development-stage decision-support product. Its outputs are screening and workflow records, not externally verified environmental performance, legal conclusions or production assurance.
+
 ---
 
 ## Current product capability
@@ -13,9 +19,12 @@ It is designed as an operator-facing intelligence system, not a generic chatbot 
 Circular Industry AI supports a full screening-to-review workflow:
 
 ```text
-Raw operational data
-→ material and waste stream database
-→ rules-based circular economy screening
+Raw operational CSV or sample data
+→ data profiling and semantic role suggestions
+→ operator-confirmed field mapping
+→ controlled draft transformation and preview
+→ approval-gated SQLite import and audit event
+→ operator-triggered rules-based circular economy screening
 → risk, confidence and evidence scoring
 → evidence register and claim controls
 → circular resolution plans
@@ -82,9 +91,27 @@ The dashboard is designed for professional users such as:
 
 ## Core workflows
 
-### 1. Material-flow screening
+### 1. Controlled data intake and mapping
 
-Users can load or upload industrial material and waste stream data, then run the locked rules engine to generate circular economy recommendations.
+Users can profile uploaded CSV data before it enters Circular Core. The controlled intake workflow includes:
+
+- structural and type profiling
+- semantic role suggestions
+- operator-confirmed field mapping
+- required-role, duplicate-role and confidence validation
+- mapped-row transformation into draft Circular Core records
+- row-level warnings and blocking errors
+- preview and selected-row inspection
+- explicit operator approval before persistence
+- SQLite import with duplicate-ID protection
+- import audit traceability
+- a separate operator confirmation gate before recommendations run
+
+Mapping validation confirms workflow readiness. It does not verify the truth, completeness or regulatory status of the source data.
+
+### 2. Material-flow screening
+
+After approved import, or after loading the sample dataset, users can manually run the locked rules engine to generate circular economy recommendations.
 
 Each stream receives:
 
@@ -104,7 +131,7 @@ Each stream receives:
 - dashboard priority
 - rule applied
 
-### 2. Evidence register and claim controls
+### 3. Evidence register and claim controls
 
 The evidence workflow separates:
 
@@ -117,7 +144,7 @@ The evidence workflow separates:
 
 This helps prevent unsupported circularity, ESG or sustainability claims.
 
-### 3. Circular resolution planning
+### 4. Circular resolution planning
 
 The Circular Resolution Engine translates recommendations into practical circular economy intervention plans, including:
 
@@ -132,7 +159,7 @@ The Circular Resolution Engine translates recommendations into practical circula
 - decision gates
 - fallback routes
 
-### 4. Supplier-loop and circular procurement intelligence
+### 5. Supplier-loop and circular procurement intelligence
 
 The supplier-loop workflow turns circular recommendations into procurement-facing actions, including:
 
@@ -146,7 +173,7 @@ The supplier-loop workflow turns circular recommendations into procurement-facin
 - pilot scopes
 - fallback positions
 
-### 5. Agentic intelligence workflows
+### 6. Agentic intelligence workflows
 
 The agentic intelligence layer supports controlled investigation through:
 
@@ -158,7 +185,7 @@ The agentic intelligence layer supports controlled investigation through:
 
 These workflows support investigation. They do not replace the locked rules engine.
 
-### 6. Visual analytics and operator drilldown
+### 7. Visual analytics and operator drilldown
 
 The dashboard includes decision-useful visuals for:
 
@@ -180,30 +207,22 @@ Visual signal → selected slice → compact records → selected inspector → 
 
 ## Current milestone status
 
-- Milestone 1: repository setup and industrial stream dataset — complete
-- Milestone 2: FastAPI backend, SQLite database and stream API — complete
-- Milestone 3: rules-based circular recommendation engine — complete
-- Milestone 4: controlled agentic decision-support layer — complete
-- Milestone 5: React frontend recommendation review interface — complete
-- Milestone 6: dashboard and advanced recommendation filters — complete
-- Milestone 6B: interface polish and management-summary view — complete
-- Milestone 6C: workflow layout, progressive disclosure and domain-specific review wording — complete
-- Milestone 7: evidence register and export workflow — complete
-- Milestone 7B: Circular Resolution Engine — complete
-- Milestone 7C: rules-locked optional LLM reasoning — complete
-- Milestone 7D: material-specific circular playbooks — complete
-- Milestone 7E: circular procurement and supplier-loop intelligence — complete
-- Milestone 8E: circular action report builder — complete
-- Milestone 10D: Autonomous Insight Generator — complete
-- Milestone 10E: Insight History and Traceability — complete
-- Milestone 11A: Knowledge Graph Relationship Layer — complete
-- Milestone 11B: Agentic Retrieval Workflow — complete
-- Milestone 11C: Retrieval and Insight Quality Evaluation — complete
-- Milestone 11D: Operator UI for Agentic Intelligence — complete
-- Milestone 11E: Operator UI Usability Refinement — complete
-- Milestone 12A: Visual Analytics Dashboard — complete
-- Milestone 12B: Operator Drilldown and Decision Triage Layer — complete
-- Milestone 12C: Professional Product Wording Alignment — current
+All milestones listed below are merged into `main`. Milestones 14 and 15 include architecture, reliability and V1 scope specifications as well as implementation planning; they should not be read as production-readiness claims.
+
+- **Milestones 1–8F: Core screening and controlled outputs** — dataset and repository foundation; FastAPI, SQLite and stream APIs; locked circular recommendation engine; React review interface; dashboard and filters; evidence register; Circular Resolution Engine; material playbooks; supplier-loop intelligence; AI-assisted evidence explanations, supplier drafting and circular action reports.
+- **Milestones 9A–9F: Alpha hardening and traceability** — workflow readiness diagnostics; bounded AI runtime handling; frontend workflow guardrails; organisation, site and analysis-run metadata; audit events; CSV data-quality validation.
+- **Milestones 10A–10E: Knowledge and autonomous insight layer** — knowledge architecture; controlled knowledge base; retrieval engine; autonomous insight generation; saved insight history and traceability.
+- **Milestones 11A–11E: Agentic intelligence workflow** — knowledge graph relationships; agentic retrieval orchestration; retrieval and insight evaluation; operator UI; usability refinement.
+- **Milestones 12A–12F: Professional intelligence interface** — visual analytics; drilldown and triage; product wording alignment; executive report generator; ESG/EIA issue register; scenario comparison.
+- **Milestones 13A–13C: Workspace and claim-safety architecture** — domain workspace architecture; workspace contract hardening; metric and claim-safety wording.
+- **Milestones 14A–14F: Data Profiler and ingestion design foundation** — profiler engine; market-grade foundation audit; profiler reliability plan; user-confirmed mapping specification; flexible Circular Core import specification; mapping audit and saved-plan specification.
+- **Milestones 15A–15B: Stability and V1 definition** — CI/dependency plan; market-grade V1 definition, readiness gates and scope boundaries.
+- **Milestones 16A–16D: Data Profiler stabilisation** — edge-case tests; configuration modularisation; type-inference modularisation; semantic role-scoring modularisation.
+- **Milestones 17A–17F: User-confirmed mapping** — validation contract and API; frontend API client; operator mapping panel; mapping UX hardening; role-option and copy alignment.
+- **Milestones 18A–18E: Controlled draft import preview** — flexible import contract and endpoint; frontend client; draft preview panel; row inspection, grouped warnings and review-control hardening.
+- **Milestones 19A–19D: Approved persistence and recommendation gate** — approval-controlled SQLite import; audit traceability; frontend save action; separate operator-triggered post-import recommendation run.
+
+**Current implemented milestone: 19D — Post-import Recommendation Run Gate.**
 
 ---
 
@@ -299,7 +318,7 @@ Core fields include:
 - Frontend: React + Vite
 - Backend: FastAPI
 - Database: SQLite
-- Data handling: CSV ingest and structured API endpoints
+- Data handling: CSV profiling, operator-confirmed mapping, controlled draft transformation, approval-gated SQLite import and structured API endpoints
 - Optional AI: rules-locked LLM explanation/drafting layer
 - Testing: backend pytest, frontend production build
 
