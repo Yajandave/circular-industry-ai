@@ -10,6 +10,24 @@ The project combines my practical interest in **circular economy, resource effic
 
 ---
 
+## Project screenshots
+
+Captured from the running project using its **50 synthetic industrial streams**. These demonstration outputs support screening and human review; they are not verified savings, environmental outcomes or professional assurance.
+
+![Decision dashboard showing circular opportunity candidates, human-review items, evidence gaps and screened cost exposure](docs/screenshots/circular-industry-ai-dashboard.png)
+
+*Circular opportunity screening, with evidence gaps and review requirements visible alongside estimated cost exposure.*
+
+![Evidence inspector for a synthetic contaminated timber stream, showing missing evidence, a human-review gate and the claim boundary](docs/screenshots/circular-industry-ai-evidence.png)
+
+*An evidence-sensitive record shows what is missing, why human review is required and which claims the output cannot support.*
+
+![Supplier-loop actions for synthetic aluminium and packaging streams, showing procurement routes and supplier evidence questions](docs/screenshots/circular-industry-ai-supplier-loops.png)
+
+*Circular opportunities become practical supplier questions and evidence requests for procurement review.*
+
+---
+
 ## Why I built it
 
 Industrial sustainability decisions often depend on fragmented information: material-flow data, supplier information, costs, environmental risks, evidence quality and corporate sustainability claims may all sit in different places.
