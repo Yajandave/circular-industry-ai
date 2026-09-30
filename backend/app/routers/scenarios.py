@@ -37,6 +37,12 @@ def screen_intervention_scenario(
             ),
         )
 
+    if not payload.scenario_name.strip():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Scenario name must contain non-whitespace characters.",
+        )
+
     scenario = build_intervention_scenario(
         stream,
         recommendation,
