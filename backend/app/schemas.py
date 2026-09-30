@@ -1078,3 +1078,36 @@ class InterventionScenarioResult(BaseModel):
     evidence_needed: list[str]
     formula: str
     governance_note: str
+
+
+
+class InterventionScenarioCaseRequest(BaseModel):
+    case_name: str = Field(..., min_length=1, max_length=60)
+    addressable_fraction_pct: float = Field(..., ge=0, le=100)
+    technical_capture_rate_pct: float = Field(..., ge=0, le=100)
+    route_acceptance_rate_pct: float = Field(..., ge=0, le=100)
+    operator_note: str | None = None
+
+
+class InterventionScenarioComparisonRequest(BaseModel):
+    cases: list[InterventionScenarioCaseRequest] = Field(..., min_length=2, max_length=5)
+
+
+class InterventionScenarioComparisonCase(BaseModel):
+    case_name: str
+    scenario: InterventionScenarioResult
+
+
+class InterventionScenarioComparisonResult(BaseModel):
+    stream_id: str
+    stream_name: str
+    material: str
+    candidate_route: str
+    baseline_annual_quantity_kg: float
+    baseline_annual_disposal_cost_exposure: float
+    minimum_screened_recoverable_quantity_kg: float
+    maximum_screened_recoverable_quantity_kg: float
+    screened_quantity_range_kg: float
+    cases: list[InterventionScenarioComparisonCase]
+    claim_status: str
+    governance_note: str
