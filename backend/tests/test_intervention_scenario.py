@@ -1,4 +1,5 @@
 from types import SimpleNamespace
+from uuid import uuid4
 
 from fastapi.testclient import TestClient
 
@@ -259,3 +260,155 @@ def test_scenario_comparison_endpoint_rejects_duplicate_case_names():
 
     assert response.status_code == 400
     assert "case names must be unique" in response.json()["detail"].lower()
+
+
+
+def test_saved_scenario_history_creates_immutable_revisions():
+    client.post("/api/streams/load-sample")
+    client.post("/api/recommendations/run")
+    scenario_name = f"Supplier take-back pilot {uuid4().hex[:10]}"
+
+    first = client.post(
+        "/api/scenarios/S001/save",
+        json={
+            "scenario_name": scenario_name,
+            "lifecycle_stage": "screening",
+            "addressable_fraction_pct": 70,
+            "technical_capture_rate_pct": 75,
+            "route_acceptance_rate_pct": 80,
+            "operator_note": "Initial screening assumptions.",
+        },
+    )
+    assert first.status_code == 200
+    first_saved = first.json()
+    assert first_saved["revision_number"] == 1
+    assert first_saved["lifecycle_stage"] == "screening"
+    assert first_saved["claim_status"] == "screening_only_not_claim_ready"
+
+    second = client.post(
+        "/api/scenarios/S001/save",
+        json={
+            "scenario_name": scenario_name,
+            "lifecycle_stage": "pilot_planned",
+            "addressable_fraction_pct": 75,
+            "technical_capture_rate_pct": 80,
+            "route_acceptance_rate_pct": 85,
+            "operator_note": "Revised after supplier discussion.",
+        },
+    )
+    assert second.status_code == 200
+    second_saved = second.json()
+    assert second_saved["revision_number"] == 2
+    assert second_saved["lifecycle_stage"] == "pilot_planned"
+    assert second_saved["id"] != first_saved["id"]
+    assert second_saved["scenario_screened_recoverable_quantity_kg"] != first_saved["scenario_screened_recoverable_quantity_kg"]
+    assert second_saved["claim_status"] == "screening_only_not_claim_ready"
+
+    history_response = client.get("/api/scenarios/S001/history")
+    assert history_response.status_code == 200
+    history = history_response.json()
+
+    matching = [
+        record
+        for record in history["records"]
+        if record["scenario_name"] == scenario_name
+    ]
+    assert len(matching) >= 2
+    assert matching[0]["revision_number"] == 2
+    assert matching[1]["revision_number"] == 1
+    assert history["latest_revision"]["id"] == matching[0]["id"]
+    assert "does not verify" in history["governance_note"].lower()
+
+    audit_response = client.get(
+        "/api/audit/events?event_type=intervention_scenario_saved&limit=50"
+    )
+    assert audit_response.status_code == 200
+    saved_event = next(
+        event
+        for event in audit_response.json()
+        if event["entity_id"] == str(second_saved["id"])
+    )
+    assert saved_event["metadata_json"]["scenario_name"] == scenario_name
+    assert saved_event["metadata_json"]["revision_number"] == 2
+    assert saved_event["metadata_json"]["lifecycle_stage"] == "pilot_planned"
+
+
+def test_saved_scenario_measured_unverified_stage_remains_not_claim_ready():
+    client.post("/api/streams/load-sample")
+    client.post("/api/recommendations/run")
+
+    response = client.post(
+        "/api/scenarios/S002/save",
+        json={
+            "scenario_name": "Observed pilot case",
+            "lifecycle_stage": "measured_unverified",
+            "addressable_fraction_pct": 60,
+            "technical_capture_rate_pct": 70,
+            "route_acceptance_rate_pct": 80,
+            "operator_note": "Operational observation entered; evidence not independently verified.",
+        },
+    )
+
+    assert response.status_code == 200
+    saved = response.json()
+    assert saved["lifecycle_stage"] == "measured_unverified"
+    assert saved["claim_status"] == "screening_only_not_claim_ready"
+    assert "not measured diversion" in saved["governance_note"].lower()
+
+
+def test_saved_scenario_rejects_unsupported_lifecycle_stage():
+    client.post("/api/streams/load-sample")
+    client.post("/api/recommendations/run")
+
+    response = client.post(
+        "/api/scenarios/S001/save",
+        json={
+            "scenario_name": "Invalid verified case",
+            "lifecycle_stage": "verified",
+            "addressable_fraction_pct": 70,
+            "technical_capture_rate_pct": 80,
+            "route_acceptance_rate_pct": 90,
+        },
+    )
+
+    assert response.status_code == 422
+
+
+
+def test_saved_scenario_rejects_blank_name():
+    client.post("/api/streams/load-sample")
+    client.post("/api/recommendations/run")
+
+    response = client.post(
+        "/api/scenarios/S001/save",
+        json={
+            "scenario_name": "   ",
+            "lifecycle_stage": "screening",
+            "addressable_fraction_pct": 70,
+            "technical_capture_rate_pct": 80,
+            "route_acceptance_rate_pct": 90,
+        },
+    )
+
+    assert response.status_code == 400
+    assert "non-whitespace" in response.json()["detail"]
+
+
+
+def test_observed_saved_scenario_requires_operator_note():
+    client.post("/api/streams/load-sample")
+    client.post("/api/recommendations/run")
+
+    response = client.post(
+        "/api/scenarios/S001/save",
+        json={
+            "scenario_name": "Observed without evidence note",
+            "lifecycle_stage": "pilot_observed",
+            "addressable_fraction_pct": 70,
+            "technical_capture_rate_pct": 80,
+            "route_acceptance_rate_pct": 90,
+        },
+    )
+
+    assert response.status_code == 400
+    assert "operator note" in response.json()["detail"].lower()

@@ -161,3 +161,114 @@ def compare_intervention_scenarios(
     )
 
     return schemas.InterventionScenarioComparisonResult(**comparison)
+
+
+
+@router.post("/{stream_id}/save", response_model=schemas.SavedInterventionScenarioRead)
+def save_intervention_scenario_revision(
+    stream_id: str,
+    payload: schemas.SaveInterventionScenarioRequest,
+    db: Session = Depends(get_db),
+) -> schemas.SavedInterventionScenarioRead:
+    """Recalculate and persist one immutable named scenario revision."""
+
+    stream = crud.get_stream_by_stream_id(db, stream_id=stream_id)
+    if stream is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Industrial stream not found: {stream_id}",
+        )
+
+    recommendation = crud.get_recommendation_by_stream_id(db, stream_id=stream_id)
+    if recommendation is None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=(
+                f"No locked recommendation found for stream {stream_id}. "
+                "Run POST /api/recommendations/run before saving an intervention scenario."
+            ),
+        )
+
+    if not payload.scenario_name.strip():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Scenario name must contain non-whitespace characters.",
+        )
+
+    if payload.lifecycle_stage in {"pilot_observed", "measured_unverified"} and not (
+        payload.operator_note and payload.operator_note.strip()
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Pilot-observed and measured-unverified revisions require an operator note describing the evidence basis.",
+        )
+
+    scenario = build_intervention_scenario(
+        stream,
+        recommendation,
+        addressable_fraction_pct=payload.addressable_fraction_pct,
+        technical_capture_rate_pct=payload.technical_capture_rate_pct,
+        route_acceptance_rate_pct=payload.route_acceptance_rate_pct,
+        operator_note=payload.operator_note,
+    )
+
+    saved = crud.save_intervention_scenario(
+        db,
+        scenario_name=payload.scenario_name,
+        lifecycle_stage=payload.lifecycle_stage,
+        operator_note=payload.operator_note,
+        scenario=scenario,
+    )
+
+    crud.create_audit_event(
+        db,
+        event_type="intervention_scenario_saved",
+        entity_type="saved_intervention_scenario",
+        entity_id=str(saved.id),
+        actor_type="operator",
+        actor_id="local_user",
+        source="intervention_scenario_router",
+        action="save_intervention_scenario_revision",
+        summary=(
+            f"Saved scenario '{saved.scenario_name}' revision {saved.revision_number} "
+            f"for {stream_id} at lifecycle stage {saved.lifecycle_stage}."
+        ),
+        decision_source="operator_saved_scenario",
+        claim_boundary=(
+            "Saved scenario revisions preserve screening assumptions and workflow stage only. "
+            "They do not verify diversion, recovery, savings or environmental impact."
+        ),
+        metadata={
+            "stream_id": saved.stream_id,
+            "scenario_name": saved.scenario_name,
+            "revision_number": saved.revision_number,
+            "lifecycle_stage": saved.lifecycle_stage,
+            "scenario_screened_recoverable_quantity_kg": saved.scenario_screened_recoverable_quantity_kg,
+            "scenario_status": saved.scenario_status,
+            "claim_status": saved.claim_status,
+        },
+    )
+
+    return saved
+
+
+@router.get("/{stream_id}/history", response_model=schemas.SavedInterventionScenarioHistory)
+def intervention_scenario_history(
+    stream_id: str,
+    limit: int = 100,
+    db: Session = Depends(get_db),
+) -> schemas.SavedInterventionScenarioHistory:
+    """Return immutable saved scenario revisions for one stream."""
+
+    stream = crud.get_stream_by_stream_id(db, stream_id=stream_id)
+    if stream is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Industrial stream not found: {stream_id}",
+        )
+
+    return crud.get_saved_intervention_scenario_history(
+        db,
+        stream_id=stream_id,
+        limit=max(1, min(limit, 500)),
+    )

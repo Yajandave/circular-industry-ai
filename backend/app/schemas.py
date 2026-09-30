@@ -1111,3 +1111,48 @@ class InterventionScenarioComparisonResult(BaseModel):
     cases: list[InterventionScenarioComparisonCase]
     claim_status: str
     governance_note: str
+
+
+
+class SaveInterventionScenarioRequest(InterventionScenarioRequest):
+    scenario_name: str = Field(..., min_length=1, max_length=120)
+    lifecycle_stage: str = Field(default="screening", pattern="^(screening|pilot_planned|pilot_observed|measured_unverified)$")
+
+
+class SavedInterventionScenarioRead(BaseModel):
+    id: int
+    stream_id: str
+    scenario_name: str
+    revision_number: int
+    lifecycle_stage: str
+    stream_name: str
+    material: str
+    candidate_route: str
+    baseline_annual_quantity_kg: float
+    baseline_annual_disposal_cost_exposure: float
+    addressable_fraction_pct: float
+    technical_capture_rate_pct: float
+    route_acceptance_rate_pct: float
+    scenario_screened_fraction_pct: float
+    scenario_screened_recoverable_quantity_kg: float
+    recommendation_confidence_score: int
+    evidence_quality_score: int
+    risk_level: str
+    human_review_required: bool
+    scenario_status: str
+    claim_status: str
+    operator_note: str | None = None
+    assumptions: list[str]
+    evidence_needed: list[str]
+    formula: str
+    governance_note: str
+    created_at: datetime
+
+
+class SavedInterventionScenarioHistory(BaseModel):
+    stream_id: str
+    total_saved_revisions: int
+    scenario_names: list[str]
+    latest_revision: SavedInterventionScenarioRead | None = None
+    records: list[SavedInterventionScenarioRead]
+    governance_note: str
