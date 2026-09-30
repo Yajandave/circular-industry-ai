@@ -272,3 +272,110 @@ def intervention_scenario_history(
         stream_id=stream_id,
         limit=max(1, min(limit, 500)),
     )
+
+
+
+@router.post(
+    "/saved/{saved_scenario_id}/outcomes",
+    response_model=schemas.ObservedScenarioOutcomeRead,
+)
+def create_observed_outcome(
+    saved_scenario_id: int,
+    payload: schemas.ObservedScenarioOutcomeCreate,
+    db: Session = Depends(get_db),
+) -> schemas.ObservedScenarioOutcomeRead:
+    """Record observed pilot/outcome evidence against one saved scenario revision."""
+
+    saved_scenario = crud.get_saved_intervention_scenario_by_id(
+        db,
+        saved_scenario_id=saved_scenario_id,
+    )
+    if saved_scenario is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Saved intervention scenario not found: {saved_scenario_id}",
+        )
+
+    if payload.observation_end_date < payload.observation_start_date:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Observation end date must be on or after the start date.",
+        )
+
+    if not payload.evidence_reference.strip():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Evidence reference must contain non-whitespace characters.",
+        )
+
+    outcome = crud.create_observed_scenario_outcome(
+        db,
+        saved_scenario=saved_scenario,
+        payload=payload,
+    )
+
+    crud.create_audit_event(
+        db,
+        event_type="observed_scenario_outcome_recorded",
+        entity_type="observed_scenario_outcome",
+        entity_id=str(outcome.id),
+        actor_type="operator",
+        actor_id="local_user",
+        source="intervention_scenario_router",
+        action="create_observed_outcome",
+        summary=(
+            f"Recorded observed outcome evidence for scenario '{outcome.scenario_name}' "
+            f"revision {outcome.scenario_revision_number}."
+        ),
+        decision_source="operator_observed_outcome",
+        claim_boundary=(
+            "Observed outcome records remain non-claim-ready until a later evidence-verification process. "
+            "Variance against the saved scenario is not proof of causal intervention impact."
+        ),
+        metadata={
+            "saved_scenario_id": outcome.saved_scenario_id,
+            "stream_id": outcome.stream_id,
+            "scenario_name": outcome.scenario_name,
+            "scenario_revision_number": outcome.scenario_revision_number,
+            "observation_start_date": str(outcome.observation_start_date),
+            "observation_end_date": str(outcome.observation_end_date),
+            "observation_period_days": outcome.observation_period_days,
+            "observed_recovered_quantity_kg": outcome.observed_recovered_quantity_kg,
+            "scenario_screened_quantity_for_period_kg": outcome.scenario_screened_quantity_for_period_kg,
+            "variance_quantity_kg": outcome.variance_quantity_kg,
+            "variance_pct": outcome.variance_pct,
+            "evidence_source_type": outcome.evidence_source_type,
+            "verification_status": outcome.verification_status,
+            "claim_status": outcome.claim_status,
+        },
+    )
+
+    return outcome
+
+
+@router.get(
+    "/saved/{saved_scenario_id}/outcomes",
+    response_model=schemas.ObservedScenarioOutcomeHistory,
+)
+def observed_outcome_history(
+    saved_scenario_id: int,
+    limit: int = 100,
+    db: Session = Depends(get_db),
+) -> schemas.ObservedScenarioOutcomeHistory:
+    """Return observed outcome evidence history for one saved scenario revision."""
+
+    saved_scenario = crud.get_saved_intervention_scenario_by_id(
+        db,
+        saved_scenario_id=saved_scenario_id,
+    )
+    if saved_scenario is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Saved intervention scenario not found: {saved_scenario_id}",
+        )
+
+    return crud.get_observed_scenario_outcome_history(
+        db,
+        saved_scenario=saved_scenario,
+        limit=max(1, min(limit, 500)),
+    )
