@@ -170,3 +170,57 @@ def test_import_circular_core_draft_endpoint_rejects_duplicate_stream_ids():
 
     assert response.status_code == 400
     assert "Duplicate draft stream_id values" in response.json()["detail"]
+
+
+
+def test_controlled_import_then_recommendation_run_end_to_end():
+    """Verify the critical operator flow from mapped rows through locked recommendations."""
+    report = _ready_draft_report()
+
+    import_response = client.post(
+        "/api/data-profiler/import-circular-core-draft",
+        json={
+            "draft_import_report": report,
+            "operator_approval": True,
+            "approval_note": "End-to-end validation of controlled import and recommendation gate.",
+            "replace_existing_streams": True,
+        },
+    )
+    assert import_response.status_code == 200
+    assert import_response.json()["rows_imported"] == 2
+
+    # Controlled import must leave recommendations empty until the separate
+    # recommendation action is explicitly triggered.
+    before_run = client.get("/api/recommendations?limit=500")
+    assert before_run.status_code == 200
+    assert before_run.json() == []
+
+    run_response = client.post("/api/recommendations/run")
+    assert run_response.status_code == 200
+    run_payload = run_response.json()
+    assert run_payload["analysed_streams"] == 2
+    assert run_payload["recommendations_created"] == 2
+
+    recommendations_response = client.get("/api/recommendations?limit=500")
+    assert recommendations_response.status_code == 200
+    recommendations = recommendations_response.json()
+    assert len(recommendations) == 2
+
+    summary_response = client.get("/api/recommendations/summary")
+    assert summary_response.status_code == 200
+    summary = summary_response.json()
+    assert summary["total_recommendations"] == 2
+
+    # Legacy field names currently carry screening exposure, not achieved
+    # diversion or verified savings. Exposure must remain visible even though
+    # the imported rows default to unknown risk fields and require review.
+    assert summary["total_estimated_annual_waste_diverted_kg"] == 19800.0
+    assert summary["total_estimated_annual_disposal_cost_avoided"] == 10800.0
+    assert summary["human_review_required"] == 2
+
+    audit_response = client.get("/api/audit/events?event_type=rules_engine_run&limit=20")
+    assert audit_response.status_code == 200
+    assert any(
+        event["metadata_json"].get("recommendations_created") == 2
+        for event in audit_response.json()
+    )
