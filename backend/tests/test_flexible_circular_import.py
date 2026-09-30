@@ -118,6 +118,16 @@ def test_flexible_import_converts_tonnes_to_kg():
     report = build_flexible_circular_core_import(payload)
 
     assert report["draft_rows"][0]["monthly_quantity_kg"] == 1500
+    quantity_provenance = next(
+        item
+        for item in report["draft_rows"][0]["source_provenance"]
+        if item["target_field"] == "monthly_quantity_kg"
+    )
+    assert quantity_provenance["source_column"] == "Monthly Weight"
+    assert quantity_provenance["source_value"] == "1.5"
+    assert quantity_provenance["source_unit"] == "tonnes"
+    assert quantity_provenance["transformed_value"] == "1500.0"
+    assert quantity_provenance["transformation"] == "tonnes_to_kg"
 
 
 def test_flexible_import_warns_on_invalid_quantity():
