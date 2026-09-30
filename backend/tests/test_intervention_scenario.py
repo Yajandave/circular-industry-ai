@@ -319,6 +319,19 @@ def test_saved_scenario_history_creates_immutable_revisions():
     assert history["latest_revision"]["id"] == matching[0]["id"]
     assert "does not verify" in history["governance_note"].lower()
 
+    audit_response = client.get(
+        "/api/audit/events?event_type=intervention_scenario_saved&limit=50"
+    )
+    assert audit_response.status_code == 200
+    saved_event = next(
+        event
+        for event in audit_response.json()
+        if event["entity_id"] == str(second_saved["id"])
+    )
+    assert saved_event["metadata_json"]["scenario_name"] == scenario_name
+    assert saved_event["metadata_json"]["revision_number"] == 2
+    assert saved_event["metadata_json"]["lifecycle_stage"] == "pilot_planned"
+
 
 def test_saved_scenario_measured_unverified_stage_remains_not_claim_ready():
     client.post("/api/streams/load-sample")
