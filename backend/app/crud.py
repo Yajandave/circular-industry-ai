@@ -466,3 +466,128 @@ def get_latest_generated_insight_by_stream_id(
     )
     row = db.scalars(query).first()
     return _generated_insight_read(row) if row else None
+
+
+
+# Milestone 20B.4: saved intervention scenario history CRUD helpers
+
+def _saved_scenario_read(row: models.SavedInterventionScenario) -> schemas.SavedInterventionScenarioRead:
+    return schemas.SavedInterventionScenarioRead(
+        id=row.id,
+        stream_id=row.stream_id,
+        scenario_name=row.scenario_name,
+        revision_number=row.revision_number,
+        lifecycle_stage=row.lifecycle_stage,
+        stream_name=row.stream_name,
+        material=row.material,
+        candidate_route=row.candidate_route,
+        baseline_annual_quantity_kg=row.baseline_annual_quantity_kg,
+        baseline_annual_disposal_cost_exposure=row.baseline_annual_disposal_cost_exposure,
+        addressable_fraction_pct=row.addressable_fraction_pct,
+        technical_capture_rate_pct=row.technical_capture_rate_pct,
+        route_acceptance_rate_pct=row.route_acceptance_rate_pct,
+        scenario_screened_fraction_pct=row.scenario_screened_fraction_pct,
+        scenario_screened_recoverable_quantity_kg=row.scenario_screened_recoverable_quantity_kg,
+        recommendation_confidence_score=row.recommendation_confidence_score,
+        evidence_quality_score=row.evidence_quality_score,
+        risk_level=row.risk_level,
+        human_review_required=row.human_review_required,
+        scenario_status=row.scenario_status,
+        claim_status=row.claim_status,
+        operator_note=row.operator_note,
+        assumptions=_json_load(row.assumptions_json, []),
+        evidence_needed=_json_load(row.evidence_needed_json, []),
+        formula=row.formula,
+        governance_note=row.governance_note,
+        created_at=row.created_at,
+    )
+
+
+def save_intervention_scenario(
+    db: Session,
+    *,
+    scenario_name: str,
+    lifecycle_stage: str,
+    operator_note: str | None,
+    scenario: dict,
+) -> schemas.SavedInterventionScenarioRead:
+    """Save an immutable scenario revision and return the persisted snapshot."""
+
+    name = scenario_name.strip()
+    current_revision = db.scalar(
+        select(func.max(models.SavedInterventionScenario.revision_number)).where(
+            models.SavedInterventionScenario.stream_id == scenario["stream_id"],
+            func.lower(models.SavedInterventionScenario.scenario_name) == name.lower(),
+        )
+    ) or 0
+
+    row = models.SavedInterventionScenario(
+        stream_id=scenario["stream_id"],
+        scenario_name=name,
+        revision_number=current_revision + 1,
+        lifecycle_stage=lifecycle_stage,
+        stream_name=scenario["stream_name"],
+        material=scenario["material"],
+        candidate_route=scenario["candidate_route"],
+        baseline_annual_quantity_kg=scenario["baseline_annual_quantity_kg"],
+        baseline_annual_disposal_cost_exposure=scenario["baseline_annual_disposal_cost_exposure"],
+        addressable_fraction_pct=scenario["addressable_fraction_pct"],
+        technical_capture_rate_pct=scenario["technical_capture_rate_pct"],
+        route_acceptance_rate_pct=scenario["route_acceptance_rate_pct"],
+        scenario_screened_fraction_pct=scenario["scenario_screened_fraction_pct"],
+        scenario_screened_recoverable_quantity_kg=scenario["scenario_screened_recoverable_quantity_kg"],
+        recommendation_confidence_score=scenario["recommendation_confidence_score"],
+        evidence_quality_score=scenario["evidence_quality_score"],
+        risk_level=scenario["risk_level"],
+        human_review_required=scenario["human_review_required"],
+        scenario_status=scenario["scenario_status"],
+        claim_status=scenario["claim_status"],
+        operator_note=operator_note.strip() if operator_note and operator_note.strip() else None,
+        assumptions_json=_json_dump(scenario["assumptions"]),
+        evidence_needed_json=_json_dump(scenario["evidence_needed"]),
+        formula=scenario["formula"],
+        governance_note=scenario["governance_note"],
+    )
+    db.add(row)
+    db.commit()
+    db.refresh(row)
+    return _saved_scenario_read(row)
+
+
+def get_saved_intervention_scenarios(
+    db: Session,
+    *,
+    stream_id: str,
+    limit: int = 100,
+) -> list[schemas.SavedInterventionScenarioRead]:
+    query = (
+        select(models.SavedInterventionScenario)
+        .where(models.SavedInterventionScenario.stream_id == stream_id)
+        .order_by(
+            models.SavedInterventionScenario.created_at.desc(),
+            models.SavedInterventionScenario.id.desc(),
+        )
+        .limit(limit)
+    )
+    return [_saved_scenario_read(row) for row in db.scalars(query).all()]
+
+
+def get_saved_intervention_scenario_history(
+    db: Session,
+    *,
+    stream_id: str,
+    limit: int = 100,
+) -> schemas.SavedInterventionScenarioHistory:
+    records = get_saved_intervention_scenarios(db, stream_id=stream_id, limit=limit)
+    scenario_names = list(dict.fromkeys(record.scenario_name for record in records))
+    return schemas.SavedInterventionScenarioHistory(
+        stream_id=stream_id,
+        total_saved_revisions=len(records),
+        scenario_names=scenario_names,
+        latest_revision=records[0] if records else None,
+        records=records,
+        governance_note=(
+            "Saved scenarios are immutable screening snapshots. Lifecycle stage records workflow progress only; "
+            "it does not verify diversion, recovery, savings, environmental impact or claim readiness."
+        ),
+    )
