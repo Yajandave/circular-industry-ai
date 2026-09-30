@@ -134,3 +134,58 @@ def build_intervention_scenario(
             "is shown only as current exposure and is not converted into scenario savings."
         ),
     }
+
+
+
+def build_intervention_scenario_comparison(
+    stream: ScenarioStreamLike,
+    recommendation: ScenarioRecommendationLike,
+    *,
+    cases: list[dict],
+) -> dict:
+    """Build a bounded comparison of explicit operator scenario cases."""
+
+    case_results: list[dict] = []
+    for case in cases:
+        scenario = build_intervention_scenario(
+            stream,
+            recommendation,
+            addressable_fraction_pct=case["addressable_fraction_pct"],
+            technical_capture_rate_pct=case["technical_capture_rate_pct"],
+            route_acceptance_rate_pct=case["route_acceptance_rate_pct"],
+            operator_note=case.get("operator_note"),
+        )
+        case_results.append(
+            {
+                "case_name": str(case["case_name"]).strip(),
+                "scenario": scenario,
+            }
+        )
+
+    quantities = [
+        item["scenario"]["scenario_screened_recoverable_quantity_kg"]
+        for item in case_results
+    ]
+    minimum_quantity = round(min(quantities), 2)
+    maximum_quantity = round(max(quantities), 2)
+
+    first = case_results[0]["scenario"]
+    return {
+        "stream_id": first["stream_id"],
+        "stream_name": first["stream_name"],
+        "material": first["material"],
+        "candidate_route": first["candidate_route"],
+        "baseline_annual_quantity_kg": first["baseline_annual_quantity_kg"],
+        "baseline_annual_disposal_cost_exposure": first["baseline_annual_disposal_cost_exposure"],
+        "minimum_screened_recoverable_quantity_kg": minimum_quantity,
+        "maximum_screened_recoverable_quantity_kg": maximum_quantity,
+        "screened_quantity_range_kg": round(maximum_quantity - minimum_quantity, 2),
+        "cases": case_results,
+        "claim_status": "screening_comparison_only_not_claim_ready",
+        "governance_note": (
+            "This comparison shows the sensitivity of screened recoverable quantity to explicit "
+            "operator assumptions. It is not a probability forecast, achieved diversion, verified "
+            "recovery, financial savings or completed environmental impact. No case is selected "
+            "or endorsed by the system."
+        ),
+    }
