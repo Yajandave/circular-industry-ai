@@ -68,13 +68,19 @@ export default function InterventionScenarioPanel({
   recommendations,
   scenarioResult,
   comparisonResult,
+  scenarioHistory,
   onRunScenario,
   onCompareScenarios,
+  onSaveScenario,
+  onLoadScenarioHistory,
   busy,
 }) {
   const [selectedId, setSelectedId] = useState('');
   const [assumptions, setAssumptions] = useState(DEFAULT_ASSUMPTIONS);
   const [comparisonCases, setComparisonCases] = useState(DEFAULT_COMPARISON_CASES);
+  const [scenarioName, setScenarioName] = useState('');
+  const [lifecycleStage, setLifecycleStage] = useState('screening');
+  const [saveError, setSaveError] = useState('');
   const [localError, setLocalError] = useState('');
   const [comparisonError, setComparisonError] = useState('');
 
@@ -83,6 +89,12 @@ export default function InterventionScenarioPanel({
       setSelectedId(recommendations[0].stream_id);
     }
   }, [recommendations, selectedId]);
+
+  useEffect(() => {
+    if (selectedId) {
+      onLoadScenarioHistory(selectedId);
+    }
+  }, [selectedId, onLoadScenarioHistory]);
 
   const streamLookup = useMemo(
     () => Object.fromEntries(streams.map((stream) => [stream.stream_id, stream])),
@@ -108,6 +120,55 @@ export default function InterventionScenarioPanel({
       itemIndex === index ? { ...item, [key]: value } : item
     )));
     setComparisonError('');
+  }
+
+  function loadSavedRevision(record) {
+    setAssumptions({
+      addressable_fraction_pct: String(record.addressable_fraction_pct),
+      technical_capture_rate_pct: String(record.technical_capture_rate_pct),
+      route_acceptance_rate_pct: String(record.route_acceptance_rate_pct),
+      operator_note: record.operator_note || '',
+    });
+    setScenarioName(record.scenario_name);
+    setLifecycleStage(record.lifecycle_stage);
+    setSaveError('');
+    setLocalError('');
+  }
+
+  async function saveCurrentScenario() {
+    setSaveError('');
+
+    const name = scenarioName.trim();
+    if (!name) {
+      setSaveError('Give the scenario a name before saving it.');
+      return;
+    }
+
+    const numericFields = [
+      'addressable_fraction_pct',
+      'technical_capture_rate_pct',
+      'route_acceptance_rate_pct',
+    ];
+    const payload = {
+      scenario_name: name,
+      lifecycle_stage: lifecycleStage,
+      operator_note: assumptions.operator_note.trim() || null,
+    };
+
+    for (const field of numericFields) {
+      const value = Number(assumptions[field]);
+      if (!Number.isFinite(value) || value < 0 || value > 100) {
+        setSaveError('Each saved scenario percentage must be a number between 0 and 100.');
+        return;
+      }
+      payload[field] = value;
+    }
+
+    try {
+      await onSaveScenario(selectedId, payload);
+    } catch {
+      // App-level status reporting already surfaces the API error.
+    }
   }
 
   async function submitComparison() {
@@ -402,6 +463,111 @@ export default function InterventionScenarioPanel({
           )}
         </aside>
       </div>
+
+      <section className="scenario-history-section">
+        <div className="section-heading compact-heading">
+          <div>
+            <h3>Save and revisit scenario revisions</h3>
+            <p>
+              Saved revisions are immutable snapshots. Saving the same named scenario again creates a new revision
+              instead of overwriting the previous one.
+            </p>
+          </div>
+          <span>{scenarioHistory?.total_saved_revisions || 0} saved revisions</span>
+        </div>
+
+        <div className="scenario-save-controls">
+          <label>
+            <span>Scenario name</span>
+            <input
+              type="text"
+              value={scenarioName}
+              onChange={(event) => {
+                setScenarioName(event.target.value);
+                setSaveError('');
+              }}
+              placeholder="e.g. Supplier take-back pilot"
+              disabled={busy}
+            />
+          </label>
+
+          <label>
+            <span>Lifecycle stage</span>
+            <select
+              value={lifecycleStage}
+              onChange={(event) => {
+                setLifecycleStage(event.target.value);
+                setSaveError('');
+              }}
+              disabled={busy}
+            >
+              <option value="screening">Screening</option>
+              <option value="pilot_planned">Pilot planned</option>
+              <option value="pilot_observed">Pilot observed</option>
+              <option value="measured_unverified">Measured, unverified</option>
+            </select>
+          </label>
+
+          <button type="button" onClick={saveCurrentScenario} disabled={busy || !selectedId}>
+            {busy ? 'Saving revision…' : 'Save current scenario'}
+          </button>
+        </div>
+
+        {saveError && <p className="error">{saveError}</p>}
+
+        <div className="scenario-history-governance">
+          Lifecycle stage records workflow progress only. Even “measured, unverified” remains non-claim-ready until a later evidence-verification step.
+        </div>
+
+        {!scenarioHistory?.records?.length ? (
+          <div className="scenario-history-empty">
+            No saved scenario revisions for this stream yet.
+          </div>
+        ) : (
+          <div className="scenario-history-list">
+            {scenarioHistory.records.map((record) => (
+              <article className="scenario-history-card" key={record.id}>
+                <div className="scenario-history-card-header">
+                  <div>
+                    <span className="record-id">{record.scenario_name}</span>
+                    <strong>Revision {record.revision_number}</strong>
+                    <small>{new Date(record.created_at).toLocaleString('en-GB')}</small>
+                  </div>
+                  <span className="scenario-history-stage">{humanise(record.lifecycle_stage)}</span>
+                </div>
+
+                <div className="scenario-history-metrics">
+                  <div>
+                    <span>Screened quantity</span>
+                    <strong>{formatKg(record.scenario_screened_recoverable_quantity_kg)}</strong>
+                  </div>
+                  <div>
+                    <span>Addressable / capture / acceptance</span>
+                    <strong>
+                      {record.addressable_fraction_pct}% / {record.technical_capture_rate_pct}% / {record.route_acceptance_rate_pct}%
+                    </strong>
+                  </div>
+                  <div>
+                    <span>Status</span>
+                    <strong>{humanise(record.scenario_status)}</strong>
+                  </div>
+                </div>
+
+                {record.operator_note && <p>{record.operator_note}</p>}
+
+                <button
+                  type="button"
+                  className="secondary"
+                  onClick={() => loadSavedRevision(record)}
+                  disabled={busy}
+                >
+                  Load assumptions into builder
+                </button>
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
 
       <section className="scenario-comparison-section">
         <div className="section-heading compact-heading">
