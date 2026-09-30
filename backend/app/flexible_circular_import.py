@@ -147,6 +147,26 @@ def _transform_row(row_number: int, source_row: dict, role_to_source: dict[str, 
     supplier_takeback_available = _clean_text(value_for("supplier_takeback_available")) or UNKNOWN
     recycled_content_available = _clean_text(value_for("recycled_content_available")) or UNKNOWN
     notes = _clean_text(value_for("notes"))
+    source_provenance = _build_source_provenance(
+        row_number=row_number,
+        source_row=source_row,
+        role_to_source=role_to_source,
+        stream_id=stream_id,
+        stream_name=stream_name,
+        material=material,
+        source_process=source_process,
+        monthly_quantity_kg=monthly_quantity_kg,
+        quantity_unit=quantity_unit,
+        current_route=current_route,
+        disposal_cost_per_month=disposal_cost_per_month,
+        contamination_risk=contamination_risk,
+        hazardous_flag=hazardous_flag,
+        department=department,
+        supplier=supplier,
+        supplier_takeback_available=supplier_takeback_available,
+        recycled_content_available=recycled_content_available,
+        notes=notes,
+    )
 
     return {
         "source_row_number": row_number,
@@ -164,9 +184,139 @@ def _transform_row(row_number: int, source_row: dict, role_to_source: dict[str, 
         "supplier_takeback_available": supplier_takeback_available,
         "recycled_content_available": recycled_content_available,
         "notes": notes,
+        "source_provenance": source_provenance,
         "draft_status": "draft_only_not_imported",
         "claim_boundary": "Draft transformed row only. Not verified operational data and not a savings, diversion or compliance claim.",
     }, warnings
+
+
+def _build_source_provenance(
+    *,
+    row_number: int,
+    source_row: dict,
+    role_to_source: dict[str, str],
+    stream_id: str,
+    stream_name: str,
+    material: str,
+    source_process: str,
+    monthly_quantity_kg: float,
+    quantity_unit: str,
+    current_route: str,
+    disposal_cost_per_month: float,
+    contamination_risk: str,
+    hazardous_flag: str,
+    department: str,
+    supplier: str,
+    supplier_takeback_available: str,
+    recycled_content_available: str,
+    notes: str,
+) -> list[dict]:
+    """Capture field-level source lineage for the draft transformation."""
+
+    def raw(role: str) -> tuple[str | None, str]:
+        source_column = role_to_source.get(role)
+        if not source_column:
+            return None, ""
+        return source_column, _clean_text(source_row.get(source_column))
+
+    def text_entry(target_field: str, role: str, transformed: str, fallback: str) -> dict:
+        source_column, source_value = raw(role)
+        transformation = "trim_text" if source_value else fallback
+        return {
+            "target_field": target_field,
+            "source_column": source_column,
+            "source_value": source_value,
+            "source_unit": None,
+            "transformed_value": str(transformed),
+            "transformation": transformation,
+        }
+
+    provenance: list[dict] = []
+
+    stream_id_column, stream_id_value = raw("stream_id")
+    provenance.append({
+        "target_field": "stream_id",
+        "source_column": stream_id_column,
+        "source_value": stream_id_value,
+        "source_unit": None,
+        "transformed_value": str(stream_id),
+        "transformation": "trim_text" if stream_id_value else f"generated_draft_id_from_source_row_{row_number}",
+    })
+
+    stream_name_column, stream_name_value = raw("stream_name")
+    provenance.append({
+        "target_field": "stream_name",
+        "source_column": stream_name_column,
+        "source_value": stream_name_value,
+        "source_unit": None,
+        "transformed_value": str(stream_name),
+        "transformation": "trim_text" if stream_name_value else "fallback_from_material_or_stream_id",
+    })
+
+    provenance.append(text_entry("material", "material", material, "default_unknown"))
+    provenance.append(text_entry("source_process", "source_process", source_process, "default_unknown"))
+
+    quantity_column, quantity_value = raw("quantity")
+    normalised_unit = quantity_unit.strip().lower()
+    quantity_transformation = (
+        "kg_identity"
+        if normalised_unit in KG_UNITS
+        else "tonnes_to_kg"
+        if normalised_unit in TONNE_UNITS
+        else "grams_to_kg"
+        if normalised_unit in GRAM_UNITS
+        else "unsupported_unit_blocked"
+    )
+    provenance.append({
+        "target_field": "monthly_quantity_kg",
+        "source_column": quantity_column,
+        "source_value": quantity_value,
+        "source_unit": quantity_unit or None,
+        "transformed_value": str(monthly_quantity_kg),
+        "transformation": quantity_transformation,
+    })
+
+    provenance.append(text_entry("current_route", "current_route", current_route, "default_unknown"))
+
+    cost_column, cost_value = raw("disposal_cost_per_month")
+    if not cost_value:
+        cost_transformation = "default_zero"
+    else:
+        try:
+            float(cost_value.replace(",", "").replace("£", "").strip())
+            cost_transformation = "numeric_parse"
+        except ValueError:
+            cost_transformation = "numeric_parse_failed_to_zero"
+    provenance.append({
+        "target_field": "disposal_cost_per_month",
+        "source_column": cost_column,
+        "source_value": cost_value,
+        "source_unit": None,
+        "transformed_value": str(disposal_cost_per_month),
+        "transformation": cost_transformation,
+    })
+
+    provenance.extend([
+        text_entry("contamination_risk", "contamination_risk", contamination_risk, "default_unknown"),
+        text_entry("hazardous_flag", "hazardous_flag", hazardous_flag, "default_unknown"),
+        text_entry("department", "department", department, "default_unknown"),
+        text_entry("supplier", "supplier", supplier, "default_unknown"),
+        text_entry(
+            "supplier_takeback_available",
+            "supplier_takeback_available",
+            supplier_takeback_available,
+            "default_unknown",
+        ),
+        text_entry(
+            "recycled_content_available",
+            "recycled_content_available",
+            recycled_content_available,
+            "default_unknown",
+        ),
+        text_entry("notes", "notes", notes, "default_empty"),
+    ])
+
+    return provenance
 
 
 def _clean_text(value: object) -> str:
