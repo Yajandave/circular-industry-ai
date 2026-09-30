@@ -48,6 +48,7 @@ export default function App() {
   const [supplierLoopSummary, setSupplierLoopSummary] = useState(null);
   const [supplierEmailDraft, setSupplierEmailDraft] = useState(null);
   const [circularActionReport, setCircularActionReport] = useState(null);
+  const [scenarioResult, setScenarioResult] = useState(null);
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
   const [activeView, setActiveView] = useState('dashboard');
   const [activeDomain, setActiveDomain] = useState('circular-core');
@@ -154,6 +155,7 @@ export default function App() {
     setSupplierLoopSummary(null);
     setSupplierEmailDraft(null);
     setCircularActionReport(null);
+    setScenarioResult(null);
     setReviewPack(null);
     setAiReasoning(null);
     setSiteCopilotSummary(null);
@@ -169,6 +171,7 @@ export default function App() {
       setEvidenceGapExplanation(null);
       setSupplierEmailDraft(null);
       setCircularActionReport(null);
+      setScenarioResult(null);
       setAiReasoning(null);
       setSiteCopilotSummary(null);
       setAgenticWorkflow(null);
@@ -180,6 +183,15 @@ export default function App() {
       await api.runSupplierLoops().catch(() => null);
       await refreshData();
       setActiveView('dashboard');
+    });
+  }
+
+  async function runInterventionScenario(streamId, payload) {
+    return safeRun(`Scenario screened for ${streamId}.`, async () => {
+      const result = await api.screenInterventionScenario(streamId, payload);
+      setScenarioResult(result);
+      setActiveView('scenario');
+      return result;
     });
   }
 
@@ -340,6 +352,7 @@ export default function App() {
     supplierLoopSummary,
     supplierEmailDraft,
     circularActionReport,
+    scenarioResult,
     filters,
     activeView,
     dashboardData,
@@ -355,6 +368,7 @@ export default function App() {
     onFiltersChange: setFilters,
     onSelectReviewPack: openReviewPack,
     onGenerateCircularActionReport: generateCircularActionReport,
+    onRunInterventionScenario: runInterventionScenario,
     onDraftSupplierEmail: draftSupplierEmail,
     onExplainEvidenceGap: explainEvidenceGap,
     onRefreshSiteCopilot: refreshSiteCopilot,
