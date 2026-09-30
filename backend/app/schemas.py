@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime
 from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -1155,4 +1155,53 @@ class SavedInterventionScenarioHistory(BaseModel):
     scenario_names: list[str]
     latest_revision: SavedInterventionScenarioRead | None = None
     records: list[SavedInterventionScenarioRead]
+    governance_note: str
+
+
+
+class ObservedScenarioOutcomeCreate(BaseModel):
+    observation_start_date: date
+    observation_end_date: date
+    observed_recovered_quantity_kg: float = Field(..., ge=0)
+    evidence_source_type: str = Field(
+        ...,
+        pattern="^(operator_log|weighbridge_ticket|supplier_confirmation|invoice_or_credit|system_export|other_documentary)$",
+    )
+    evidence_reference: str = Field(..., min_length=1, max_length=500)
+    verification_status: str = Field(
+        default="operator_reported",
+        pattern="^(operator_reported|documentary_evidence_unverified|internally_reviewed)$",
+    )
+    operator_note: str | None = None
+
+
+class ObservedScenarioOutcomeRead(BaseModel):
+    id: int
+    saved_scenario_id: int
+    stream_id: str
+    scenario_name: str
+    scenario_revision_number: int
+    observation_start_date: date
+    observation_end_date: date
+    observation_period_days: int
+    observed_recovered_quantity_kg: float
+    scenario_screened_quantity_for_period_kg: float
+    variance_quantity_kg: float
+    variance_pct: float | None = None
+    evidence_source_type: str
+    evidence_reference: str
+    verification_status: str
+    operator_note: str | None = None
+    claim_status: str
+    governance_note: str
+    created_at: datetime
+
+
+class ObservedScenarioOutcomeHistory(BaseModel):
+    saved_scenario_id: int
+    stream_id: str
+    scenario_name: str
+    scenario_revision_number: int
+    total_records: int
+    records: list[ObservedScenarioOutcomeRead]
     governance_note: str

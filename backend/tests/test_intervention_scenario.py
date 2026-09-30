@@ -412,3 +412,171 @@ def test_observed_saved_scenario_requires_operator_note():
 
     assert response.status_code == 400
     assert "operator note" in response.json()["detail"].lower()
+
+
+
+def test_observed_outcome_scales_saved_scenario_to_observation_period_and_persists_evidence():
+    client.post("/api/streams/load-sample")
+    client.post("/api/recommendations/run")
+    scenario_name = f"Observed outcome case {uuid4().hex[:10]}"
+
+    saved_response = client.post(
+        "/api/scenarios/S001/save",
+        json={
+            "scenario_name": scenario_name,
+            "lifecycle_stage": "pilot_planned",
+            "addressable_fraction_pct": 80,
+            "technical_capture_rate_pct": 85,
+            "route_acceptance_rate_pct": 90,
+            "operator_note": "Pilot assumptions approved for observation.",
+        },
+    )
+    assert saved_response.status_code == 200
+    saved = saved_response.json()
+
+    outcome_response = client.post(
+        f"/api/scenarios/saved/{saved['id']}/outcomes",
+        json={
+            "observation_start_date": "2026-01-01",
+            "observation_end_date": "2026-01-31",
+            "observed_recovered_quantity_kg": 500,
+            "evidence_source_type": "weighbridge_ticket",
+            "evidence_reference": "WB-2026-001 to WB-2026-014",
+            "verification_status": "documentary_evidence_unverified",
+            "operator_note": "January pilot weighbridge records entered for review.",
+        },
+    )
+    assert outcome_response.status_code == 200
+    outcome = outcome_response.json()
+
+    expected_period_quantity = round(
+        saved["scenario_screened_recoverable_quantity_kg"] * (31 / 365.0),
+        2,
+    )
+    expected_variance = round(500 - expected_period_quantity, 2)
+    expected_variance_pct = round((expected_variance / expected_period_quantity) * 100, 2)
+
+    assert outcome["saved_scenario_id"] == saved["id"]
+    assert outcome["scenario_revision_number"] == saved["revision_number"]
+    assert outcome["observation_period_days"] == 31
+    assert outcome["scenario_screened_quantity_for_period_kg"] == expected_period_quantity
+    assert outcome["observed_recovered_quantity_kg"] == 500.0
+    assert outcome["variance_quantity_kg"] == expected_variance
+    assert outcome["variance_pct"] == expected_variance_pct
+    assert outcome["claim_status"] == "observed_outcome_not_claim_ready"
+    assert "not seasonality-adjusted" in outcome["governance_note"]
+
+    history_response = client.get(
+        f"/api/scenarios/saved/{saved['id']}/outcomes"
+    )
+    assert history_response.status_code == 200
+    history = history_response.json()
+    assert history["saved_scenario_id"] == saved["id"]
+    assert history["total_records"] >= 1
+    assert history["records"][0]["id"] == outcome["id"]
+    assert "do not by themselves make the scenario verified" in history["governance_note"]
+
+    audit_response = client.get(
+        "/api/audit/events?event_type=observed_scenario_outcome_recorded&limit=50"
+    )
+    assert audit_response.status_code == 200
+    event = next(
+        item
+        for item in audit_response.json()
+        if item["entity_id"] == str(outcome["id"])
+    )
+    assert event["metadata_json"]["saved_scenario_id"] == saved["id"]
+    assert event["metadata_json"]["observed_recovered_quantity_kg"] == 500.0
+    assert event["metadata_json"]["claim_status"] == "observed_outcome_not_claim_ready"
+
+
+def test_observed_outcome_rejects_end_date_before_start_date():
+    client.post("/api/streams/load-sample")
+    client.post("/api/recommendations/run")
+
+    saved = client.post(
+        "/api/scenarios/S001/save",
+        json={
+            "scenario_name": f"Invalid dates {uuid4().hex[:10]}",
+            "lifecycle_stage": "pilot_planned",
+            "addressable_fraction_pct": 70,
+            "technical_capture_rate_pct": 80,
+            "route_acceptance_rate_pct": 90,
+        },
+    ).json()
+
+    response = client.post(
+        f"/api/scenarios/saved/{saved['id']}/outcomes",
+        json={
+            "observation_start_date": "2026-02-10",
+            "observation_end_date": "2026-02-01",
+            "observed_recovered_quantity_kg": 100,
+            "evidence_source_type": "operator_log",
+            "evidence_reference": "Pilot log 01",
+            "verification_status": "operator_reported",
+        },
+    )
+
+    assert response.status_code == 400
+    assert "end date" in response.json()["detail"].lower()
+
+
+def test_observed_outcome_rejects_blank_evidence_reference():
+    client.post("/api/streams/load-sample")
+    client.post("/api/recommendations/run")
+
+    saved = client.post(
+        "/api/scenarios/S002/save",
+        json={
+            "scenario_name": f"Blank evidence {uuid4().hex[:10]}",
+            "lifecycle_stage": "pilot_planned",
+            "addressable_fraction_pct": 60,
+            "technical_capture_rate_pct": 70,
+            "route_acceptance_rate_pct": 80,
+        },
+    ).json()
+
+    response = client.post(
+        f"/api/scenarios/saved/{saved['id']}/outcomes",
+        json={
+            "observation_start_date": "2026-03-01",
+            "observation_end_date": "2026-03-07",
+            "observed_recovered_quantity_kg": 50,
+            "evidence_source_type": "operator_log",
+            "evidence_reference": "   ",
+            "verification_status": "operator_reported",
+        },
+    )
+
+    assert response.status_code == 400
+    assert "evidence reference" in response.json()["detail"].lower()
+
+
+def test_observed_outcome_rejects_unsupported_verification_status():
+    client.post("/api/streams/load-sample")
+    client.post("/api/recommendations/run")
+
+    saved = client.post(
+        "/api/scenarios/S001/save",
+        json={
+            "scenario_name": f"Unsupported verification {uuid4().hex[:10]}",
+            "lifecycle_stage": "pilot_planned",
+            "addressable_fraction_pct": 70,
+            "technical_capture_rate_pct": 80,
+            "route_acceptance_rate_pct": 90,
+        },
+    ).json()
+
+    response = client.post(
+        f"/api/scenarios/saved/{saved['id']}/outcomes",
+        json={
+            "observation_start_date": "2026-04-01",
+            "observation_end_date": "2026-04-30",
+            "observed_recovered_quantity_kg": 100,
+            "evidence_source_type": "system_export",
+            "evidence_reference": "ERP-APR-2026",
+            "verification_status": "independently_verified",
+        },
+    )
+
+    assert response.status_code == 422

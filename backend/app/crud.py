@@ -591,3 +591,132 @@ def get_saved_intervention_scenario_history(
             "it does not verify diversion, recovery, savings, environmental impact or claim readiness."
         ),
     )
+
+
+
+# Milestone 20B.5: observed outcome evidence CRUD helpers
+
+def get_saved_intervention_scenario_by_id(
+    db: Session,
+    *,
+    saved_scenario_id: int,
+) -> models.SavedInterventionScenario | None:
+    return db.get(models.SavedInterventionScenario, saved_scenario_id)
+
+
+def _observed_outcome_read(row: models.ObservedScenarioOutcome) -> schemas.ObservedScenarioOutcomeRead:
+    return schemas.ObservedScenarioOutcomeRead(
+        id=row.id,
+        saved_scenario_id=row.saved_scenario_id,
+        stream_id=row.stream_id,
+        scenario_name=row.scenario_name,
+        scenario_revision_number=row.scenario_revision_number,
+        observation_start_date=row.observation_start_date,
+        observation_end_date=row.observation_end_date,
+        observation_period_days=row.observation_period_days,
+        observed_recovered_quantity_kg=row.observed_recovered_quantity_kg,
+        scenario_screened_quantity_for_period_kg=row.scenario_screened_quantity_for_period_kg,
+        variance_quantity_kg=row.variance_quantity_kg,
+        variance_pct=row.variance_pct,
+        evidence_source_type=row.evidence_source_type,
+        evidence_reference=row.evidence_reference,
+        verification_status=row.verification_status,
+        operator_note=row.operator_note,
+        claim_status=row.claim_status,
+        governance_note=row.governance_note,
+        created_at=row.created_at,
+    )
+
+
+def create_observed_scenario_outcome(
+    db: Session,
+    *,
+    saved_scenario: models.SavedInterventionScenario,
+    payload: schemas.ObservedScenarioOutcomeCreate,
+) -> schemas.ObservedScenarioOutcomeRead:
+    """Persist one immutable observed outcome against a saved scenario revision."""
+
+    period_days = (payload.observation_end_date - payload.observation_start_date).days + 1
+    scenario_period_quantity = round(
+        saved_scenario.scenario_screened_recoverable_quantity_kg * (period_days / 365.0),
+        2,
+    )
+    observed_quantity = round(float(payload.observed_recovered_quantity_kg), 2)
+    variance_quantity = round(observed_quantity - scenario_period_quantity, 2)
+    variance_pct = (
+        round((variance_quantity / scenario_period_quantity) * 100, 2)
+        if scenario_period_quantity > 0
+        else None
+    )
+
+    row = models.ObservedScenarioOutcome(
+        saved_scenario_id=saved_scenario.id,
+        stream_id=saved_scenario.stream_id,
+        scenario_name=saved_scenario.scenario_name,
+        scenario_revision_number=saved_scenario.revision_number,
+        observation_start_date=payload.observation_start_date,
+        observation_end_date=payload.observation_end_date,
+        observation_period_days=period_days,
+        observed_recovered_quantity_kg=observed_quantity,
+        scenario_screened_quantity_for_period_kg=scenario_period_quantity,
+        variance_quantity_kg=variance_quantity,
+        variance_pct=variance_pct,
+        evidence_source_type=payload.evidence_source_type,
+        evidence_reference=payload.evidence_reference.strip(),
+        verification_status=payload.verification_status,
+        operator_note=payload.operator_note.strip() if payload.operator_note and payload.operator_note.strip() else None,
+        claim_status="observed_outcome_not_claim_ready",
+        governance_note=(
+            "Observed quantity is recorded against operator-supplied evidence and remains non-claim-ready. "
+            "The scenario comparison value is linearly scaled from the saved annual screening scenario to the "
+            "observation period using 365 days; it is not seasonality-adjusted and does not independently verify "
+            "diversion, recovery, savings or environmental impact."
+        ),
+    )
+    db.add(row)
+    db.commit()
+    db.refresh(row)
+    return _observed_outcome_read(row)
+
+
+def get_observed_scenario_outcomes(
+    db: Session,
+    *,
+    saved_scenario_id: int,
+    limit: int = 100,
+) -> list[schemas.ObservedScenarioOutcomeRead]:
+    query = (
+        select(models.ObservedScenarioOutcome)
+        .where(models.ObservedScenarioOutcome.saved_scenario_id == saved_scenario_id)
+        .order_by(
+            models.ObservedScenarioOutcome.created_at.desc(),
+            models.ObservedScenarioOutcome.id.desc(),
+        )
+        .limit(limit)
+    )
+    return [_observed_outcome_read(row) for row in db.scalars(query).all()]
+
+
+def get_observed_scenario_outcome_history(
+    db: Session,
+    *,
+    saved_scenario: models.SavedInterventionScenario,
+    limit: int = 100,
+) -> schemas.ObservedScenarioOutcomeHistory:
+    records = get_observed_scenario_outcomes(
+        db,
+        saved_scenario_id=saved_scenario.id,
+        limit=limit,
+    )
+    return schemas.ObservedScenarioOutcomeHistory(
+        saved_scenario_id=saved_scenario.id,
+        stream_id=saved_scenario.stream_id,
+        scenario_name=saved_scenario.scenario_name,
+        scenario_revision_number=saved_scenario.revision_number,
+        total_records=len(records),
+        records=records,
+        governance_note=(
+            "Observed outcome records preserve evidence context and variance against the saved screening scenario. "
+            "They do not by themselves make the scenario verified or claim-ready."
+        ),
+    )

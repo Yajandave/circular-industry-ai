@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 
-from sqlalchemy import DateTime, Float, Integer, String, Text
+from sqlalchemy import Date, DateTime, Float, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
@@ -233,6 +233,43 @@ class SavedInterventionScenario(Base):
     formula: Mapped[str] = mapped_column(Text, nullable=False)
     governance_note: Mapped[str] = mapped_column(Text, nullable=False)
 
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
+
+
+
+# Milestone 20B.5: observed outcome evidence linked to saved scenarios
+
+class ObservedScenarioOutcome(Base):
+    """Immutable observed pilot/outcome record linked to one saved scenario revision."""
+
+    __tablename__ = "observed_scenario_outcomes"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    saved_scenario_id: Mapped[int] = mapped_column(Integer, index=True, nullable=False)
+    stream_id: Mapped[str] = mapped_column(String(30), index=True, nullable=False)
+    scenario_name: Mapped[str] = mapped_column(String(120), index=True, nullable=False)
+    scenario_revision_number: Mapped[int] = mapped_column(Integer, nullable=False)
+
+    observation_start_date: Mapped[date] = mapped_column(Date, nullable=False)
+    observation_end_date: Mapped[date] = mapped_column(Date, nullable=False)
+    observation_period_days: Mapped[int] = mapped_column(Integer, nullable=False)
+
+    observed_recovered_quantity_kg: Mapped[float] = mapped_column(Float, nullable=False)
+    scenario_screened_quantity_for_period_kg: Mapped[float] = mapped_column(Float, nullable=False)
+    variance_quantity_kg: Mapped[float] = mapped_column(Float, nullable=False)
+    variance_pct: Mapped[float | None] = mapped_column(Float, nullable=True)
+
+    evidence_source_type: Mapped[str] = mapped_column(String(80), index=True, nullable=False)
+    evidence_reference: Mapped[str] = mapped_column(Text, nullable=False)
+    verification_status: Mapped[str] = mapped_column(String(80), index=True, nullable=False)
+    operator_note: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    claim_status: Mapped[str] = mapped_column(String(100), index=True, nullable=False)
+    governance_note: Mapped[str] = mapped_column(Text, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
