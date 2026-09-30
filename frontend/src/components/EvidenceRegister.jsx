@@ -138,7 +138,7 @@ function EvidenceInspector({ record, onExplain, busy }) {
         <article>
           <span>Screened exposure</span>
           <strong>{formatCurrency(record.estimated_annual_disposal_cost_avoided)}</strong>
-          <small>{formatNumber(record.estimated_annual_waste_diverted_kg)} kg screened diversion</small>
+          <small>{formatNumber(record.estimated_annual_waste_diverted_kg)} kg annual quantity screened</small>
         </article>
       </div>
 
