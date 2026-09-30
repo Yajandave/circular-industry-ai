@@ -5903,3 +5903,111 @@ button.donut-legend-row {
   font-weight: 700;
   line-height: 1.4;
 }
+
+
+/* Milestone 20B.3: scenario comparison */
+.scenario-comparison-section {
+  margin-top: 22px;
+  padding-top: 20px;
+  border-top: 1px solid #dfe7e2;
+}
+.scenario-comparison-inputs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin: 16px 0;
+}
+.scenario-case-builder {
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid #dfe7e2;
+  background: #fbfdfb;
+}
+.scenario-case-builder label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  color: #56675f;
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+.scenario-case-builder input,
+.scenario-case-builder textarea {
+  width: 100%;
+  min-width: 0;
+  padding: 10px 11px;
+  border: 1px solid #cadbd1;
+  border-radius: 11px;
+  background: #fff;
+  color: #18231f;
+}
+.scenario-case-builder textarea {
+  resize: vertical;
+  margin-top: 2px;
+}
+.scenario-case-number-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 9px;
+  margin: 12px 0;
+}
+.scenario-comparison-result {
+  margin-top: 18px;
+}
+.scenario-comparison-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.scenario-comparison-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 14px;
+}
+.scenario-comparison-card {
+  padding: 18px;
+  border-radius: 18px;
+  border: 1px solid #dfe7e2;
+  background: #fff;
+}
+.scenario-comparison-card > strong {
+  display: block;
+  margin: 9px 0 5px;
+  font-size: 1.65rem;
+  letter-spacing: -0.03em;
+}
+.scenario-comparison-card > small {
+  color: #68776f;
+  line-height: 1.4;
+}
+.scenario-comparison-card dl {
+  margin: 14px 0 0;
+}
+.scenario-comparison-card dl div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 7px 0;
+  border-top: 1px solid #edf1ee;
+}
+.scenario-comparison-card dt {
+  color: #68776f;
+}
+.scenario-comparison-card dd {
+  margin: 0;
+  font-weight: 800;
+  text-align: right;
+}
+@media (max-width: 1100px) {
+  .scenario-comparison-inputs,
+  .scenario-comparison-cards,
+  .scenario-comparison-summary {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 720px) {
+  .scenario-case-number-grid {
+    grid-template-columns: 1fr;
+  }
+}
