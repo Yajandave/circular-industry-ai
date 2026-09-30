@@ -36,6 +36,12 @@ export const api = {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   }),
+  saveInterventionScenario: (streamId, payload) => request(`/api/scenarios/${encodeURIComponent(streamId)}/save`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  }),
+  interventionScenarioHistory: (streamId) => request(`/api/scenarios/${encodeURIComponent(streamId)}/history?limit=100`),
   reviewPack: (streamId) => request(`/api/agent/review-pack/${encodeURIComponent(streamId)}`),
   managementSummary: () => request('/api/agent/management-summary'),
   actionPlan: (limit = 12) => request(`/api/agent/action-plan?limit=${limit}`),
