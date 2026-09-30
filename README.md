@@ -206,8 +206,8 @@ Each stream can receive:
 - evidence quality score
 - missing data
 - human-review flag
-- estimated annual waste diversion
-- estimated annual disposal cost exposure
+- annual material quantity screened / opportunity exposure
+- annual disposal-cost exposure
 - supplier/procurement action
 - industrial symbiosis opportunity flag
 - next action
