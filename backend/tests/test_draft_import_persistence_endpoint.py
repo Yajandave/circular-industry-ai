@@ -90,6 +90,28 @@ def test_import_circular_core_draft_endpoint_saves_approved_draft_rows():
     assert summary_response.status_code == 200
     assert summary_response.json()["total_streams"] == 2
 
+    audit_response = client.get("/api/audit/events?event_type=draft_import_committed&limit=20")
+    assert audit_response.status_code == 200
+    audit_events = audit_response.json()
+    import_event = next(
+        event
+        for event in audit_events
+        if event["metadata_json"].get("imported_stream_ids") == ["DRAFT-001", "DRAFT-002"]
+    )
+    metadata = import_event["metadata_json"]
+    assert metadata["source_provenance_version"] == "20A.5-v1"
+    assert metadata["source_provenance_available"] is True
+    assert metadata["source_provenance_field_count"] > 0
+    quantity_provenance = next(
+        item
+        for item in metadata["source_provenance_snapshot"]["DRAFT-001"]
+        if item["target_field"] == "monthly_quantity_kg"
+    )
+    assert quantity_provenance["source_column"] == "Monthly Weight"
+    assert quantity_provenance["source_value"] == "1250"
+    assert quantity_provenance["source_unit"] == "kg"
+    assert quantity_provenance["transformation"] == "kg_identity"
+
 
 def test_import_circular_core_draft_endpoint_requires_operator_approval():
     report = _ready_draft_report()
