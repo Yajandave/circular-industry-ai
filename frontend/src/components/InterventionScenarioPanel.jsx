@@ -10,6 +10,16 @@ const DEFAULT_ASSUMPTIONS = {
   operator_note: '',
 };
 
+const DEFAULT_OBSERVED_OUTCOME = {
+  observation_start_date: '',
+  observation_end_date: '',
+  observed_recovered_quantity_kg: '',
+  evidence_source_type: 'operator_log',
+  evidence_reference: '',
+  verification_status: 'operator_reported',
+  operator_note: '',
+};
+
 const DEFAULT_COMPARISON_CASES = [
   {
     case_name: 'Conservative',
@@ -69,10 +79,13 @@ export default function InterventionScenarioPanel({
   scenarioResult,
   comparisonResult,
   scenarioHistory,
+  observedOutcomeHistory,
   onRunScenario,
   onCompareScenarios,
   onSaveScenario,
   onLoadScenarioHistory,
+  onRecordObservedOutcome,
+  onLoadObservedOutcomeHistory,
   busy,
 }) {
   const [selectedId, setSelectedId] = useState('');
@@ -81,6 +94,9 @@ export default function InterventionScenarioPanel({
   const [scenarioName, setScenarioName] = useState('');
   const [lifecycleStage, setLifecycleStage] = useState('screening');
   const [saveError, setSaveError] = useState('');
+  const [selectedOutcomeScenario, setSelectedOutcomeScenario] = useState(null);
+  const [observedOutcomeForm, setObservedOutcomeForm] = useState(DEFAULT_OBSERVED_OUTCOME);
+  const [outcomeError, setOutcomeError] = useState('');
   const [localError, setLocalError] = useState('');
   const [comparisonError, setComparisonError] = useState('');
 
@@ -96,6 +112,9 @@ export default function InterventionScenarioPanel({
       setScenarioName('');
       setLifecycleStage('screening');
       setSaveError('');
+      setSelectedOutcomeScenario(null);
+      setObservedOutcomeForm(DEFAULT_OBSERVED_OUTCOME);
+      setOutcomeError('');
     }
     // The App callback is intentionally omitted because it is recreated on render.
   }, [selectedId]);
@@ -114,10 +133,72 @@ export default function InterventionScenarioPanel({
   const resultMatchesSelection = scenarioResult?.stream_id === selectedId;
   const comparisonMatchesSelection = comparisonResult?.stream_id === selectedId;
   const historyMatchesSelection = scenarioHistory?.stream_id === selectedId;
+  const outcomeHistoryMatchesSelection = (
+    observedOutcomeHistory?.saved_scenario_id === selectedOutcomeScenario?.id
+  );
 
   function updateAssumption(key, value) {
     setAssumptions((current) => ({ ...current, [key]: value }));
     setLocalError('');
+  }
+
+  function selectOutcomeScenario(record) {
+    setSelectedOutcomeScenario(record);
+    setObservedOutcomeForm(DEFAULT_OBSERVED_OUTCOME);
+    setOutcomeError('');
+    onLoadObservedOutcomeHistory(record.id);
+  }
+
+  function updateObservedOutcome(key, value) {
+    setObservedOutcomeForm((current) => ({ ...current, [key]: value }));
+    setOutcomeError('');
+  }
+
+  async function submitObservedOutcome(event) {
+    event.preventDefault();
+    setOutcomeError('');
+
+    if (!selectedOutcomeScenario) {
+      setOutcomeError('Choose a saved scenario revision before recording an observed outcome.');
+      return;
+    }
+
+    if (!observedOutcomeForm.observation_start_date || !observedOutcomeForm.observation_end_date) {
+      setOutcomeError('Enter both observation start and end dates.');
+      return;
+    }
+
+    if (observedOutcomeForm.observation_end_date < observedOutcomeForm.observation_start_date) {
+      setOutcomeError('Observation end date must be on or after the start date.');
+      return;
+    }
+
+    const observedQuantity = Number(observedOutcomeForm.observed_recovered_quantity_kg);
+    if (!Number.isFinite(observedQuantity) || observedQuantity < 0) {
+      setOutcomeError('Observed recovered quantity must be a number of 0 kg or more.');
+      return;
+    }
+
+    if (!observedOutcomeForm.evidence_reference.trim()) {
+      setOutcomeError('Add an evidence reference before recording the observation.');
+      return;
+    }
+
+    const payload = {
+      observation_start_date: observedOutcomeForm.observation_start_date,
+      observation_end_date: observedOutcomeForm.observation_end_date,
+      observed_recovered_quantity_kg: observedQuantity,
+      evidence_source_type: observedOutcomeForm.evidence_source_type,
+      evidence_reference: observedOutcomeForm.evidence_reference.trim(),
+      verification_status: observedOutcomeForm.verification_status,
+      operator_note: observedOutcomeForm.operator_note.trim() || null,
+    };
+
+    try {
+      await onRecordObservedOutcome(selectedOutcomeScenario.id, payload);
+    } catch {
+      // App-level status reporting already surfaces the API error.
+    }
   }
 
   function updateComparisonCase(index, key, value) {
@@ -568,19 +649,186 @@ export default function InterventionScenarioPanel({
 
                 {record.operator_note && <p>{record.operator_note}</p>}
 
-                <button
-                  type="button"
-                  className="secondary"
-                  onClick={() => loadSavedRevision(record)}
-                  disabled={busy}
-                >
-                  Load assumptions into builder
-                </button>
+                <div className="scenario-history-actions">
+                  <button
+                    type="button"
+                    className="secondary"
+                    onClick={() => loadSavedRevision(record)}
+                    disabled={busy}
+                  >
+                    Load assumptions into builder
+                  </button>
+                  <button
+                    type="button"
+                    className="secondary"
+                    onClick={() => selectOutcomeScenario(record)}
+                    disabled={busy}
+                  >
+                    Record / view observed outcomes
+                  </button>
+                </div>
               </article>
             ))}
           </div>
         )}
       </section>
+
+      {selectedOutcomeScenario && (
+        <section className="scenario-outcome-section">
+          <div className="section-heading compact-heading">
+            <div>
+              <h3>Observed outcome evidence</h3>
+              <p>
+                Record pilot-period evidence against {selectedOutcomeScenario.scenario_name} revision {selectedOutcomeScenario.revision_number}.
+                Observed values remain non-claim-ready until a later verification process.
+              </p>
+            </div>
+            <span>{outcomeHistoryMatchesSelection ? observedOutcomeHistory.total_records : 0} observations</span>
+          </div>
+
+          <form className="scenario-outcome-form" onSubmit={submitObservedOutcome}>
+            <div className="scenario-outcome-grid">
+              <label>
+                <span>Observation start</span>
+                <input
+                  type="date"
+                  value={observedOutcomeForm.observation_start_date}
+                  onChange={(event) => updateObservedOutcome('observation_start_date', event.target.value)}
+                  disabled={busy}
+                />
+              </label>
+              <label>
+                <span>Observation end</span>
+                <input
+                  type="date"
+                  value={observedOutcomeForm.observation_end_date}
+                  onChange={(event) => updateObservedOutcome('observation_end_date', event.target.value)}
+                  disabled={busy}
+                />
+              </label>
+              <label>
+                <span>Observed recovered quantity (kg)</span>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={observedOutcomeForm.observed_recovered_quantity_kg}
+                  onChange={(event) => updateObservedOutcome('observed_recovered_quantity_kg', event.target.value)}
+                  disabled={busy}
+                />
+              </label>
+              <label>
+                <span>Evidence source</span>
+                <select
+                  value={observedOutcomeForm.evidence_source_type}
+                  onChange={(event) => updateObservedOutcome('evidence_source_type', event.target.value)}
+                  disabled={busy}
+                >
+                  <option value="operator_log">Operator log</option>
+                  <option value="weighbridge_ticket">Weighbridge ticket</option>
+                  <option value="supplier_confirmation">Supplier confirmation</option>
+                  <option value="invoice_or_credit">Invoice or credit note</option>
+                  <option value="system_export">System export</option>
+                  <option value="other_documentary">Other documentary evidence</option>
+                </select>
+              </label>
+              <label>
+                <span>Verification status</span>
+                <select
+                  value={observedOutcomeForm.verification_status}
+                  onChange={(event) => updateObservedOutcome('verification_status', event.target.value)}
+                  disabled={busy}
+                >
+                  <option value="operator_reported">Operator reported</option>
+                  <option value="documentary_evidence_unverified">Documentary evidence, unverified</option>
+                  <option value="internally_reviewed">Internally reviewed</option>
+                </select>
+              </label>
+            </div>
+
+            <label className="scenario-outcome-wide">
+              <span>Evidence reference</span>
+              <input
+                type="text"
+                value={observedOutcomeForm.evidence_reference}
+                onChange={(event) => updateObservedOutcome('evidence_reference', event.target.value)}
+                placeholder="e.g. weighbridge ticket range, ERP export ID, supplier confirmation reference"
+                disabled={busy}
+              />
+            </label>
+
+            <label className="scenario-outcome-wide">
+              <span>Observation note (optional)</span>
+              <textarea
+                rows="3"
+                value={observedOutcomeForm.operator_note}
+                onChange={(event) => updateObservedOutcome('operator_note', event.target.value)}
+                placeholder="Context, operating conditions or known limitations"
+                disabled={busy}
+              />
+            </label>
+
+            {outcomeError && <p className="error">{outcomeError}</p>}
+            <button type="submit" disabled={busy}>
+              {busy ? 'Recording observation…' : 'Record observed outcome'}
+            </button>
+          </form>
+
+          <div className="scenario-history-governance">
+            The scenario comparison for an observation period is a linear 365-day scaling of the saved annual screening case.
+            It is not seasonality-adjusted and variance does not prove causal intervention impact.
+          </div>
+
+          {!outcomeHistoryMatchesSelection || !observedOutcomeHistory?.records?.length ? (
+            <div className="scenario-history-empty">
+              No observed outcome records for this saved scenario revision yet.
+            </div>
+          ) : (
+            <div className="scenario-outcome-history">
+              {observedOutcomeHistory.records.map((record) => (
+                <article className="scenario-outcome-card" key={record.id}>
+                  <div className="scenario-outcome-card-header">
+                    <div>
+                      <span className="record-id">
+                        {record.observation_start_date} to {record.observation_end_date}
+                      </span>
+                      <strong>{formatKg(record.observed_recovered_quantity_kg)} observed</strong>
+                    </div>
+                    <span className="scenario-history-stage">{humanise(record.verification_status)}</span>
+                  </div>
+
+                  <div className="scenario-outcome-metrics">
+                    <div>
+                      <span>Scenario for period</span>
+                      <strong>{formatKg(record.scenario_screened_quantity_for_period_kg)}</strong>
+                    </div>
+                    <div>
+                      <span>Variance</span>
+                      <strong>{formatKg(record.variance_quantity_kg)}</strong>
+                    </div>
+                    <div>
+                      <span>Variance %</span>
+                      <strong>{record.variance_pct === null ? '—' : `${record.variance_pct}%`}</strong>
+                    </div>
+                    <div>
+                      <span>Observation days</span>
+                      <strong>{record.observation_period_days}</strong>
+                    </div>
+                  </div>
+
+                  <p><strong>Evidence:</strong> {humanise(record.evidence_source_type)} · {record.evidence_reference}</p>
+                  {record.operator_note && <p>{record.operator_note}</p>}
+
+                  <div className="governance-strip">
+                    <strong>{humanise(record.claim_status)}</strong>
+                    <p>{record.governance_note}</p>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
 
       <section className="scenario-comparison-section">
         <div className="section-heading compact-heading">
