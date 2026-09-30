@@ -379,3 +379,23 @@ def test_saved_scenario_rejects_blank_name():
 
     assert response.status_code == 400
     assert "non-whitespace" in response.json()["detail"]
+
+
+
+def test_observed_saved_scenario_requires_operator_note():
+    client.post("/api/streams/load-sample")
+    client.post("/api/recommendations/run")
+
+    response = client.post(
+        "/api/scenarios/S001/save",
+        json={
+            "scenario_name": "Observed without evidence note",
+            "lifecycle_stage": "pilot_observed",
+            "addressable_fraction_pct": 70,
+            "technical_capture_rate_pct": 80,
+            "route_acceptance_rate_pct": 90,
+        },
+    )
+
+    assert response.status_code == 400
+    assert "operator note" in response.json()["detail"].lower()
