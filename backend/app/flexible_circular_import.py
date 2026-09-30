@@ -17,6 +17,11 @@ GOVERNANCE_NOTE = (
 
 UNKNOWN = "Unknown"
 
+KG_UNITS = {"kg", "kilogram", "kilograms", "kgs"}
+TONNE_UNITS = {"t", "tonne", "tonnes", "metric tonne", "metric tonnes"}
+GRAM_UNITS = {"g", "gram", "grams"}
+SUPPORTED_MASS_UNITS = KG_UNITS | TONNE_UNITS | GRAM_UNITS
+
 
 def build_flexible_circular_core_import(payload) -> dict:
     """Build draft Circular Core rows from mapped source rows without persistence."""
@@ -51,6 +56,19 @@ def build_flexible_circular_core_import(payload) -> dict:
         mapping["target_role"]: mapping["source_column"]
         for mapping in validation_report["accepted_mappings"]
     }
+
+    unit_blockers = _quantity_unit_blockers(payload.source_rows, role_to_source)
+    if unit_blockers:
+        return {
+            "import_status": "blocked",
+            "draft_row_count": 0,
+            "source_row_count": len(payload.source_rows),
+            "draft_rows": [],
+            "row_warnings": [],
+            "blocking_errors": unit_blockers,
+            "mapping_validation": validation_report,
+            "governance_note": GOVERNANCE_NOTE,
+        }
 
     draft_rows = []
     row_warnings = []
@@ -195,6 +213,60 @@ def _optional_float(row_number: int, value: object, role: str, warnings: list[di
         return 0.0
 
 
+def _quantity_unit_blockers(source_rows: list[dict], role_to_source: dict[str, str]) -> list[dict]:
+    """Block kg-based quantitative import when the mass unit is not explicit and supported."""
+    source_column = role_to_source.get("quantity_unit")
+    if not source_column:
+        return [
+            {
+                "code": "missing_quantity_unit_mapping",
+                "message": (
+                    "Quantity is mapped but no quantity-unit column has been confirmed. "
+                    "Circular Core will not assume kilograms; map an explicit kg, g or tonne unit before quantitative import."
+                ),
+                "source_row_number": None,
+                "source_column": None,
+                "target_role": "quantity_unit",
+            }
+        ]
+
+    blockers: list[dict] = []
+    for row_number, source_row in enumerate(source_rows, start=1):
+        raw_unit = _clean_text(source_row.get(source_column))
+        normalised_unit = raw_unit.lower()
+
+        if not raw_unit:
+            blockers.append(
+                {
+                    "code": "missing_quantity_unit",
+                    "message": (
+                        "Quantity unit is empty. Confirm a supported mass unit (kg, g or tonne) "
+                        "before quantitative Circular Core analysis."
+                    ),
+                    "source_row_number": row_number,
+                    "source_column": source_column,
+                    "target_role": "quantity_unit",
+                }
+            )
+            continue
+
+        if normalised_unit not in SUPPORTED_MASS_UNITS:
+            blockers.append(
+                {
+                    "code": "unsupported_quantity_unit",
+                    "message": (
+                        f"Quantity unit '{raw_unit}' is not supported by the current kg-based import. "
+                        "Convert or confirm the value in kg, g or tonnes before quantitative Circular Core analysis."
+                    ),
+                    "source_row_number": row_number,
+                    "source_column": source_column,
+                    "target_role": "quantity_unit",
+                }
+            )
+
+    return blockers
+
+
 def _quantity_to_kg(row_number: int, value: object, unit: str, warnings: list[dict]) -> float:
     cleaned = _clean_text(value)
     if not cleaned:
@@ -224,23 +296,25 @@ def _quantity_to_kg(row_number: int, value: object, unit: str, warnings: list[di
         return 0.0
 
     normalised_unit = unit.strip().lower()
-    if normalised_unit in {"kg", "kilogram", "kilograms", "kgs"}:
+    if normalised_unit in KG_UNITS:
         return numeric
-    if normalised_unit in {"t", "tonne", "tonnes", "metric tonne", "metric tonnes"}:
+    if normalised_unit in TONNE_UNITS:
         return numeric * 1000
-    if normalised_unit in {"g", "gram", "grams"}:
+    if normalised_unit in GRAM_UNITS:
         return numeric / 1000
 
+    # Defensive fallback. Normal workflow is blocked earlier by
+    # _quantity_unit_blockers, but never reinterpret an unsupported unit as kg.
     warnings.append(
         _warning(
             row_number,
-            "unknown_quantity_unit",
+            "unsupported_quantity_unit",
             None,
             "quantity_unit",
-            f"Quantity unit '{unit}' is not recognised; value was treated as kilograms for draft review.",
+            f"Quantity unit '{unit}' is unsupported; quantitative mass value was set to 0 for safe draft handling.",
         )
     )
-    return numeric
+    return 0.0
 
 
 def _warning(row_number: int, code: str, source_column: str | None, target_role: str | None, message: str) -> dict:
