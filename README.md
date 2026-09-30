@@ -268,6 +268,8 @@ The result is a screening scenario, not measured diversion or verified recovery.
 
 The Circular Core workflow includes a **Scenario screening** view where the operator selects a stream, reviews its locked recommendation, enters the three assumptions and sees the screened quantity, evidence needs, status and claim boundary in one panel.
 
+The same view can compare three editable assumption cases side by side. The comparison reports the submitted-case range and sensitivity only; it does not rank, recommend or forecast which case will occur.
+
 ### 6. Agentic research and insight workflows
 
 The AI-supported layer includes:
