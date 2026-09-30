@@ -712,11 +712,11 @@ function DraftRowInspector({ row, rowWarnings }) {
             <strong>{entry.target_field}</strong>
             {': '}
             {entry.source_column
-              ? `${entry.source_column} = ${entry.source_value || '(blank)'}`
+              ? `${entry.source_column} = ${entry.source_value || '(blank)'}${entry.source_unit ? ` ${entry.source_unit}` : ''}`
               : 'generated/defaulted value'}
             {' → '}
             {entry.transformed_value}
-            {entry.source_unit ? ` ${entry.source_unit}` : ''}
+            {entry.target_field === 'monthly_quantity_kg' ? ' kg' : ''}
             {` (${entry.transformation})`}
           </p>
         ))}
