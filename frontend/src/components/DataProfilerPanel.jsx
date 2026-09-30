@@ -343,7 +343,7 @@ function getDraftImportStage(report) {
       tone: 'strong',
       title: 'Preview ready for operator review',
       detail: 'Draft rows were generated without blocking errors. Review the row details before approving the controlled import.',
-      action: 'Next safe action: review rows, then continue to a controlled import-design milestone.',
+      action: 'Next safe action: review the generated rows, then approve the controlled import when they are ready.',
     };
   }
 
