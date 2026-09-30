@@ -166,7 +166,7 @@ def test_flexible_import_blocks_unsupported_quantity_unit_instead_of_assuming_kg
     assert report["import_status"] == "blocked"
     assert report["draft_rows"] == []
     assert any(error["code"] == "unsupported_quantity_unit" for error in report["blocking_errors"])
-    assert "will not" not in report["blocking_errors"][0]["message"].lower() or report["blocking_errors"][0]["message"]
+    assert "convert or confirm" in report["blocking_errors"][0]["message"].lower()
 
 
 def test_flexible_import_blocks_blank_quantity_unit():
