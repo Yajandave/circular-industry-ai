@@ -5892,3 +5892,14 @@ button.donut-legend-row {
     grid-template-columns: 1fr;
   }
 }
+
+.scenario-stale-result-note {
+  margin-bottom: 14px;
+  padding: 11px 13px;
+  border-radius: 12px;
+  background: #fff4dc;
+  border: 1px solid #ecd49b;
+  color: #704b08;
+  font-weight: 700;
+  line-height: 1.4;
+}
