@@ -270,6 +270,8 @@ The Circular Core workflow includes a **Scenario screening** view where the oper
 
 The same view can compare three editable assumption cases side by side. The comparison reports the submitted-case range and sensitivity only; it does not rank, recommend or forecast which case will occur.
 
+Operators can also save named scenario revisions and revisit them later. Saved revisions are immutable snapshots with lifecycle stages such as screening, pilot planned, pilot observed and measured-unverified. Lifecycle progress does not make a scenario claim-ready or verify impact.
+
 ### 6. Agentic research and insight workflows
 
 The AI-supported layer includes:
