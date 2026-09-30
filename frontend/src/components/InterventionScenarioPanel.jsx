@@ -93,8 +93,12 @@ export default function InterventionScenarioPanel({
   useEffect(() => {
     if (selectedId) {
       onLoadScenarioHistory(selectedId);
+      setScenarioName('');
+      setLifecycleStage('screening');
+      setSaveError('');
     }
-  }, [selectedId, onLoadScenarioHistory]);
+    // The App callback is intentionally omitted because it is recreated on render.
+  }, [selectedId]);
 
   const streamLookup = useMemo(
     () => Object.fromEntries(streams.map((stream) => [stream.stream_id, stream])),
@@ -109,6 +113,7 @@ export default function InterventionScenarioPanel({
   const selectedStream = selectedRecommendation ? streamLookup[selectedRecommendation.stream_id] : null;
   const resultMatchesSelection = scenarioResult?.stream_id === selectedId;
   const comparisonMatchesSelection = comparisonResult?.stream_id === selectedId;
+  const historyMatchesSelection = scenarioHistory?.stream_id === selectedId;
 
   function updateAssumption(key, value) {
     setAssumptions((current) => ({ ...current, [key]: value }));
@@ -473,7 +478,7 @@ export default function InterventionScenarioPanel({
               instead of overwriting the previous one.
             </p>
           </div>
-          <span>{scenarioHistory?.total_saved_revisions || 0} saved revisions</span>
+          <span>{historyMatchesSelection ? scenarioHistory.total_saved_revisions : 0} saved revisions</span>
         </div>
 
         <div className="scenario-save-controls">
@@ -519,7 +524,7 @@ export default function InterventionScenarioPanel({
           Lifecycle stage records workflow progress only. Even “measured, unverified” remains non-claim-ready until a later evidence-verification step.
         </div>
 
-        {!scenarioHistory?.records?.length ? (
+        {!historyMatchesSelection || !scenarioHistory?.records?.length ? (
           <div className="scenario-history-empty">
             No saved scenario revisions for this stream yet.
           </div>
