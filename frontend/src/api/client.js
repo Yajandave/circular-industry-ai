@@ -26,6 +26,11 @@ export const api = {
   runRecommendations: () => request('/api/recommendations/run', { method: 'POST' }),
   listRecommendations: () => request('/api/recommendations?limit=500'),
   recommendationSummary: () => request('/api/recommendations/summary'),
+  screenInterventionScenario: (streamId, payload) => request(`/api/scenarios/${encodeURIComponent(streamId)}/screen`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  }),
   reviewPack: (streamId) => request(`/api/agent/review-pack/${encodeURIComponent(streamId)}`),
   managementSummary: () => request('/api/agent/management-summary'),
   actionPlan: (limit = 12) => request(`/api/agent/action-plan?limit=${limit}`),
