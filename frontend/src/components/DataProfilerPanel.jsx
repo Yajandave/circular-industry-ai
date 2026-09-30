@@ -933,6 +933,11 @@ function UserConfirmedMappingPanel({ report, mappingDraft, setMappingDraft, sour
   const [commitImportBusy, setCommitImportBusy] = useState(false);
   const [operatorApproval, setOperatorApproval] = useState(false);
   const [approvalNote, setApprovalNote] = useState('');
+  const [recommendationGateConfirmed, setRecommendationGateConfirmed] = useState(false);
+  const [recommendationRunBusy, setRecommendationRunBusy] = useState(false);
+  const [recommendationRunError, setRecommendationRunError] = useState('');
+  const [recommendationRunResult, setRecommendationRunResult] = useState(null);
+  const [recommendationSummary, setRecommendationSummary] = useState(null);
 
   if (!report) return null;
 
@@ -944,22 +949,20 @@ function UserConfirmedMappingPanel({ report, mappingDraft, setMappingDraft, sour
   function clearValidationState() {
     setValidationReport(null);
     setMappingError('');
+
     setDraftImportReport(null);
+    setDraftImportError('');
+    setDraftImportBusy(false);
+
     setCommitImportResult(null);
     setCommitImportError('');
     setCommitImportBusy(false);
+
     setOperatorApproval(false);
     setApprovalNote('');
+
     setRecommendationGateConfirmed(false);
-    setRecommendationRunError('');
-    setRecommendationRunResult(null);
-    setRecommendationSummary(null);
-    setDraftImportError('');
-    setCommitImportResult(null);
-    setCommitImportError('');
-    setOperatorApproval(false);
-    setApprovalNote('');
-    setRecommendationGateConfirmed(false);
+    setRecommendationRunBusy(false);
     setRecommendationRunError('');
     setRecommendationRunResult(null);
     setRecommendationSummary(null);
