@@ -149,6 +149,14 @@ export default function InterventionScenarioPanel({
       return;
     }
 
+    if (
+      ['pilot_observed', 'measured_unverified'].includes(lifecycleStage) &&
+      !assumptions.operator_note.trim()
+    ) {
+      setSaveError('Observed or measured-unverified revisions need an operator note describing the evidence basis.');
+      return;
+    }
+
     const numericFields = [
       'addressable_fraction_pct',
       'technical_capture_rate_pct',
@@ -514,7 +522,7 @@ export default function InterventionScenarioPanel({
           </label>
 
           <button type="button" onClick={saveCurrentScenario} disabled={busy || !selectedId}>
-            {busy ? 'Saving revision…' : 'Save current scenario'}
+            {busy ? 'Saving revision…' : 'Save current assumptions'}
           </button>
         </div>
 
