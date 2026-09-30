@@ -49,6 +49,7 @@ export default function App() {
   const [supplierEmailDraft, setSupplierEmailDraft] = useState(null);
   const [circularActionReport, setCircularActionReport] = useState(null);
   const [scenarioResult, setScenarioResult] = useState(null);
+  const [scenarioComparisonResult, setScenarioComparisonResult] = useState(null);
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
   const [activeView, setActiveView] = useState('dashboard');
   const [activeDomain, setActiveDomain] = useState('circular-core');
@@ -156,6 +157,7 @@ export default function App() {
     setSupplierEmailDraft(null);
     setCircularActionReport(null);
     setScenarioResult(null);
+    setScenarioComparisonResult(null);
     setReviewPack(null);
     setAiReasoning(null);
     setSiteCopilotSummary(null);
@@ -172,6 +174,7 @@ export default function App() {
       setSupplierEmailDraft(null);
       setCircularActionReport(null);
       setScenarioResult(null);
+      setScenarioComparisonResult(null);
       setAiReasoning(null);
       setSiteCopilotSummary(null);
       setAgenticWorkflow(null);
@@ -190,6 +193,15 @@ export default function App() {
     return safeRun(`Scenario screened for ${streamId}.`, async () => {
       const result = await api.screenInterventionScenario(streamId, payload);
       setScenarioResult(result);
+      setActiveView('scenario');
+      return result;
+    });
+  }
+
+  async function compareInterventionScenarios(streamId, payload) {
+    return safeRun(`Scenario cases compared for ${streamId}.`, async () => {
+      const result = await api.compareInterventionScenarios(streamId, payload);
+      setScenarioComparisonResult(result);
       setActiveView('scenario');
       return result;
     });
@@ -353,6 +365,7 @@ export default function App() {
     supplierEmailDraft,
     circularActionReport,
     scenarioResult,
+    scenarioComparisonResult,
     filters,
     activeView,
     dashboardData,
@@ -369,6 +382,7 @@ export default function App() {
     onSelectReviewPack: openReviewPack,
     onGenerateCircularActionReport: generateCircularActionReport,
     onRunInterventionScenario: runInterventionScenario,
+    onCompareInterventionScenarios: compareInterventionScenarios,
     onDraftSupplierEmail: draftSupplierEmail,
     onExplainEvidenceGap: explainEvidenceGap,
     onRefreshSiteCopilot: refreshSiteCopilot,

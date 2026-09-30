@@ -2,7 +2,7 @@ from types import SimpleNamespace
 
 from fastapi.testclient import TestClient
 
-from app.intervention_scenario import build_intervention_scenario
+from app.intervention_scenario import build_intervention_scenario, build_intervention_scenario_comparison
 from app.main import app
 
 client = TestClient(app)
@@ -141,3 +141,121 @@ def test_scenario_endpoint_rejects_percentage_above_100():
     )
 
     assert response.status_code == 422
+
+
+
+def test_intervention_scenario_comparison_reports_range_without_selecting_case():
+    comparison = build_intervention_scenario_comparison(
+        _stream(),
+        _recommendation(),
+        cases=[
+            {
+                "case_name": "Conservative",
+                "addressable_fraction_pct": 50,
+                "technical_capture_rate_pct": 60,
+                "route_acceptance_rate_pct": 70,
+                "operator_note": None,
+            },
+            {
+                "case_name": "Working",
+                "addressable_fraction_pct": 80,
+                "technical_capture_rate_pct": 85,
+                "route_acceptance_rate_pct": 90,
+                "operator_note": None,
+            },
+            {
+                "case_name": "Upper-screen",
+                "addressable_fraction_pct": 95,
+                "technical_capture_rate_pct": 95,
+                "route_acceptance_rate_pct": 95,
+                "operator_note": None,
+            },
+        ],
+    )
+
+    quantities = {
+        item["case_name"]: item["scenario"]["scenario_screened_recoverable_quantity_kg"]
+        for item in comparison["cases"]
+    }
+    assert quantities["Conservative"] == 4200.0
+    assert quantities["Working"] == 12240.0
+    assert quantities["Upper-screen"] == 17147.5
+    assert comparison["minimum_screened_recoverable_quantity_kg"] == 4200.0
+    assert comparison["maximum_screened_recoverable_quantity_kg"] == 17147.5
+    assert comparison["screened_quantity_range_kg"] == 12947.5
+    assert comparison["claim_status"] == "screening_comparison_only_not_claim_ready"
+    assert "No case is selected or endorsed" in comparison["governance_note"]
+
+
+def test_scenario_comparison_endpoint_records_one_audited_comparison():
+    client.post("/api/streams/load-sample")
+    client.post("/api/recommendations/run")
+
+    response = client.post(
+        "/api/scenarios/S001/compare",
+        json={
+            "cases": [
+                {
+                    "case_name": "Conservative",
+                    "addressable_fraction_pct": 50,
+                    "technical_capture_rate_pct": 60,
+                    "route_acceptance_rate_pct": 70,
+                },
+                {
+                    "case_name": "Working",
+                    "addressable_fraction_pct": 80,
+                    "technical_capture_rate_pct": 85,
+                    "route_acceptance_rate_pct": 90,
+                },
+                {
+                    "case_name": "Upper-screen",
+                    "addressable_fraction_pct": 95,
+                    "technical_capture_rate_pct": 95,
+                    "route_acceptance_rate_pct": 95,
+                },
+            ]
+        },
+    )
+
+    assert response.status_code == 200
+    comparison = response.json()
+    assert comparison["stream_id"] == "S001"
+    assert len(comparison["cases"]) == 3
+    assert comparison["minimum_screened_recoverable_quantity_kg"] <= comparison["maximum_screened_recoverable_quantity_kg"]
+
+    audit_response = client.get(
+        "/api/audit/events?event_type=intervention_scenarios_compared&limit=20"
+    )
+    assert audit_response.status_code == 200
+    event = next(item for item in audit_response.json() if item["entity_id"] == "S001")
+    assert event["metadata_json"]["case_count"] == 3
+    assert event["metadata_json"]["case_names"] == ["Conservative", "Working", "Upper-screen"]
+    assert event["metadata_json"]["claim_status"] == "screening_comparison_only_not_claim_ready"
+
+
+def test_scenario_comparison_endpoint_rejects_duplicate_case_names():
+    client.post("/api/streams/load-sample")
+    client.post("/api/recommendations/run")
+
+    response = client.post(
+        "/api/scenarios/S001/compare",
+        json={
+            "cases": [
+                {
+                    "case_name": "Working",
+                    "addressable_fraction_pct": 70,
+                    "technical_capture_rate_pct": 80,
+                    "route_acceptance_rate_pct": 90,
+                },
+                {
+                    "case_name": "working",
+                    "addressable_fraction_pct": 80,
+                    "technical_capture_rate_pct": 85,
+                    "route_acceptance_rate_pct": 90,
+                },
+            ]
+        },
+    )
+
+    assert response.status_code == 400
+    assert "case names must be unique" in response.json()["detail"].lower()

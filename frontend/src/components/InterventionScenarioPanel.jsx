@@ -10,6 +10,30 @@ const DEFAULT_ASSUMPTIONS = {
   operator_note: '',
 };
 
+const DEFAULT_COMPARISON_CASES = [
+  {
+    case_name: 'Conservative',
+    addressable_fraction_pct: '50',
+    technical_capture_rate_pct: '60',
+    route_acceptance_rate_pct: '70',
+    operator_note: '',
+  },
+  {
+    case_name: 'Working',
+    addressable_fraction_pct: '80',
+    technical_capture_rate_pct: '85',
+    route_acceptance_rate_pct: '90',
+    operator_note: '',
+  },
+  {
+    case_name: 'Upper-screen',
+    addressable_fraction_pct: '95',
+    technical_capture_rate_pct: '95',
+    route_acceptance_rate_pct: '95',
+    operator_note: '',
+  },
+];
+
 function ScenarioMetric({ label, value, helper }) {
   return (
     <article className="scenario-metric">
@@ -43,12 +67,16 @@ export default function InterventionScenarioPanel({
   streams,
   recommendations,
   scenarioResult,
+  comparisonResult,
   onRunScenario,
+  onCompareScenarios,
   busy,
 }) {
   const [selectedId, setSelectedId] = useState('');
   const [assumptions, setAssumptions] = useState(DEFAULT_ASSUMPTIONS);
+  const [comparisonCases, setComparisonCases] = useState(DEFAULT_COMPARISON_CASES);
   const [localError, setLocalError] = useState('');
+  const [comparisonError, setComparisonError] = useState('');
 
   useEffect(() => {
     if (!selectedId && recommendations.length) {
@@ -68,10 +96,66 @@ export default function InterventionScenarioPanel({
 
   const selectedStream = selectedRecommendation ? streamLookup[selectedRecommendation.stream_id] : null;
   const resultMatchesSelection = scenarioResult?.stream_id === selectedId;
+  const comparisonMatchesSelection = comparisonResult?.stream_id === selectedId;
 
   function updateAssumption(key, value) {
     setAssumptions((current) => ({ ...current, [key]: value }));
     setLocalError('');
+  }
+
+  function updateComparisonCase(index, key, value) {
+    setComparisonCases((current) => current.map((item, itemIndex) => (
+      itemIndex === index ? { ...item, [key]: value } : item
+    )));
+    setComparisonError('');
+  }
+
+  async function submitComparison() {
+    setComparisonError('');
+
+    if (!selectedId) {
+      setComparisonError('Select a stream before comparing scenario cases.');
+      return;
+    }
+
+    const names = comparisonCases.map((item) => item.case_name.trim());
+    if (names.some((name) => !name)) {
+      setComparisonError('Each comparison case needs a name.');
+      return;
+    }
+    if (new Set(names.map((name) => name.toLowerCase())).size !== names.length) {
+      setComparisonError('Comparison case names must be unique.');
+      return;
+    }
+
+    const numericFields = [
+      'addressable_fraction_pct',
+      'technical_capture_rate_pct',
+      'route_acceptance_rate_pct',
+    ];
+
+    const cases = [];
+    for (const item of comparisonCases) {
+      const prepared = {
+        case_name: item.case_name.trim(),
+        operator_note: item.operator_note.trim() || null,
+      };
+      for (const field of numericFields) {
+        const value = Number(item[field]);
+        if (!Number.isFinite(value) || value < 0 || value > 100) {
+          setComparisonError('Every comparison percentage must be a number between 0 and 100.');
+          return;
+        }
+        prepared[field] = value;
+      }
+      cases.push(prepared);
+    }
+
+    try {
+      await onCompareScenarios(selectedId, { cases });
+    } catch {
+      // App-level status reporting already surfaces the API error.
+    }
   }
 
   async function submitScenario(event) {
@@ -318,6 +402,134 @@ export default function InterventionScenarioPanel({
           )}
         </aside>
       </div>
+
+      <section className="scenario-comparison-section">
+        <div className="section-heading compact-heading">
+          <div>
+            <h3>Compare assumption cases</h3>
+            <p>
+              Compare three editable screening cases for the same stream and locked route. The starting values are illustrative only;
+              replace them with evidence-backed assumptions before relying on the comparison.
+            </p>
+          </div>
+          <span>3 explicit cases</span>
+        </div>
+
+        <div className="scenario-comparison-inputs">
+          {comparisonCases.map((item, index) => (
+            <article className="scenario-case-builder" key={item.case_name || index}>
+              <label>
+                <span>Case name</span>
+                <input
+                  type="text"
+                  value={item.case_name}
+                  onChange={(event) => updateComparisonCase(index, 'case_name', event.target.value)}
+                  disabled={busy}
+                />
+              </label>
+              <div className="scenario-case-number-grid">
+                <label>
+                  <span>Addressable %</span>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={item.addressable_fraction_pct}
+                    onChange={(event) => updateComparisonCase(index, 'addressable_fraction_pct', event.target.value)}
+                    disabled={busy}
+                  />
+                </label>
+                <label>
+                  <span>Capture %</span>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={item.technical_capture_rate_pct}
+                    onChange={(event) => updateComparisonCase(index, 'technical_capture_rate_pct', event.target.value)}
+                    disabled={busy}
+                  />
+                </label>
+                <label>
+                  <span>Acceptance %</span>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={item.route_acceptance_rate_pct}
+                    onChange={(event) => updateComparisonCase(index, 'route_acceptance_rate_pct', event.target.value)}
+                    disabled={busy}
+                  />
+                </label>
+              </div>
+              <label>
+                <span>Case note (optional)</span>
+                <textarea
+                  rows="2"
+                  value={item.operator_note}
+                  onChange={(event) => updateComparisonCase(index, 'operator_note', event.target.value)}
+                  placeholder="Evidence or rationale for this case"
+                  disabled={busy}
+                />
+              </label>
+            </article>
+          ))}
+        </div>
+
+        {comparisonError && <p className="error">{comparisonError}</p>}
+        <button type="button" onClick={submitComparison} disabled={busy || !selectedId}>
+          {busy ? 'Comparing cases…' : 'Compare cases'}
+        </button>
+
+        {comparisonResult && !comparisonMatchesSelection && (
+          <div className="scenario-stale-result-note">
+            Last comparison shown is for {comparisonResult.stream_id}. Compare cases for {selectedId} to replace it.
+          </div>
+        )}
+
+        {comparisonResult && (
+          <div className="scenario-comparison-result">
+            <div className="scenario-comparison-summary">
+              <ScenarioMetric
+                label="Lower screened quantity"
+                value={formatKg(comparisonResult.minimum_screened_recoverable_quantity_kg)}
+                helper="Lowest result in the submitted assumption set"
+              />
+              <ScenarioMetric
+                label="Upper screened quantity"
+                value={formatKg(comparisonResult.maximum_screened_recoverable_quantity_kg)}
+                helper="Highest result in the submitted assumption set"
+              />
+              <ScenarioMetric
+                label="Range"
+                value={formatKg(comparisonResult.screened_quantity_range_kg)}
+                helper="Sensitivity across submitted cases"
+              />
+            </div>
+
+            <div className="scenario-comparison-cards">
+              {comparisonResult.cases.map((item) => (
+                <article className="scenario-comparison-card" key={item.case_name}>
+                  <span className="record-id">{item.case_name}</span>
+                  <strong>{formatKg(item.scenario.scenario_screened_recoverable_quantity_kg)}</strong>
+                  <small>{item.scenario.scenario_screened_fraction_pct}% of baseline annual quantity</small>
+                  <dl>
+                    <div><dt>Addressable</dt><dd>{item.scenario.addressable_fraction_pct}%</dd></div>
+                    <div><dt>Capture</dt><dd>{item.scenario.technical_capture_rate_pct}%</dd></div>
+                    <div><dt>Acceptance</dt><dd>{item.scenario.route_acceptance_rate_pct}%</dd></div>
+                    <div><dt>Status</dt><dd>{humanise(item.scenario.scenario_status)}</dd></div>
+                  </dl>
+                </article>
+              ))}
+            </div>
+
+            <div className="governance-strip">
+              <strong>{humanise(comparisonResult.claim_status)}</strong>
+              <p>{comparisonResult.governance_note}</p>
+            </div>
+          </div>
+        )}
+      </section>
     </section>
   );
 }
