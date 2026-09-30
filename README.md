@@ -272,6 +272,8 @@ The same view can compare three editable assumption cases side by side. The comp
 
 Operators can also save named scenario revisions and revisit them later. Saved revisions are immutable snapshots with lifecycle stages such as screening, pilot planned, pilot observed and measured-unverified. Lifecycle progress does not make a scenario claim-ready or verify impact.
 
+A saved scenario revision can now receive immutable **observed outcome evidence** records with an observation period, observed recovered quantity, evidence reference and bounded verification status. The system compares the observation with a simple time-scaled version of the saved annual screening scenario and reports variance, while explicitly keeping the result non-claim-ready and non-causal.
+
 ### 6. Agentic research and insight workflows
 
 The AI-supported layer includes:
