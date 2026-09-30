@@ -64,7 +64,7 @@ function ColumnMappingTable({ columns }) {
     <div className="profiler-column-panel">
       <div className="profiler-column-header">
         <strong>Detected column roles</strong>
-        <small>Review detected roles below, then confirm mappings in the checkpoint panel before future import.</small>
+        <small>Review detected roles below, then confirm mappings in the checkpoint panel before a controlled import.</small>
       </div>
       <div className="profiler-column-list">
         {columns.map((column) => (
@@ -296,7 +296,7 @@ function MappingBoundaryNotice() {
     <div className="mapping-boundary-notice">
       <strong>Boundary:</strong>
       <span>
-        Validating a mapping only confirms that selected source columns can be used for a future controlled import. It does
+        Validating a mapping only confirms that selected source columns are structurally ready for the controlled import workflow. It does
         not verify the uploaded data, supplier compliance, diversion, savings, carbon reduction or environmental benefit.
       </span>
     </div>
@@ -342,8 +342,8 @@ function getDraftImportStage(report) {
     return {
       tone: 'strong',
       title: 'Preview ready for operator review',
-      detail: 'Draft rows were generated without blocking errors. Review the row details before designing any future import step.',
-      action: 'Next safe action: review rows, then continue to a controlled import-design milestone.',
+      detail: 'Draft rows were generated without blocking errors. Review the row details before approving the controlled import.',
+      action: 'Next safe action: review the generated rows, then approve the controlled import when they are ready.',
     };
   }
 
@@ -351,7 +351,7 @@ function getDraftImportStage(report) {
     return {
       tone: 'medium',
       title: 'Preview generated with warnings',
-      detail: 'Draft rows were generated, but one or more rows need operator attention before any future import.',
+      detail: 'Draft rows were generated, but one or more rows need operator attention before controlled import.',
       action: 'Next safe action: inspect warnings and correct source data or mappings where needed.',
     };
   }
@@ -705,6 +705,24 @@ function DraftRowInspector({ row, rowWarnings }) {
       </div>
 
       <div className="draft-row-review-box">
+        <strong>Source provenance</strong>
+        {!row.source_provenance?.length && <p>No field-level provenance was returned for this draft row.</p>}
+        {row.source_provenance?.map((entry) => (
+          <p key={`${entry.target_field}-${entry.source_column || 'derived'}`}>
+            <strong>{entry.target_field}</strong>
+            {': '}
+            {entry.source_column
+              ? `${entry.source_column} = ${entry.source_value || '(blank)'}${entry.source_unit ? ` ${entry.source_unit}` : ''}`
+              : 'generated/defaulted value'}
+            {' → '}
+            {entry.transformed_value}
+            {entry.target_field === 'monthly_quantity_kg' ? ' kg' : ''}
+            {` (${entry.transformation})`}
+          </p>
+        ))}
+      </div>
+
+      <div className="draft-row-review-box">
         <strong>Row warnings</strong>
         {!rowWarnings.length && <p>No row-specific warnings for this selected draft row.</p>}
         {rowWarnings.map((warning) => (
@@ -880,7 +898,7 @@ function DraftImportPreviewReport({
 
       {!previewRows.length && (
         <p className="draft-import-empty">
-          No draft rows returned. If the report is blocked, review the blocking errors before attempting a future import.
+          No draft rows returned. If the report is blocked, review the blocking errors before attempting controlled import.
         </p>
       )}
 
@@ -933,6 +951,11 @@ function UserConfirmedMappingPanel({ report, mappingDraft, setMappingDraft, sour
   const [commitImportBusy, setCommitImportBusy] = useState(false);
   const [operatorApproval, setOperatorApproval] = useState(false);
   const [approvalNote, setApprovalNote] = useState('');
+  const [recommendationGateConfirmed, setRecommendationGateConfirmed] = useState(false);
+  const [recommendationRunBusy, setRecommendationRunBusy] = useState(false);
+  const [recommendationRunError, setRecommendationRunError] = useState('');
+  const [recommendationRunResult, setRecommendationRunResult] = useState(null);
+  const [recommendationSummary, setRecommendationSummary] = useState(null);
 
   if (!report) return null;
 
@@ -944,22 +967,20 @@ function UserConfirmedMappingPanel({ report, mappingDraft, setMappingDraft, sour
   function clearValidationState() {
     setValidationReport(null);
     setMappingError('');
+
     setDraftImportReport(null);
+    setDraftImportError('');
+    setDraftImportBusy(false);
+
     setCommitImportResult(null);
     setCommitImportError('');
     setCommitImportBusy(false);
+
     setOperatorApproval(false);
     setApprovalNote('');
+
     setRecommendationGateConfirmed(false);
-    setRecommendationRunError('');
-    setRecommendationRunResult(null);
-    setRecommendationSummary(null);
-    setDraftImportError('');
-    setCommitImportResult(null);
-    setCommitImportError('');
-    setOperatorApproval(false);
-    setApprovalNote('');
-    setRecommendationGateConfirmed(false);
+    setRecommendationRunBusy(false);
     setRecommendationRunError('');
     setRecommendationRunResult(null);
     setRecommendationSummary(null);
@@ -1308,7 +1329,7 @@ export default function DataProfilerPanel() {
             column roles, shows missing fields and recommends a valid workspace route without inventing data.
           </p>
           <p className="domain-parser-status">
-            The profiler routes data and the checkpoint validates mappings only. It does not yet import rows into Circular Core.
+            The profiler routes data and validates mappings first. After draft review and explicit operator approval, the controlled workflow can import rows into Circular Core.
           </p>
         </div>
         <div className="profiler-upload-actions">

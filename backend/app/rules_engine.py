@@ -58,17 +58,24 @@ def _contains_any(text: str, terms: list[str]) -> bool:
     return any(term in text for term in terms)
 
 
-def _annual_diversion(stream: StreamLike, action: str, human_review_required: bool) -> float:
-    if human_review_required and "human review" in action.lower():
-        return 0.0
+def _annual_material_quantity(stream: StreamLike) -> float:
+    """Annualise the recorded stream quantity for screening.
+
+    This is exposure/opportunity sizing only. It does not represent achieved
+    diversion and remains available even when the circular route is blocked
+    pending human review.
+    """
     if stream.monthly_quantity_kg <= 0:
         return 0.0
     return round(stream.monthly_quantity_kg * 12, 2)
 
 
-def _annual_cost_avoided(stream: StreamLike, action: str, human_review_required: bool) -> float:
-    if human_review_required and "human review" in action.lower():
-        return 0.0
+def _annual_disposal_cost_exposure(stream: StreamLike) -> float:
+    """Annualise the recorded disposal cost for screening.
+
+    This is the current cost exposure associated with the stream, not an
+    estimate of savings or avoided cost.
+    """
     if stream.disposal_cost_per_month <= 0:
         return 0.0
     return round(stream.disposal_cost_per_month * 12, 2)
@@ -235,11 +242,11 @@ def _base_decision(stream: StreamLike) -> tuple[str, str, str, str, str, int]:
 def recommend_for_stream(stream: StreamLike) -> RuleRecommendation:
     action, category, reasoning, next_action, rule_applied, rule_strength = _base_decision(stream)
     scores = score_stream(stream, rule_strength=rule_strength)
-    annual_diversion = _annual_diversion(stream, action, scores.human_review_required)
-    annual_cost = _annual_cost_avoided(stream, action, scores.human_review_required)
+    annual_material_quantity = _annual_material_quantity(stream)
+    annual_cost_exposure = _annual_disposal_cost_exposure(stream)
     supplier_action = _supplier_action(stream, action)
     symbiosis = _symbiosis_flag(_clean(stream.material), action, scores.risk_level)
-    priority = _priority(stream, scores.risk_level, scores.confidence_score, annual_cost)
+    priority = _priority(stream, scores.risk_level, scores.confidence_score, annual_cost_exposure)
 
     return RuleRecommendation(
         stream_id=stream.stream_id,
@@ -251,8 +258,12 @@ def recommend_for_stream(stream: StreamLike) -> RuleRecommendation:
         evidence_quality_score=scores.evidence_quality_score,
         missing_data="; ".join(scores.missing_data) if scores.missing_data else "none identified for MVP fields",
         human_review_required=scores.human_review_required,
-        estimated_annual_waste_diverted_kg=annual_diversion,
-        estimated_annual_disposal_cost_avoided=annual_cost,
+        # Legacy API/database field names are retained during Milestone 20A for
+        # backwards compatibility. The values now represent annual screened
+        # quantity and current annual disposal-cost exposure, not achieved
+        # diversion or verified savings.
+        estimated_annual_waste_diverted_kg=annual_material_quantity,
+        estimated_annual_disposal_cost_avoided=annual_cost_exposure,
         supplier_procurement_action=supplier_action,
         industrial_symbiosis_opportunity=symbiosis,
         next_action=next_action,

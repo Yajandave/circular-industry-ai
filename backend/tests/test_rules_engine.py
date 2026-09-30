@@ -38,7 +38,7 @@ def test_clean_metal_stream_gets_closed_loop_review():
     assert recommendation.estimated_annual_waste_diverted_kg == 12000.0
 
 
-def test_hazardous_high_contamination_stream_requires_human_review():
+def test_hazardous_high_contamination_stream_requires_human_review_and_retains_exposure():
     recommendation = recommend_for_stream(
         _make_stream(
             material="chemicals/solvents",
@@ -51,7 +51,10 @@ def test_hazardous_high_contamination_stream_requires_human_review():
     assert recommendation.human_review_required is True
     assert recommendation.risk_level == "blocked"
     assert recommendation.circular_strategy_category == "human review required"
-    assert recommendation.estimated_annual_waste_diverted_kg == 0.0
+    # Annual quantity/cost remain available for screening even when route
+    # selection is blocked. They are not achieved diversion or avoided cost.
+    assert recommendation.estimated_annual_waste_diverted_kg == 12000.0
+    assert recommendation.estimated_annual_disposal_cost_avoided == 2400.0
 
 
 def test_supplier_takeback_rule_is_prioritised_for_packaging():

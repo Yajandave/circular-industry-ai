@@ -974,6 +974,15 @@ class FlexibleCircularCoreImportRequest(BaseModel):
     source_rows: list[dict[str, object]]
 
 
+class FlexibleCircularCoreFieldProvenance(BaseModel):
+    target_field: str
+    source_column: str | None = None
+    source_value: str
+    source_unit: str | None = None
+    transformed_value: str
+    transformation: str
+
+
 class FlexibleCircularCoreDraftRow(BaseModel):
     source_row_number: int
     stream_id: str
@@ -990,6 +999,7 @@ class FlexibleCircularCoreDraftRow(BaseModel):
     supplier_takeback_available: str
     recycled_content_available: str
     notes: str
+    source_provenance: list[FlexibleCircularCoreFieldProvenance] = Field(default_factory=list)
     draft_status: str
     claim_boundary: str
 

@@ -206,8 +206,8 @@ Each stream can receive:
 - evidence quality score
 - missing data
 - human-review flag
-- estimated annual waste diversion
-- estimated annual disposal cost exposure
+- annual material quantity screened / opportunity exposure
+- annual disposal-cost exposure
 - supplier/procurement action
 - industrial symbiosis opportunity flag
 - next action
@@ -344,6 +344,7 @@ The project remains development-stage software. Its outputs are screening and wo
 - **Milestones 17A–17F: User-confirmed mapping** — validation contract and API; frontend API client; operator mapping panel; mapping UX hardening; role-option and copy alignment.
 - **Milestones 18A–18E: Controlled draft import preview** — flexible import contract and endpoint; frontend client; draft preview panel; row inspection, grouped warnings and review-control hardening.
 - **Milestones 19A–19D: Approved persistence and recommendation gate** — approval-controlled SQLite import; audit traceability; frontend save action; separate operator-triggered post-import recommendation run.
+- **Milestone 20A: Decision-integrity hardening (in progress)** — repaired post-import gate state; aligned controlled-import wording; reclassified annual quantity/cost values as screening exposure rather than achieved impact; blocked missing or unsupported quantity units; added field-level source provenance to draft rows and import audit metadata.
 
 **Current implemented milestone: 19D — Post-import Recommendation Run Gate.**
 

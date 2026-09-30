@@ -216,8 +216,8 @@ def evidence_audit(
 
     estimated_data.extend(
         [
-            "estimated_annual_waste_diverted_kg is calculated as monthly_quantity_kg multiplied by 12",
-            "estimated_annual_disposal_cost_avoided is calculated as disposal_cost_per_month multiplied by 12",
+            "legacy estimated_annual_waste_diverted_kg stores annual screened material quantity (monthly_quantity_kg multiplied by 12), not achieved diversion",
+            "legacy estimated_annual_disposal_cost_avoided stores current annual disposal-cost exposure (disposal_cost_per_month multiplied by 12), not verified savings",
         ]
     )
 
@@ -483,7 +483,7 @@ def build_management_summary(
             for rec in top_value
         ],
         "portfolio_note": (
-            "This summary is decision-support output. It should not be presented as verified operational savings or verified environmental impact until actions are completed and evidenced."
+            "This summary is decision-support output. Annual quantity and cost values are screening exposure, not achieved diversion or verified operational savings. Environmental or financial impact claims require completed actions and evidence."
         ),
     }
 
@@ -525,7 +525,7 @@ def build_action_plan(
         )
 
     return {
-        "ranking_method": "confidence + value/diversion potential - risk/review penalties",
+        "ranking_method": "confidence + screened cost/quantity exposure - risk/review penalties",
         "phases": dict(phases),
         "governance_note": "High-scoring items still require evidence confirmation before claims are made.",
     }
