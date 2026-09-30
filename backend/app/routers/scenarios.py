@@ -195,6 +195,14 @@ def save_intervention_scenario_revision(
             detail="Scenario name must contain non-whitespace characters.",
         )
 
+    if payload.lifecycle_stage in {"pilot_observed", "measured_unverified"} and not (
+        payload.operator_note and payload.operator_note.strip()
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Pilot-observed and measured-unverified revisions require an operator note describing the evidence basis.",
+        )
+
     scenario = build_intervention_scenario(
         stream,
         recommendation,
