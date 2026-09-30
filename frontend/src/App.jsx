@@ -51,6 +51,7 @@ export default function App() {
   const [scenarioResult, setScenarioResult] = useState(null);
   const [scenarioComparisonResult, setScenarioComparisonResult] = useState(null);
   const [scenarioHistory, setScenarioHistory] = useState(null);
+  const [observedOutcomeHistory, setObservedOutcomeHistory] = useState(null);
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
   const [activeView, setActiveView] = useState('dashboard');
   const [activeDomain, setActiveDomain] = useState('circular-core');
@@ -160,6 +161,7 @@ export default function App() {
     setScenarioResult(null);
     setScenarioComparisonResult(null);
     setScenarioHistory(null);
+    setObservedOutcomeHistory(null);
     setReviewPack(null);
     setAiReasoning(null);
     setSiteCopilotSummary(null);
@@ -178,6 +180,7 @@ export default function App() {
       setScenarioResult(null);
       setScenarioComparisonResult(null);
       setScenarioHistory(null);
+      setObservedOutcomeHistory(null);
       setAiReasoning(null);
       setSiteCopilotSummary(null);
       setAgenticWorkflow(null);
@@ -226,6 +229,28 @@ export default function App() {
       const saved = await api.saveInterventionScenario(streamId, payload);
       const history = await api.interventionScenarioHistory(streamId);
       setScenarioHistory(history);
+      setObservedOutcomeHistory(null);
+      setActiveView('scenario');
+      return saved;
+    });
+  }
+
+  async function loadObservedOutcomeHistory(savedScenarioId) {
+    try {
+      const result = await api.observedScenarioOutcomeHistory(savedScenarioId);
+      setObservedOutcomeHistory(result);
+      return result;
+    } catch {
+      setObservedOutcomeHistory(null);
+      return null;
+    }
+  }
+
+  async function recordObservedScenarioOutcome(savedScenarioId, payload) {
+    return safeRun('Observed outcome evidence recorded.', async () => {
+      const saved = await api.recordObservedScenarioOutcome(savedScenarioId, payload);
+      const history = await api.observedScenarioOutcomeHistory(savedScenarioId);
+      setObservedOutcomeHistory(history);
       setActiveView('scenario');
       return saved;
     });
@@ -391,6 +416,7 @@ export default function App() {
     scenarioResult,
     scenarioComparisonResult,
     scenarioHistory,
+    observedOutcomeHistory,
     filters,
     activeView,
     dashboardData,
@@ -410,6 +436,8 @@ export default function App() {
     onCompareInterventionScenarios: compareInterventionScenarios,
     onSaveInterventionScenario: saveInterventionScenario,
     onLoadInterventionScenarioHistory: loadInterventionScenarioHistory,
+    onRecordObservedScenarioOutcome: recordObservedScenarioOutcome,
+    onLoadObservedOutcomeHistory: loadObservedOutcomeHistory,
     onDraftSupplierEmail: draftSupplierEmail,
     onExplainEvidenceGap: explainEvidenceGap,
     onRefreshSiteCopilot: refreshSiteCopilot,
