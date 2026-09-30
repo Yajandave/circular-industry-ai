@@ -128,7 +128,7 @@ def _transform_row(row_number: int, source_row: dict, role_to_source: dict[str, 
     material = _required_text(row_number, value_for("material"), "material", warnings)
     current_route = _required_text(row_number, value_for("current_route"), "current_route", warnings)
     quantity_value = value_for("quantity")
-    quantity_unit = _clean_text(value_for("quantity_unit", "kg")) or "kg"
+    quantity_unit = _clean_text(value_for("quantity_unit"))
     monthly_quantity_kg = _quantity_to_kg(row_number, quantity_value, quantity_unit, warnings)
 
     disposal_cost_per_month = _optional_float(
