@@ -1,4 +1,5 @@
 from types import SimpleNamespace
+from uuid import uuid4
 
 from fastapi.testclient import TestClient
 
@@ -265,11 +266,12 @@ def test_scenario_comparison_endpoint_rejects_duplicate_case_names():
 def test_saved_scenario_history_creates_immutable_revisions():
     client.post("/api/streams/load-sample")
     client.post("/api/recommendations/run")
+    scenario_name = f"Supplier take-back pilot {uuid4().hex[:10]}"
 
     first = client.post(
         "/api/scenarios/S001/save",
         json={
-            "scenario_name": "Supplier take-back pilot",
+            "scenario_name": scenario_name,
             "lifecycle_stage": "screening",
             "addressable_fraction_pct": 70,
             "technical_capture_rate_pct": 75,
@@ -286,7 +288,7 @@ def test_saved_scenario_history_creates_immutable_revisions():
     second = client.post(
         "/api/scenarios/S001/save",
         json={
-            "scenario_name": "Supplier take-back pilot",
+            "scenario_name": scenario_name,
             "lifecycle_stage": "pilot_planned",
             "addressable_fraction_pct": 75,
             "technical_capture_rate_pct": 80,
@@ -309,7 +311,7 @@ def test_saved_scenario_history_creates_immutable_revisions():
     matching = [
         record
         for record in history["records"]
-        if record["scenario_name"] == "Supplier take-back pilot"
+        if record["scenario_name"] == scenario_name
     ]
     assert len(matching) >= 2
     assert matching[0]["revision_number"] == 2
@@ -357,3 +359,23 @@ def test_saved_scenario_rejects_unsupported_lifecycle_stage():
     )
 
     assert response.status_code == 422
+
+
+
+def test_saved_scenario_rejects_blank_name():
+    client.post("/api/streams/load-sample")
+    client.post("/api/recommendations/run")
+
+    response = client.post(
+        "/api/scenarios/S001/save",
+        json={
+            "scenario_name": "   ",
+            "lifecycle_stage": "screening",
+            "addressable_fraction_pct": 70,
+            "technical_capture_rate_pct": 80,
+            "route_acceptance_rate_pct": 90,
+        },
+    )
+
+    assert response.status_code == 400
+    assert "non-whitespace" in response.json()["detail"]
