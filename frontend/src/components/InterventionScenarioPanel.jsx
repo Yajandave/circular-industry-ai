@@ -67,6 +67,7 @@ export default function InterventionScenarioPanel({
   );
 
   const selectedStream = selectedRecommendation ? streamLookup[selectedRecommendation.stream_id] : null;
+  const resultMatchesSelection = scenarioResult?.stream_id === selectedId;
 
   function updateAssumption(key, value) {
     setAssumptions((current) => ({ ...current, [key]: value }));
@@ -99,7 +100,11 @@ export default function InterventionScenarioPanel({
       return;
     }
 
-    await onRunScenario(selectedId, payload);
+    try {
+      await onRunScenario(selectedId, payload);
+    } catch {
+      // App-level status reporting already surfaces the API error.
+    }
   }
 
   return (
@@ -214,6 +219,11 @@ export default function InterventionScenarioPanel({
         </form>
 
         <aside className="scenario-result">
+          {scenarioResult && !resultMatchesSelection && (
+            <div className="scenario-stale-result-note">
+              Last result shown is for {scenarioResult.stream_id}. Run the scenario for {selectedId} to replace it.
+            </div>
+          )}
           {!scenarioResult ? (
             <div className="scenario-empty">
               <span className="eyebrow dark-eyebrow">No scenario run yet</span>
