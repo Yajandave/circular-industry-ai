@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from app import crud, schemas
 from app.database import get_db
-from app.intervention_scenario import build_intervention_scenario
+from app.intervention_scenario import build_intervention_scenario, build_intervention_scenario_comparison
 
 router = APIRouter(prefix="/api/scenarios", tags=["intervention scenarios"])
 
@@ -78,3 +78,86 @@ def screen_intervention_scenario(
     )
 
     return schemas.InterventionScenarioResult(**scenario)
+
+
+
+@router.post("/{stream_id}/compare", response_model=schemas.InterventionScenarioComparisonResult)
+def compare_intervention_scenarios(
+    stream_id: str,
+    payload: schemas.InterventionScenarioComparisonRequest,
+    db: Session = Depends(get_db),
+) -> schemas.InterventionScenarioComparisonResult:
+    """Compare multiple explicit screening cases for one locked recommendation."""
+
+    stream = crud.get_stream_by_stream_id(db, stream_id=stream_id)
+    if stream is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Industrial stream not found: {stream_id}",
+        )
+
+    recommendation = crud.get_recommendation_by_stream_id(db, stream_id=stream_id)
+    if recommendation is None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=(
+                f"No locked recommendation found for stream {stream_id}. "
+                "Run POST /api/recommendations/run before comparing intervention scenarios."
+            ),
+        )
+
+    names = [case.case_name.strip() for case in payload.cases]
+    if len(set(name.lower() for name in names)) != len(names):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Scenario comparison case names must be unique.",
+        )
+
+    comparison = build_intervention_scenario_comparison(
+        stream,
+        recommendation,
+        cases=[case.model_dump() for case in payload.cases],
+    )
+
+    crud.create_audit_event(
+        db,
+        event_type="intervention_scenarios_compared",
+        entity_type="industrial_stream",
+        entity_id=stream_id,
+        actor_type="operator",
+        actor_id="local_user",
+        source="intervention_scenario_router",
+        action="compare_intervention_scenarios",
+        summary=(
+            f"Compared {len(payload.cases)} intervention screening cases for {stream_id} "
+            "using explicit operator assumptions."
+        ),
+        decision_source="operator_assumption_scenario_comparison",
+        claim_boundary=(
+            "Scenario comparison outputs are screening estimates only and do not select a preferred case, "
+            "verify diversion, recovery, savings or environmental impact."
+        ),
+        metadata={
+            "candidate_route": comparison["candidate_route"],
+            "case_names": names,
+            "case_count": len(payload.cases),
+            "baseline_annual_quantity_kg": comparison["baseline_annual_quantity_kg"],
+            "minimum_screened_recoverable_quantity_kg": comparison["minimum_screened_recoverable_quantity_kg"],
+            "maximum_screened_recoverable_quantity_kg": comparison["maximum_screened_recoverable_quantity_kg"],
+            "screened_quantity_range_kg": comparison["screened_quantity_range_kg"],
+            "claim_status": comparison["claim_status"],
+            "cases": [
+                {
+                    "case_name": item["case_name"],
+                    "addressable_fraction_pct": item["scenario"]["addressable_fraction_pct"],
+                    "technical_capture_rate_pct": item["scenario"]["technical_capture_rate_pct"],
+                    "route_acceptance_rate_pct": item["scenario"]["route_acceptance_rate_pct"],
+                    "scenario_screened_recoverable_quantity_kg": item["scenario"]["scenario_screened_recoverable_quantity_kg"],
+                    "scenario_status": item["scenario"]["scenario_status"],
+                }
+                for item in comparison["cases"]
+            ],
+        },
+    )
+
+    return schemas.InterventionScenarioComparisonResult(**comparison)
