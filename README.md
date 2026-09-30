@@ -243,7 +243,30 @@ The supplier-loop workflow turns circular recommendations into procurement-facin
 - pilot scopes
 - fallback positions
 
-### 5. Agentic research and insight workflows
+### 5. Intervention scenario screening
+
+A deterministic scenario engine separates baseline stream exposure from assumed intervention performance. Operators can screen a candidate route using explicit assumptions for:
+
+- addressable fraction of the annual stream
+- technical capture rate
+- route or supplier acceptance rate
+- scenario-screened recoverable quantity
+- evidence requirements and review status
+- claim boundaries
+
+For example:
+
+```text
+20,000 kg annual stream
+× 80% addressable
+× 85% technically capturable
+× 90% route acceptance
+= 12,240 kg scenario-screened recoverable quantity
+```
+
+The result is a screening scenario, not measured diversion or verified recovery. Baseline disposal cost is shown as current exposure only and is not converted into claimed savings.
+
+### 6. Agentic research and insight workflows
 
 The AI-supported layer includes:
 
@@ -255,7 +278,7 @@ The AI-supported layer includes:
 
 These features support investigation and drafting. They do not replace the locked rules engine or professional judgement.
 
-### 6. Visual analytics and operator drilldown
+### 7. Visual analytics and operator drilldown
 
 The dashboard includes decision-useful visuals for:
 
@@ -325,7 +348,7 @@ Core fields include:
 
 ## Development status
 
-The repository currently implements the controlled local workflow through **Milestone 19D**.
+The repository currently implements the controlled local workflow through **Milestone 20A**, with **Milestone 20B intervention scenario screening now in development**.
 
 The project remains development-stage software. Its outputs are screening and workflow records rather than externally verified environmental performance, legal conclusions or professional assurance opinions.
 
