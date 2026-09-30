@@ -192,3 +192,49 @@ class GeneratedInsight(Base):
         default=lambda: datetime.now(timezone.utc),
         nullable=False,
     )
+
+
+
+# Milestone 20B.4: saved intervention scenario history
+
+class SavedInterventionScenario(Base):
+    """Immutable saved snapshot of one intervention screening scenario revision."""
+
+    __tablename__ = "saved_intervention_scenarios"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    stream_id: Mapped[str] = mapped_column(String(30), index=True, nullable=False)
+    scenario_name: Mapped[str] = mapped_column(String(120), index=True, nullable=False)
+    revision_number: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    lifecycle_stage: Mapped[str] = mapped_column(String(60), index=True, nullable=False, default="screening")
+
+    stream_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    material: Mapped[str] = mapped_column(String(80), index=True, nullable=False)
+    candidate_route: Mapped[str] = mapped_column(String(255), nullable=False)
+
+    baseline_annual_quantity_kg: Mapped[float] = mapped_column(Float, nullable=False)
+    baseline_annual_disposal_cost_exposure: Mapped[float] = mapped_column(Float, nullable=False)
+    addressable_fraction_pct: Mapped[float] = mapped_column(Float, nullable=False)
+    technical_capture_rate_pct: Mapped[float] = mapped_column(Float, nullable=False)
+    route_acceptance_rate_pct: Mapped[float] = mapped_column(Float, nullable=False)
+    scenario_screened_fraction_pct: Mapped[float] = mapped_column(Float, nullable=False)
+    scenario_screened_recoverable_quantity_kg: Mapped[float] = mapped_column(Float, nullable=False)
+
+    recommendation_confidence_score: Mapped[int] = mapped_column(Integer, nullable=False)
+    evidence_quality_score: Mapped[int] = mapped_column(Integer, nullable=False)
+    risk_level: Mapped[str] = mapped_column(String(40), index=True, nullable=False)
+    human_review_required: Mapped[bool] = mapped_column(nullable=False)
+    scenario_status: Mapped[str] = mapped_column(String(80), index=True, nullable=False)
+    claim_status: Mapped[str] = mapped_column(String(100), index=True, nullable=False)
+
+    operator_note: Mapped[str | None] = mapped_column(Text, nullable=True)
+    assumptions_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+    evidence_needed_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+    formula: Mapped[str] = mapped_column(Text, nullable=False)
+    governance_note: Mapped[str] = mapped_column(Text, nullable=False)
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
