@@ -266,6 +266,8 @@ For example:
 
 The result is a screening scenario, not measured diversion or verified recovery. Baseline disposal cost is shown as current exposure only and is not converted into claimed savings.
 
+The Circular Core workflow includes a **Scenario screening** view where the operator selects a stream, reviews its locked recommendation, enters the three assumptions and sees the screened quantity, evidence needs, status and claim boundary in one panel.
+
 ### 6. Agentic research and insight workflows
 
 The AI-supported layer includes:
