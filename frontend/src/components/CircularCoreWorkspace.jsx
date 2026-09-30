@@ -9,6 +9,7 @@ import Dashboard from './Dashboard.jsx';
 import EvidenceRegister from './EvidenceRegister.jsx';
 import FiltersPanel from './FiltersPanel.jsx';
 import MaterialPlaybooks from './MaterialPlaybooks.jsx';
+import InterventionScenarioPanel from './InterventionScenarioPanel.jsx';
 import PortfolioSnapshot from './PortfolioSnapshot.jsx';
 import RecommendationsTable from './RecommendationsTable.jsx';
 import ReviewPackPanel from './ReviewPackPanel.jsx';
@@ -48,6 +49,7 @@ export default function CircularCoreWorkspace({
   supplierLoopSummary,
   supplierEmailDraft,
   circularActionReport,
+  scenarioResult,
   filters,
   activeView,
   dashboardData,
@@ -63,6 +65,7 @@ export default function CircularCoreWorkspace({
   onFiltersChange,
   onSelectReviewPack,
   onGenerateCircularActionReport,
+  onRunInterventionScenario,
   onDraftSupplierEmail,
   onExplainEvidenceGap,
   onRefreshSiteCopilot,
@@ -128,6 +131,18 @@ export default function CircularCoreWorkspace({
             totalCount={recommendations.length}
           />
           <RecommendationsTable recommendations={filteredRecommendations} onSelectReviewPack={onSelectReviewPack} />
+        </section>
+      )}
+
+      {activeView === 'scenario' && (
+        <section className="workflow-panel scenario-view">
+          <InterventionScenarioPanel
+            streams={streams}
+            recommendations={recommendations}
+            scenarioResult={scenarioResult}
+            onRunScenario={onRunInterventionScenario}
+            busy={busy}
+          />
         </section>
       )}
 
