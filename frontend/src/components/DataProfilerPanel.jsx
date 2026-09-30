@@ -705,6 +705,24 @@ function DraftRowInspector({ row, rowWarnings }) {
       </div>
 
       <div className="draft-row-review-box">
+        <strong>Source provenance</strong>
+        {!row.source_provenance?.length && <p>No field-level provenance was returned for this draft row.</p>}
+        {row.source_provenance?.map((entry) => (
+          <p key={`${entry.target_field}-${entry.source_column || 'derived'}`}>
+            <strong>{entry.target_field}</strong>
+            {': '}
+            {entry.source_column
+              ? `${entry.source_column} = ${entry.source_value || '(blank)'}`
+              : 'generated/defaulted value'}
+            {' → '}
+            {entry.transformed_value}
+            {entry.source_unit ? ` ${entry.source_unit}` : ''}
+            {` (${entry.transformation})`}
+          </p>
+        ))}
+      </div>
+
+      <div className="draft-row-review-box">
         <strong>Row warnings</strong>
         {!rowWarnings.length && <p>No row-specific warnings for this selected draft row.</p>}
         {rowWarnings.map((warning) => (
