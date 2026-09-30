@@ -37,12 +37,6 @@ def screen_intervention_scenario(
             ),
         )
 
-    if not payload.scenario_name.strip():
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Scenario name must contain non-whitespace characters.",
-        )
-
     scenario = build_intervention_scenario(
         stream,
         recommendation,
@@ -193,6 +187,12 @@ def save_intervention_scenario_revision(
                 f"No locked recommendation found for stream {stream_id}. "
                 "Run POST /api/recommendations/run before saving an intervention scenario."
             ),
+        )
+
+    if not payload.scenario_name.strip():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Scenario name must contain non-whitespace characters.",
         )
 
     scenario = build_intervention_scenario(
