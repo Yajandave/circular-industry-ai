@@ -1044,3 +1044,37 @@ class CircularCoreDraftImportCommitResponse(BaseModel):
     traceability_note: str | None = None
     governance_note: str
 
+
+
+
+# Milestone 20B: intervention scenario screening schemas
+
+class InterventionScenarioRequest(BaseModel):
+    addressable_fraction_pct: float = Field(..., ge=0, le=100)
+    technical_capture_rate_pct: float = Field(..., ge=0, le=100)
+    route_acceptance_rate_pct: float = Field(..., ge=0, le=100)
+    operator_note: str | None = None
+
+
+class InterventionScenarioResult(BaseModel):
+    stream_id: str
+    stream_name: str
+    material: str
+    candidate_route: str
+    baseline_annual_quantity_kg: float
+    baseline_annual_disposal_cost_exposure: float
+    addressable_fraction_pct: float
+    technical_capture_rate_pct: float
+    route_acceptance_rate_pct: float
+    scenario_screened_fraction_pct: float
+    scenario_screened_recoverable_quantity_kg: float
+    recommendation_confidence_score: int
+    evidence_quality_score: int
+    risk_level: str
+    human_review_required: bool
+    scenario_status: str
+    claim_status: str
+    assumptions: list[str]
+    evidence_needed: list[str]
+    formula: str
+    governance_note: str
