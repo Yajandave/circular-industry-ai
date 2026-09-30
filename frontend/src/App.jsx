@@ -50,6 +50,7 @@ export default function App() {
   const [circularActionReport, setCircularActionReport] = useState(null);
   const [scenarioResult, setScenarioResult] = useState(null);
   const [scenarioComparisonResult, setScenarioComparisonResult] = useState(null);
+  const [scenarioHistory, setScenarioHistory] = useState(null);
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
   const [activeView, setActiveView] = useState('dashboard');
   const [activeDomain, setActiveDomain] = useState('circular-core');
@@ -158,6 +159,7 @@ export default function App() {
     setCircularActionReport(null);
     setScenarioResult(null);
     setScenarioComparisonResult(null);
+    setScenarioHistory(null);
     setReviewPack(null);
     setAiReasoning(null);
     setSiteCopilotSummary(null);
@@ -175,6 +177,7 @@ export default function App() {
       setCircularActionReport(null);
       setScenarioResult(null);
       setScenarioComparisonResult(null);
+      setScenarioHistory(null);
       setAiReasoning(null);
       setSiteCopilotSummary(null);
       setAgenticWorkflow(null);
@@ -204,6 +207,27 @@ export default function App() {
       setScenarioComparisonResult(result);
       setActiveView('scenario');
       return result;
+    });
+  }
+
+  async function loadInterventionScenarioHistory(streamId) {
+    try {
+      const result = await api.interventionScenarioHistory(streamId);
+      setScenarioHistory(result);
+      return result;
+    } catch {
+      setScenarioHistory(null);
+      return null;
+    }
+  }
+
+  async function saveInterventionScenario(streamId, payload) {
+    return safeRun(`Scenario revision saved for ${streamId}.`, async () => {
+      const saved = await api.saveInterventionScenario(streamId, payload);
+      const history = await api.interventionScenarioHistory(streamId);
+      setScenarioHistory(history);
+      setActiveView('scenario');
+      return saved;
     });
   }
 
@@ -366,6 +390,7 @@ export default function App() {
     circularActionReport,
     scenarioResult,
     scenarioComparisonResult,
+    scenarioHistory,
     filters,
     activeView,
     dashboardData,
@@ -383,6 +408,8 @@ export default function App() {
     onGenerateCircularActionReport: generateCircularActionReport,
     onRunInterventionScenario: runInterventionScenario,
     onCompareInterventionScenarios: compareInterventionScenarios,
+    onSaveInterventionScenario: saveInterventionScenario,
+    onLoadInterventionScenarioHistory: loadInterventionScenarioHistory,
     onDraftSupplierEmail: draftSupplierEmail,
     onExplainEvidenceGap: explainEvidenceGap,
     onRefreshSiteCopilot: refreshSiteCopilot,
