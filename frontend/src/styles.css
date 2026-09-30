@@ -6011,3 +6011,126 @@ button.donut-legend-row {
     grid-template-columns: 1fr;
   }
 }
+
+
+/* Milestone 20B.4: saved scenario history */
+.scenario-history-section {
+  margin-top: 22px;
+  padding-top: 20px;
+  border-top: 1px solid #dfe7e2;
+}
+.scenario-save-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(180px, 0.8fr) auto;
+  gap: 12px;
+  align-items: end;
+}
+.scenario-save-controls label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  color: #56675f;
+  font-size: 0.88rem;
+  font-weight: 800;
+}
+.scenario-save-controls input,
+.scenario-save-controls select {
+  width: 100%;
+  min-width: 0;
+  padding: 10px 11px;
+  border: 1px solid #cadbd1;
+  border-radius: 11px;
+  background: #fff;
+  color: #18231f;
+}
+.scenario-history-governance {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: #fff7e8;
+  border: 1px solid #eed9a7;
+  color: #604410;
+  line-height: 1.45;
+  font-size: 0.9rem;
+}
+.scenario-history-empty {
+  margin-top: 14px;
+  padding: 16px;
+  border-radius: 14px;
+  background: #f4f7f5;
+  border: 1px dashed #cadbd1;
+  color: #65736d;
+}
+.scenario-history-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+}
+.scenario-history-card {
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid #dfe7e2;
+  background: #fbfdfb;
+}
+.scenario-history-card-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: flex-start;
+}
+.scenario-history-card-header > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.scenario-history-card-header small {
+  color: #68776f;
+}
+.scenario-history-stage {
+  padding: 6px 9px;
+  border-radius: 999px;
+  background: #e8f1ec;
+  color: #25513f;
+  font-weight: 800;
+  font-size: 0.76rem;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+.scenario-history-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 14px 0;
+}
+.scenario-history-metrics > div {
+  padding: 12px;
+  border-radius: 13px;
+  background: #fff;
+  border: 1px solid #e4ebe7;
+}
+.scenario-history-metrics span {
+  display: block;
+  color: #68776f;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+.scenario-history-metrics strong {
+  display: block;
+  margin-top: 5px;
+}
+.scenario-history-card > p {
+  margin: 0 0 12px;
+  color: #56675f;
+  line-height: 1.45;
+}
+@media (max-width: 900px) {
+  .scenario-save-controls,
+  .scenario-history-metrics {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 640px) {
+  .scenario-history-card-header {
+    flex-direction: column;
+  }
+}
