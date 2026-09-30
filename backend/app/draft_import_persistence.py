@@ -99,6 +99,12 @@ def _create_draft_import_audit_event(
     for warning in report.row_warnings:
         warning_codes[warning.code] = warning_codes.get(warning.code, 0) + 1
 
+    provenance_snapshot = {
+        row.stream_id: [entry.model_dump() for entry in row.source_provenance]
+        for row in report.draft_rows
+    }
+    provenance_field_count = sum(len(entries) for entries in provenance_snapshot.values())
+
     return crud.create_audit_event(
         db,
         event_type="draft_import_committed",
@@ -128,6 +134,10 @@ def _create_draft_import_audit_event(
             "recommendations_cleared": True,
             "recommendations_run": False,
             "approval_note_present": bool(payload.approval_note),
+            "source_provenance_version": "20A.5-v1",
+            "source_provenance_available": all(bool(row.source_provenance) for row in report.draft_rows),
+            "source_provenance_field_count": provenance_field_count,
+            "source_provenance_snapshot": provenance_snapshot,
         },
     )
 
