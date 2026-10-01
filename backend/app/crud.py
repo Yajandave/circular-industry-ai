@@ -8,6 +8,7 @@ from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
 from app import models, schemas
+from app.outcome_verification import evaluate_observed_outcome_evidence
 
 
 def create_stream(db: Session, stream: schemas.IndustrialStreamCreate) -> models.IndustrialStream:
@@ -718,5 +719,128 @@ def get_observed_scenario_outcome_history(
         governance_note=(
             "Observed outcome records preserve evidence context and variance against the saved screening scenario. "
             "They do not by themselves make the scenario verified or claim-ready."
+        ),
+    )
+
+
+
+# Milestone 20B.6: observed-outcome evidence verification review helpers
+
+def get_observed_scenario_outcome_by_id(
+    db: Session,
+    *,
+    observed_outcome_id: int,
+) -> models.ObservedScenarioOutcome | None:
+    return db.get(models.ObservedScenarioOutcome, observed_outcome_id)
+
+
+def _outcome_review_read(
+    row: models.ObservedOutcomeEvidenceReview,
+) -> schemas.ObservedOutcomeEvidenceReviewRead:
+    return schemas.ObservedOutcomeEvidenceReviewRead(
+        id=row.id,
+        observed_outcome_id=row.observed_outcome_id,
+        saved_scenario_id=row.saved_scenario_id,
+        stream_id=row.stream_id,
+        reviewer_name=row.reviewer_name,
+        reviewer_role=row.reviewer_role,
+        evidence_completeness=row.evidence_completeness,
+        source_traceability_confirmed=row.source_traceability_confirmed,
+        quantity_basis_confirmed=row.quantity_basis_confirmed,
+        period_basis_confirmed=row.period_basis_confirmed,
+        route_destination_confirmed=row.route_destination_confirmed,
+        review_note=row.review_note,
+        verification_decision=row.verification_decision,
+        internal_claim_readiness=row.internal_claim_readiness,
+        external_claim_readiness=row.external_claim_readiness,
+        allowed_internal_statement=row.allowed_internal_statement,
+        blocked_claims=_json_load(row.blocked_claims_json, []),
+        checks=_json_load(row.checks_json, {}),
+        missing_checks=_json_load(row.missing_checks_json, []),
+        governance_note=row.governance_note,
+        created_at=row.created_at,
+    )
+
+
+def create_observed_outcome_evidence_review(
+    db: Session,
+    *,
+    outcome: models.ObservedScenarioOutcome,
+    payload: schemas.ObservedOutcomeEvidenceReviewCreate,
+) -> schemas.ObservedOutcomeEvidenceReviewRead:
+    gate = evaluate_observed_outcome_evidence(
+        outcome,
+        evidence_completeness=payload.evidence_completeness,
+        source_traceability_confirmed=payload.source_traceability_confirmed,
+        quantity_basis_confirmed=payload.quantity_basis_confirmed,
+        period_basis_confirmed=payload.period_basis_confirmed,
+        route_destination_confirmed=payload.route_destination_confirmed,
+    )
+
+    row = models.ObservedOutcomeEvidenceReview(
+        observed_outcome_id=outcome.id,
+        saved_scenario_id=outcome.saved_scenario_id,
+        stream_id=outcome.stream_id,
+        reviewer_name=payload.reviewer_name.strip(),
+        reviewer_role=payload.reviewer_role.strip(),
+        evidence_completeness=payload.evidence_completeness,
+        source_traceability_confirmed=payload.source_traceability_confirmed,
+        quantity_basis_confirmed=payload.quantity_basis_confirmed,
+        period_basis_confirmed=payload.period_basis_confirmed,
+        route_destination_confirmed=payload.route_destination_confirmed,
+        review_note=payload.review_note.strip(),
+        verification_decision=gate["verification_decision"],
+        internal_claim_readiness=gate["internal_claim_readiness"],
+        external_claim_readiness=gate["external_claim_readiness"],
+        allowed_internal_statement=gate["allowed_internal_statement"],
+        blocked_claims_json=_json_dump(gate["blocked_claims"]),
+        checks_json=_json_dump(gate["checks"]),
+        missing_checks_json=_json_dump(gate["missing_checks"]),
+        governance_note=gate["governance_note"],
+    )
+    db.add(row)
+    db.commit()
+    db.refresh(row)
+    return _outcome_review_read(row)
+
+
+def get_observed_outcome_evidence_reviews(
+    db: Session,
+    *,
+    observed_outcome_id: int,
+    limit: int = 100,
+) -> list[schemas.ObservedOutcomeEvidenceReviewRead]:
+    query = (
+        select(models.ObservedOutcomeEvidenceReview)
+        .where(models.ObservedOutcomeEvidenceReview.observed_outcome_id == observed_outcome_id)
+        .order_by(
+            models.ObservedOutcomeEvidenceReview.created_at.desc(),
+            models.ObservedOutcomeEvidenceReview.id.desc(),
+        )
+        .limit(limit)
+    )
+    return [_outcome_review_read(row) for row in db.scalars(query).all()]
+
+
+def get_observed_outcome_evidence_review_history(
+    db: Session,
+    *,
+    outcome: models.ObservedScenarioOutcome,
+    limit: int = 100,
+) -> schemas.ObservedOutcomeEvidenceReviewHistory:
+    records = get_observed_outcome_evidence_reviews(
+        db,
+        observed_outcome_id=outcome.id,
+        limit=limit,
+    )
+    return schemas.ObservedOutcomeEvidenceReviewHistory(
+        observed_outcome_id=outcome.id,
+        total_reviews=len(records),
+        latest_review=records[0] if records else None,
+        records=records,
+        governance_note=(
+            "Evidence reviews are immutable internal governance records. "
+            "A review can support a narrow internal factual statement, but external claims remain gated "
+            "pending a separate verification process."
         ),
     )
