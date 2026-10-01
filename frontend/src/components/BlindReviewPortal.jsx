@@ -322,6 +322,42 @@ export default function BlindReviewPortal() {
         </p>
       </section>
 
+      <section className="blind-print-pack" aria-hidden="true">
+        <div className="blind-print-heading">
+          <h1>Circular Industry AI · Blind reviewer pack</h1>
+          <p>
+            Reviewer: {reviewer.reviewer_name || '________________'} · Role: {reviewer.reviewer_role || '________________'}
+          </p>
+          <p>
+            Complete these cases without viewing Circular Industry AI recommendations, rules, grounded constraints or expected answers.
+          </p>
+        </div>
+        {pack.map((item) => (
+          <article className="blind-print-case" key={item.case_id}>
+            <h2>Case {item.case_number}: {item.stream.stream_name}</h2>
+            <dl>
+              <div><dt>Material</dt><dd>{item.stream.material}</dd></div>
+              <div><dt>Source process</dt><dd>{item.stream.source_process}</dd></div>
+              <div><dt>Monthly quantity</dt><dd>{item.stream.monthly_quantity_kg} kg</dd></div>
+              <div><dt>Current route</dt><dd>{item.stream.current_route}</dd></div>
+              <div><dt>Contamination risk</dt><dd>{item.stream.contamination_risk}</dd></div>
+              <div><dt>Hazardous flag</dt><dd>{item.stream.hazardous_flag}</dd></div>
+              <div><dt>Supplier take-back</dt><dd>{item.stream.supplier_takeback_available}</dd></div>
+              <div><dt>Department</dt><dd>{item.stream.department}</dd></div>
+            </dl>
+            {item.stream.notes && <p><strong>Notes:</strong> {item.stream.notes}</p>}
+            <div className="blind-print-response-lines">
+              <p><strong>Strategy category:</strong> ______________________________________________</p>
+              <p><strong>Risk level:</strong> __________________</p>
+              <p><strong>Human review required?</strong> __________________</p>
+              <p><strong>Confidence (1–5):</strong> __________________</p>
+              <p><strong>Reasoning:</strong></p>
+              <div className="blind-print-lines">________________________________________________________________________________<br />________________________________________________________________________________<br />________________________________________________________________________________</div>
+            </div>
+          </article>
+        ))}
+      </section>
+
       <form onSubmit={submitReview}>
         <section className="blind-reviewer-card">
           <div className="section-heading compact-heading">
