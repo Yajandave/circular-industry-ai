@@ -1252,3 +1252,57 @@ class ObservedOutcomeEvidenceReviewHistory(BaseModel):
     latest_review: ObservedOutcomeEvidenceReviewRead | None = None
     records: list[ObservedOutcomeEvidenceReviewRead]
     governance_note: str
+
+
+
+# Milestone 20C.1: circular decision validation benchmark schemas
+
+class DecisionValidationCaseDefinition(BaseModel):
+    case_id: str
+    title: str
+    case_type: str
+    label_source: str
+    validation_status: str
+    rationale: str
+    stream: dict
+    expectations: dict
+
+
+class DecisionValidationRunRequest(BaseModel):
+    case_ids: list[str] | None = None
+
+
+class DecisionValidationCheck(BaseModel):
+    check_id: str
+    status: str
+    expected: object
+    actual: object
+
+
+class DecisionValidationCaseResult(BaseModel):
+    case_id: str
+    title: str
+    case_type: str
+    label_source: str
+    validation_status: str
+    status: str
+    checks: list[DecisionValidationCheck]
+    actual: dict
+    rationale: str
+
+
+class DecisionValidationAgreementMetric(BaseModel):
+    passed: int
+    total: int
+    agreement_pct: float
+
+
+class DecisionValidationRunResult(BaseModel):
+    suite_name: str
+    benchmark_status: str
+    total_cases: int
+    full_agreement_cases: int
+    full_agreement_pct: float
+    agreement: dict[str, DecisionValidationAgreementMetric]
+    results: list[DecisionValidationCaseResult]
+    governance_note: str
