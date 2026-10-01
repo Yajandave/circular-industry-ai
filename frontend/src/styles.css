@@ -6769,6 +6769,18 @@ button.blind-case-dot.active {
   body {
     background: #fff;
   }
+  .blind-print-pack {
+    display: block;
+  }
+  .blind-review-boundary,
+  .blind-reviewer-card,
+  .blind-case-card,
+  .blind-submit-card,
+  .blind-review-error,
+  .blind-review-metrics,
+  .blind-comparison-list {
+    display: none !important;
+  }
   .blind-review-shell {
     width: 100%;
     padding: 0;
@@ -6800,4 +6812,43 @@ button.blind-case-dot.active {
     box-shadow: none;
     break-inside: avoid;
   }
+}
+
+
+.blind-print-pack {
+  display: none;
+}
+.blind-print-case {
+  break-inside: avoid;
+  margin-top: 20px;
+  padding: 18px;
+  border: 1px solid #cfd8d3;
+  border-radius: 14px;
+}
+.blind-print-case h2 {
+  margin: 0 0 12px;
+}
+.blind-print-case dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px 16px;
+  margin: 0;
+}
+.blind-print-case dl div {
+  display: grid;
+  grid-template-columns: 140px minmax(0, 1fr);
+  gap: 8px;
+}
+.blind-print-case dt {
+  font-weight: 800;
+  color: #52645c;
+}
+.blind-print-case dd {
+  margin: 0;
+}
+.blind-print-response-lines {
+  margin-top: 14px;
+}
+.blind-print-lines {
+  line-height: 2;
 }
