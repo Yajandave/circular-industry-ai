@@ -48,6 +48,12 @@ export const api = {
     body: JSON.stringify(payload),
   }),
   observedScenarioOutcomeHistory: (savedScenarioId) => request(`/api/scenarios/saved/${savedScenarioId}/outcomes?limit=100`),
+  reviewObservedOutcomeEvidence: (observedOutcomeId, payload) => request(`/api/scenarios/outcomes/${observedOutcomeId}/reviews`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  }),
+  observedOutcomeEvidenceReviewHistory: (observedOutcomeId) => request(`/api/scenarios/outcomes/${observedOutcomeId}/reviews?limit=100`),
   reviewPack: (streamId) => request(`/api/agent/review-pack/${encodeURIComponent(streamId)}`),
   managementSummary: () => request('/api/agent/management-summary'),
   actionPlan: (limit = 12) => request(`/api/agent/action-plan?limit=${limit}`),
