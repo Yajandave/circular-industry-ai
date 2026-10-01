@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from app import crud, schemas
 from app.database import get_db
-from app.blind_decision_review import CASE_MAP, build_blind_review_pack
+from app.blind_decision_review import CASE_MAP, STRATEGY_CATEGORY_OPTIONS, build_blind_review_pack
 from app.decision_validation import list_decision_validation_cases, run_decision_validation
 from app.grounded_decision_validation import list_grounded_challenge_cases, run_grounded_challenge_validation
 
@@ -123,6 +123,20 @@ def submit_blind_decision_review(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Each reviewer label requires a non-whitespace strategy category.",
+        )
+
+    invalid_categories = sorted({
+        label.strategy_category
+        for label in payload.labels
+        if label.strategy_category not in STRATEGY_CATEGORY_OPTIONS
+    })
+    if invalid_categories:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                "Reviewer strategy category must use the blind-pack taxonomy. "
+                f"Invalid values: {', '.join(invalid_categories)}"
+            ),
         )
 
     result = crud.create_blind_decision_review_batch(db, payload=payload)
