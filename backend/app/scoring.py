@@ -74,19 +74,19 @@ def infer_contextual_safety_flags(stream: StreamLike) -> list[str]:
     electronics_context = material == "electronic components" or any(
         term in text for term in ["weee", "electronic", "circuit-board", "circuit board"]
     )
-    classification_context = any(
-        term in text
-        for term in ["classification", "classify", "pops assessment", "hazardous substances assessment"]
-    )
-    unresolved_classification = classification_context and any(
+    unresolved_classification = any(
         term in text
         for term in [
-            "pending",
-            "has not been completed",
-            "not completed",
+            "classification pending",
+            "classification has not been completed",
+            "classification not completed",
             "not classified",
-            "unresolved",
-            "unknown",
+            "classification unresolved",
+            "classification unknown",
+            "pops assessment pending",
+            "pops assessment not completed",
+            "hazardous substances assessment pending",
+            "hazardous substances assessment not completed",
         ]
     )
     if electronics_context and unresolved_classification:
