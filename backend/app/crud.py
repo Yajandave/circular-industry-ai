@@ -959,13 +959,25 @@ def get_blind_decision_review_history(
         .limit(limit)
     )
     records = [_blind_review_submission_read(row) for row in db.scalars(query).all()]
+
+    total_submissions = db.scalar(
+        select(func.count(models.BlindDecisionReviewSubmission.id))
+    ) or 0
+    unique_reviewers = db.scalar(
+        select(func.count(func.distinct(models.BlindDecisionReviewSubmission.reviewer_name)))
+    ) or 0
+    unique_cases_reviewed = db.scalar(
+        select(func.count(func.distinct(models.BlindDecisionReviewSubmission.case_id)))
+    ) or 0
+
     return schemas.BlindDecisionReviewHistory(
-        total_submissions=len(records),
-        unique_reviewers=len({record.reviewer_name for record in records}),
-        unique_cases_reviewed=len({record.case_id for record in records}),
+        total_submissions=int(total_submissions),
+        unique_reviewers=int(unique_reviewers),
+        unique_cases_reviewed=int(unique_cases_reviewed),
         submissions=records,
         governance_note=(
             "Stored blind-review submissions are immutable historical comparisons. "
+            "History totals cover the full stored dataset even when the returned record list is limited. "
             "They should not be described as independent expert validation unless reviewer independence, "
             "relevant competence and blind review conditions are documented outside this software."
         ),
