@@ -172,6 +172,31 @@ This is decision support, not third-party verification.
 
 ---
 
+## Decision validation status
+
+Milestone 20C begins a separate validation layer for the deterministic circular-economy decision engine.
+
+The repository now includes an **internal 20-case decision benchmark** spanning hazardous streams, contamination controls, source reduction, supplier take-back, metals, packaging, plastics, organics, process water, mineral residues, glass, rubber, electronics/WEEE-like streams, batteries and low-information/default cases.
+
+The benchmark checks four decision dimensions independently:
+
+- rule selected
+- circular strategy category
+- risk level
+- human-review requirement
+
+The benchmark labels are explicitly marked as **internal reference expectations** and **benchmark draft**. Agreement with these labels is useful for regression testing and structured review, but it is **not external expert validation, regulatory approval, supplier acceptance evidence or proof of real-world feasibility**.
+
+Endpoints:
+
+- `GET /api/decision-validation/cases`
+- `POST /api/decision-validation/run`
+- `GET /api/decision-validation/summary`
+
+The next validation stage is to challenge and replace these internal reference labels with documented domain judgement and realistic industrial cases.
+
+---
+
 ## Current product capability
 
 ### 1. Controlled data intake and mapping
