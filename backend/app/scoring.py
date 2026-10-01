@@ -36,6 +36,82 @@ def _clean(value: object) -> str:
     return str(value or "").strip().lower()
 
 
+def infer_contextual_safety_flags(stream: StreamLike) -> list[str]:
+    """Infer safety/classification controls from operational context.
+
+    These flags strengthen fail-safe review behaviour when structured fields
+    understate a risk that is explicitly described elsewhere in the stream data.
+    They are screening controls, not legal classifications.
+    """
+    material = _clean(stream.material)
+    name = _clean(stream.stream_name)
+    source = _clean(stream.source_process)
+    route = _clean(stream.current_route)
+    notes = _clean(stream.notes)
+    text = " ".join([material, name, source, route, notes])
+
+    flags: list[str] = []
+
+    battery_context = material in {"batteries", "battery"} or any(
+        term in text for term in ["battery", "lithium-ion", "lithium ion"]
+    )
+    damaged_battery = battery_context and any(
+        term in text
+        for term in [
+            "damaged",
+            "swollen",
+            "crushed",
+            "punctured",
+            "leaking",
+            "thermal",
+            "fire risk",
+            "burnt",
+        ]
+    )
+    if damaged_battery:
+        flags.append("damaged_battery_condition")
+
+    electronics_context = material == "electronic components" or any(
+        term in text for term in ["weee", "electronic", "circuit-board", "circuit board"]
+    )
+    unresolved_classification = any(
+        term in text
+        for term in [
+            "classification pending",
+            "classification has not been completed",
+            "classification not completed",
+            "not classified",
+            "classification unresolved",
+            "classification unknown",
+            "pops assessment pending",
+            "pops assessment not completed",
+            "hazardous substances assessment pending",
+            "hazardous substances assessment not completed",
+        ]
+    )
+    if electronics_context and unresolved_classification:
+        flags.append("unresolved_weee_classification")
+
+    packaging_context = material in {"cardboard/packaging", "wood/pallets"} or "packaging" in text
+    hazardous_residue_context = (
+        "hazardous" in text
+        and any(
+            term in text
+            for term in [
+                "residue",
+                "solvent",
+                "chemical",
+                "contaminated",
+                "contamination",
+            ]
+        )
+    )
+    if packaging_context and hazardous_residue_context:
+        flags.append("hazardous_residue_packaging")
+
+    return flags
+
+
 def infer_missing_data(stream: StreamLike) -> list[str]:
     """Infer missing or weak evidence fields from the current Milestone 1 dataset."""
     missing: list[str] = []
@@ -59,6 +135,14 @@ def infer_missing_data(stream: StreamLike) -> list[str]:
         missing.append("material grade or alloy segregation evidence")
     if "mixed" in _clean(stream.stream_name) or "mixed" in notes:
         missing.append("material segregation details")
+
+    safety_flags = infer_contextual_safety_flags(stream)
+    if "damaged_battery_condition" in safety_flags:
+        missing.append("specialist battery condition and safe-handling assessment")
+    if "unresolved_weee_classification" in safety_flags:
+        missing.append("completed WEEE hazardous-substance and POPs classification")
+    if "hazardous_residue_packaging" in safety_flags:
+        missing.append("packaging classification and hazardous-residue assessment")
 
     # Remove duplicates while preserving order.
     deduped: list[str] = []
@@ -104,6 +188,10 @@ def score_evidence_quality(stream: StreamLike) -> int:
     if "mixed" in _clean(stream.stream_name) or "mixed" in notes:
         score -= 8
 
+    safety_flags = infer_contextual_safety_flags(stream)
+    if safety_flags:
+        score -= min(len(safety_flags) * 15, 30)
+
     return max(0, min(100, score))
 
 
@@ -111,9 +199,12 @@ def score_risk_level(stream: StreamLike) -> tuple[str, bool]:
     hazardous = _clean(stream.hazardous_flag)
     contamination = _clean(stream.contamination_risk)
     material = _clean(stream.material)
+    safety_flags = infer_contextual_safety_flags(stream)
 
     if hazardous == "true" and contamination == "high":
         return "blocked", True
+    if safety_flags:
+        return "high", True
     if hazardous == "true":
         return "high", True
     if hazardous == "unknown" and contamination in {"medium", "high", "unknown"}:

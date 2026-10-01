@@ -30,43 +30,30 @@ def test_grounded_challenge_suite_uses_10_guidance_based_cases_without_rule_id_l
     assert all(case["sources"] for case in GROUNDED_CHALLENGE_CASES)
 
 
-def test_grounded_challenge_suite_exposes_current_engine_gaps():
+def test_grounded_challenge_suite_closes_all_current_guidance_gaps():
     result = run_grounded_challenge_validation()
 
     assert result["suite_name"] == "circular_decision_grounded_challenge_v1"
     assert result["total_cases"] == 10
     assert result["validation_status"] == "authoritative_guidance_interpretation_not_independent_assurance"
-
-    expected_gap_ids = {
-        "gc_damaged_lithium_battery",
-        "gc_unclassified_weee",
-        "gc_hazardous_residue_packaging",
-        "gc_edible_food_surplus",
-    }
-    assert expected_gap_ids.issubset(set(result["gap_case_ids"]))
-    assert result["gap_cases"] >= len(expected_gap_ids)
-    assert result["passing_cases"] + result["gap_cases"] == 10
+    assert result["passing_cases"] == 10
+    assert result["gap_cases"] == 0
+    assert result["gap_case_ids"] == []
+    assert result["pass_pct"] == 100.0
     assert "not legal advice" in result["governance_note"].lower()
 
 
 def test_grounded_challenge_known_safe_boundaries_still_pass():
     case_map = {case["case_id"]: case for case in GROUNDED_CHALLENGE_CASES}
 
-    passing_ids = {
-        "gc_metal_trim_prevention",
-        "gc_clean_packaging_takeback",
-        "gc_hazardous_solvent",
-        "gc_unknown_waste_classification",
-        "gc_classified_nonhaz_weee",
-        "gc_high_contamination_metal",
-    }
+    passing_ids = {case["case_id"] for case in GROUNDED_CHALLENGE_CASES}
 
     for case_id in passing_ids:
         result = evaluate_grounded_challenge_case(case_map[case_id])
         assert result["status"] == "pass", result
 
 
-def test_damaged_lithium_battery_challenge_flags_review_and_risk_gap():
+def test_damaged_lithium_battery_challenge_now_passes_review_and_risk_controls():
     case = next(
         item
         for item in GROUNDED_CHALLENGE_CASES
@@ -74,17 +61,13 @@ def test_damaged_lithium_battery_challenge_flags_review_and_risk_gap():
     )
     result = evaluate_grounded_challenge_case(case)
 
-    assert result["status"] == "gap"
-    failed_checks = {
-        check["check_id"]
-        for check in result["checks"]
-        if check["status"] == "fail"
-    }
-    assert "human_review_gate" in failed_checks
-    assert "risk_level" in failed_checks
+    assert result["status"] == "pass"
+    assert result["actual"]["human_review_required"] is True
+    assert result["actual"]["risk_level"] in {"high", "blocked"}
+    assert result["actual"]["rule_applied"] == "R001_HAZARDOUS_OR_UNKNOWN_REVIEW"
 
 
-def test_edible_food_surplus_challenge_flags_hierarchy_gap():
+def test_edible_food_surplus_challenge_now_prioritises_prevention_hierarchy():
     case = next(
         item
         for item in GROUNDED_CHALLENGE_CASES
@@ -92,16 +75,9 @@ def test_edible_food_surplus_challenge_flags_hierarchy_gap():
     )
     result = evaluate_grounded_challenge_case(case)
 
-    assert result["status"] == "gap"
-    assert result["actual"]["circular_strategy_category"] == "industrial symbiosis / resource recovery"
-
-    failed_checks = {
-        check["check_id"]
-        for check in result["checks"]
-        if check["status"] == "fail"
-    }
-    assert "allowed_strategy_category" in failed_checks
-    assert "forbidden_strategy_category" in failed_checks
+    assert result["status"] == "pass"
+    assert result["actual"]["circular_strategy_category"] == "reduce / process redesign"
+    assert result["actual"]["rule_applied"] == "R003_REDUCE_AT_SOURCE"
 
 
 def test_grounded_challenge_api_returns_cases_and_gap_summary():
@@ -115,8 +91,9 @@ def test_grounded_challenge_api_returns_cases_and_gap_summary():
     assert summary_response.status_code == 200
     summary = summary_response.json()
     assert summary["total_cases"] == 10
-    assert summary["gap_cases"] >= 4
-    assert "gc_damaged_lithium_battery" in summary["gap_case_ids"]
+    assert summary["passing_cases"] == 10
+    assert summary["gap_cases"] == 0
+    assert summary["gap_case_ids"] == []
     assert summary["source_catalogue"]["waste_classification"]["publisher"]
 
 

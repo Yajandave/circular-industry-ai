@@ -10,7 +10,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Protocol
 
-from app.scoring import score_stream
+from app.scoring import infer_contextual_safety_flags, score_stream
 
 
 class StreamLike(Protocol):
@@ -129,6 +129,37 @@ def _base_decision(stream: StreamLike) -> tuple[str, str, str, str, str, int]:
     takeback = _clean(stream.supplier_takeback_available)
     notes = _clean(stream.notes)
     text = " ".join([material, name, source, route, notes])
+    contextual_flags = set(infer_contextual_safety_flags(stream))
+
+    if "damaged_battery_condition" in contextual_flags:
+        return (
+            "Human review required for damaged battery handling and specialist route selection",
+            "human review required",
+            "The stream description indicates damaged battery condition. Damaged batteries can require specialist handling and should not receive a routine recycling or disposal recommendation from screening data alone.",
+            "Confirm battery chemistry and condition, isolate the stream from routine mixed recycling, and obtain specialist handling, storage and authorised recovery guidance.",
+            "R001_HAZARDOUS_OR_UNKNOWN_REVIEW",
+            20,
+        )
+
+    if "unresolved_weee_classification" in contextual_flags:
+        return (
+            "Human review required until WEEE classification is completed",
+            "human review required",
+            "The stream indicates unresolved WEEE hazardous-substance or POPs classification. A recovery route should not be treated as settled until the applicable classification and handling requirements are confirmed.",
+            "Complete WEEE classification, confirm hazardous-substance and POPs status, then review authorised recovery options.",
+            "R001_HAZARDOUS_OR_UNKNOWN_REVIEW",
+            20,
+        )
+
+    if "hazardous_residue_packaging" in contextual_flags:
+        return (
+            "Human review required for hazardous-residue packaging classification",
+            "human review required",
+            "The packaging description indicates contamination with hazardous residues. Routine reuse should not be recommended until the packaging classification, residue risk and authorised handling route are confirmed.",
+            "Confirm the hazardous residue, classify the packaging stream, and obtain competent handling or recovery guidance before reuse or recycling.",
+            "R001_HAZARDOUS_OR_UNKNOWN_REVIEW",
+            20,
+        )
 
     if hazardous == "true" or (hazardous == "unknown" and contamination in {"medium", "high", "unknown"}):
         return (
@@ -148,6 +179,38 @@ def _base_decision(stream: StreamLike) -> tuple[str, str, str, str, str, int]:
             "Obtain contamination data and ask a qualified waste or recovery contractor whether safe recovery is viable.",
             "R002_HIGH_CONTAMINATION_REVIEW",
             16,
+        )
+
+    edible_surplus = (
+        material == "organic/process residue"
+        and any(
+            term in text
+            for term in [
+                "fit for human consumption",
+                "still fit for consumption",
+                "edible",
+                "within use-by",
+                "within use by",
+            ]
+        )
+        and any(
+            term in text
+            for term in [
+                "surplus",
+                "overproduction",
+                "over-production",
+                "finished goods",
+            ]
+        )
+    )
+    if edible_surplus:
+        return (
+            "Prevent edible surplus or assess redistribution for human consumption before recovery",
+            "reduce / process redesign",
+            "The stream appears to be edible surplus rather than unavoidable food waste. Prevention and redistribution should be screened before anaerobic digestion, composting or other recovery routes.",
+            "Confirm food-safety and date-status evidence, quantify the avoidable surplus, and assess redistribution or donation routes before sending material to recovery.",
+            "R003_REDUCE_AT_SOURCE",
+            18,
         )
 
     if _contains_any(text, ["excess", "over-order", "setup", "trim", "scrap reduction", "loss rate", "purge"]):

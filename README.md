@@ -201,6 +201,15 @@ The current grounded challenge set deliberately includes cases expected to expos
 
 The interpretation of public guidance into software constraints remains an internal product judgement and is not legal advice, regulatory approval or independent professional assurance.
 
+Milestone 20C.3 closes the four initially identified grounded gaps through general decision logic rather than case-specific exceptions:
+
+- damaged battery condition now triggers high-risk human review even when structured hazardous/contamination flags are understated
+- unresolved WEEE classification now gates recovery decisions until classification is completed
+- packaging described with hazardous residues now blocks routine reuse and requires classification review
+- edible food surplus now prioritises prevention and redistribution before recovery
+
+Both validation layers are expected to remain green after these changes: the 20-case internal benchmark must retain full agreement, and all 10 current grounded challenge cases must satisfy their broader guidance-based constraints.
+
 ---
 
 ## Current product capability
