@@ -230,6 +230,8 @@ The portal is intentionally separate from the normal Circular Industry AI operat
 
 Reviewer mode is a UI isolation control, not an authentication boundary. Controlled studies should give reviewers only the reviewer-mode URL and separately document reviewer independence, competence and blind conditions.
 
+Milestone 20C.6 adds a separate operator analysis workspace at `<frontend-base-url>/?mode=review-analysis`. It summarises reviewer distributions, leading consensus, pairwise reviewer agreement, system-versus-consensus comparison and system snapshot changes across review submissions. Reviewer consensus is explicitly not treated as ground truth, and single-reviewer cases are not described as inter-reviewer consensus.
+
 ---
 
 ## Current product capability
