@@ -6396,3 +6396,466 @@ button.donut-legend-row {
     flex-direction: column;
   }
 }
+
+
+/* Milestone 20C.5: standalone blind reviewer portal */
+.blind-review-shell {
+  width: min(1180px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 28px 0 64px;
+}
+.blind-review-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 260px;
+  gap: 22px;
+  padding: 30px;
+  border-radius: 28px;
+  background: linear-gradient(135deg, #0f2f25, #224d3d);
+  color: #f5fbf7;
+  box-shadow: 0 20px 60px rgba(14, 45, 35, 0.24);
+}
+.blind-review-hero h1 {
+  margin: 8px 0 12px;
+  font-size: clamp(2rem, 4vw, 4rem);
+  line-height: 0.98;
+  letter-spacing: -0.045em;
+}
+.blind-review-hero p {
+  margin: 0;
+  max-width: 780px;
+  color: #d7e8df;
+  line-height: 1.65;
+}
+.blind-review-hero-note {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 20px;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 20px;
+  background: rgba(255,255,255,0.08);
+}
+.blind-review-hero-note strong {
+  font-size: 1.8rem;
+}
+.blind-review-hero-note span {
+  color: #d7e8df;
+  overflow-wrap: anywhere;
+}
+.blind-review-hero-note .secondary {
+  margin-top: 8px;
+}
+.blind-review-loading {
+  margin-top: 48px;
+  padding: 34px;
+  border-radius: 24px;
+  background: #fff;
+  border: 1px solid #dfe7e2;
+}
+.blind-review-loading h1 {
+  margin: 8px 0;
+}
+.blind-review-boundary,
+.blind-reviewer-card,
+.blind-case-card,
+.blind-submit-card,
+.blind-comparison-card {
+  margin-top: 18px;
+  padding: 20px;
+  border-radius: 22px;
+  background: #fff;
+  border: 1px solid #dfe7e2;
+  box-shadow: 0 8px 24px rgba(36, 51, 44, 0.06);
+}
+.blind-review-boundary {
+  background: #fff7e8;
+  border-color: #eed9a7;
+  color: #604410;
+}
+.blind-review-boundary p {
+  margin: 6px 0 0;
+  line-height: 1.55;
+}
+.blind-reviewer-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.blind-reviewer-card label,
+.blind-case-card label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  color: #56675f;
+  font-size: 0.88rem;
+  font-weight: 800;
+}
+.blind-reviewer-card input[type="text"],
+.blind-case-card select,
+.blind-case-card textarea {
+  width: 100%;
+  min-width: 0;
+  padding: 10px 11px;
+  border: 1px solid #cadbd1;
+  border-radius: 11px;
+  background: #fff;
+  color: #18231f;
+}
+.blind-declaration {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: flex-start;
+  gap: 10px !important;
+  margin-top: 14px;
+  padding: 13px 14px;
+  border-radius: 14px;
+  background: #f4f7f5;
+  border: 1px solid #dfe7e2;
+  line-height: 1.45;
+}
+.blind-declaration input {
+  margin-top: 3px;
+  flex: 0 0 auto;
+}
+.blind-case-topline,
+.blind-comparison-header,
+.blind-submit-card {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: flex-start;
+}
+.blind-case-topline h2,
+.blind-comparison-header h2,
+.blind-submit-card h2 {
+  margin: 5px 0 0;
+}
+.blind-case-status,
+.blind-match {
+  display: inline-flex;
+  width: fit-content;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 900;
+  white-space: nowrap;
+  background: #fff4dc;
+  color: #7b4c00;
+}
+.blind-case-status.complete,
+.blind-match.yes {
+  background: #e4f4eb;
+  color: #15613d;
+}
+.blind-match.no {
+  background: #fbe5e2;
+  color: #8f251d;
+}
+.blind-stream-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+}
+.blind-stream-grid > div,
+.blind-comparison-grid > div,
+.blind-review-metrics article {
+  padding: 13px;
+  border-radius: 14px;
+  background: #f5f8f6;
+  border: 1px solid #e2e9e5;
+}
+.blind-stream-grid span,
+.blind-comparison-grid span,
+.blind-review-metrics span,
+.blind-review-reasoning span,
+.blind-system-action span,
+.blind-case-notes span {
+  display: block;
+  color: #68776f;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+.blind-stream-grid strong,
+.blind-comparison-grid strong {
+  display: block;
+  margin-top: 5px;
+}
+.blind-case-notes {
+  margin-top: 12px;
+  padding: 14px;
+  border-radius: 14px;
+  background: #f7f4ec;
+  border: 1px solid #e5dcc5;
+}
+.blind-case-notes p {
+  margin: 6px 0 0;
+  line-height: 1.5;
+}
+.blind-question-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+}
+.blind-reasoning-field {
+  margin-top: 14px;
+}
+.blind-reasoning-field textarea {
+  resize: vertical;
+}
+.blind-case-prompt {
+  margin: 12px 0 0;
+  color: #68776f;
+  line-height: 1.5;
+}
+.blind-case-nav {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  margin-top: 18px;
+}
+.blind-case-dots {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+button.blind-case-dot {
+  width: 34px;
+  min-width: 34px;
+  height: 34px;
+  padding: 0;
+  border-radius: 999px;
+  background: #eef3ef;
+  color: #345247;
+  border: 1px solid #d4e0da;
+  box-shadow: none;
+}
+button.blind-case-dot.complete {
+  background: #dff1e7;
+  color: #155c3a;
+  border-color: #b7dcc7;
+}
+button.blind-case-dot.active {
+  outline: 3px solid rgba(31, 91, 67, 0.18);
+  background: #1f5b43;
+  color: #fff;
+}
+.blind-submit-card {
+  align-items: center;
+}
+.blind-submit-card p {
+  margin: 6px 0 0;
+  color: #65736d;
+  line-height: 1.5;
+}
+.blind-submit-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.blind-review-error {
+  margin-top: 14px;
+  padding: 13px 14px;
+  border-radius: 14px;
+  color: #8f251d;
+  background: #fbe5e2;
+  border: 1px solid #efc1bc;
+  font-weight: 800;
+}
+.blind-review-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+}
+.blind-review-metrics article {
+  background: #fff;
+}
+.blind-review-metrics strong {
+  display: block;
+  margin: 7px 0;
+  font-size: 1.8rem;
+  letter-spacing: -0.03em;
+}
+.blind-review-metrics small {
+  color: #68776f;
+}
+.blind-comparison-list {
+  display: grid;
+  gap: 14px;
+  margin-top: 18px;
+}
+.blind-comparison-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+.blind-review-reasoning,
+.blind-system-action {
+  margin-top: 12px;
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid #e2e9e5;
+}
+.blind-review-reasoning {
+  background: #f7faf8;
+}
+.blind-system-action {
+  background: #eef3ef;
+}
+.blind-review-reasoning p,
+.blind-system-action p {
+  margin: 6px 0 0;
+  line-height: 1.5;
+}
+.blind-system-action small {
+  display: block;
+  margin-top: 8px;
+  color: #68776f;
+}
+.blind-risk {
+  display: inline-flex !important;
+  width: fit-content;
+  padding: 5px 8px;
+  border-radius: 999px;
+}
+.blind-risk-low { background: #e4f4eb; color: #15613d; }
+.blind-risk-medium { background: #fff4dc; color: #7b4c00; }
+.blind-risk-high,
+.blind-risk-blocked { background: #fbe5e2; color: #8f251d; }
+
+@media (max-width: 900px) {
+  .blind-review-hero,
+  .blind-reviewer-grid,
+  .blind-stream-grid,
+  .blind-question-grid,
+  .blind-review-metrics,
+  .blind-comparison-grid {
+    grid-template-columns: 1fr;
+  }
+  .blind-case-nav {
+    grid-template-columns: 1fr;
+  }
+  .blind-case-nav > button {
+    width: 100%;
+  }
+  .blind-submit-card,
+  .blind-case-topline,
+  .blind-comparison-header {
+    flex-direction: column;
+  }
+  .blind-submit-actions {
+    justify-content: flex-start;
+  }
+}
+@media (max-width: 640px) {
+  .blind-review-shell {
+    width: min(100% - 20px, 1180px);
+    padding-top: 12px;
+  }
+  .blind-review-hero {
+    padding: 22px;
+  }
+}
+
+@media print {
+  body {
+    background: #fff;
+  }
+  .blind-print-pack {
+    display: block;
+  }
+  .blind-review-boundary,
+  .blind-reviewer-card,
+  .blind-case-card,
+  .blind-submit-card,
+  .blind-review-error,
+  .blind-review-metrics,
+  .blind-comparison-list {
+    display: none !important;
+  }
+  .blind-review-shell {
+    width: 100%;
+    padding: 0;
+  }
+  .blind-review-hero {
+    box-shadow: none;
+    background: #fff;
+    color: #18231f;
+    border: 1px solid #dfe7e2;
+  }
+  .blind-review-hero p,
+  .blind-review-hero-note span,
+  .blind-review-hero .eyebrow {
+    color: #52645c;
+  }
+  .blind-review-hero-note {
+    border-color: #dfe7e2;
+    background: #fff;
+  }
+  .blind-review-hero-note button,
+  .blind-case-nav,
+  .blind-submit-card button {
+    display: none !important;
+  }
+  .blind-reviewer-card,
+  .blind-case-card,
+  .blind-submit-card,
+  .blind-comparison-card {
+    box-shadow: none;
+    break-inside: avoid;
+  }
+}
+
+
+.blind-print-pack {
+  display: none;
+}
+.blind-print-case {
+  break-inside: avoid;
+  margin-top: 20px;
+  padding: 18px;
+  border: 1px solid #cfd8d3;
+  border-radius: 14px;
+}
+.blind-print-case h2 {
+  margin: 0 0 12px;
+}
+.blind-print-case dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px 16px;
+  margin: 0;
+}
+.blind-print-case dl div {
+  display: grid;
+  grid-template-columns: 140px minmax(0, 1fr);
+  gap: 8px;
+}
+.blind-print-case dt {
+  font-weight: 800;
+  color: #52645c;
+}
+.blind-print-case dd {
+  margin: 0;
+}
+.blind-print-response-lines {
+  margin-top: 14px;
+}
+.blind-print-lines {
+  line-height: 2;
+}
+
+
+@media print {
+  .blind-print-pack {
+    display: block !important;
+  }
+}

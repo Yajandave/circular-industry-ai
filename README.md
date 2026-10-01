@@ -222,6 +222,14 @@ Endpoints:
 
 Protocol: `docs/blind_review_protocol.md`
 
+Milestone 20C.5 adds a standalone **reviewer portal** at:
+
+`<frontend-base-url>/?mode=blind-review`
+
+The portal is intentionally separate from the normal Circular Industry AI operator workspace. It presents one blind case at a time, requires all current cases before submission, supports print/PDF export of the full blind pack, and reveals reviewer-versus-system comparisons only after submission.
+
+Reviewer mode is a UI isolation control, not an authentication boundary. Controlled studies should give reviewers only the reviewer-mode URL and separately document reviewer independence, competence and blind conditions.
+
 ---
 
 ## Current product capability
