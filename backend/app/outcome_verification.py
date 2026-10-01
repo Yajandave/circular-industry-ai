@@ -79,7 +79,7 @@ def evaluate_observed_outcome_evidence(
         internal_claim_readiness = "internal_factual_reporting_ready"
         allowed_statement = (
             f"Internal evidence review supports recording "
-            f"{float(outcome.observed_recovered_quantity_kg):g} kg as recovered during "
+            f"{float(outcome.observed_recovered_quantity_kg):g} kg as recorded recovered quantity during "
             f"{outcome.observation_start_date} to {outcome.observation_end_date}, "
             "with route or destination evidence confirmed."
         )
