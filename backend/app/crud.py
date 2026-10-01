@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import json
+from uuid import uuid4
 
 from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
 from app import models, schemas
 from app.outcome_verification import evaluate_observed_outcome_evidence
+from app.blind_decision_review import compare_blind_label, summarise_blind_review_submissions
 
 
 def create_stream(db: Session, stream: schemas.IndustrialStreamCreate) -> models.IndustrialStream:
@@ -842,5 +844,141 @@ def get_observed_outcome_evidence_review_history(
             "Evidence reviews are immutable internal governance records. "
             "A review can support a narrow internal factual statement, but external claims remain gated "
             "pending a separate verification process."
+        ),
+    )
+
+
+
+# Milestone 20C.4: blind external-review persistence
+
+def _blind_review_submission_read(
+    row: models.BlindDecisionReviewSubmission,
+) -> schemas.BlindDecisionReviewSubmissionRead:
+    return schemas.BlindDecisionReviewSubmissionRead(
+        id=row.id,
+        submission_batch_id=row.submission_batch_id,
+        reviewer_name=row.reviewer_name,
+        reviewer_role=row.reviewer_role,
+        reviewer_organisation=row.reviewer_organisation,
+        reviewer_declared_blind=row.reviewer_declared_blind,
+        case_id=row.case_id,
+        reviewer_strategy_category=row.reviewer_strategy_category,
+        reviewer_risk_level=row.reviewer_risk_level,
+        reviewer_human_review_required=row.reviewer_human_review_required,
+        reviewer_confidence=row.reviewer_confidence,
+        reviewer_reasoning=row.reviewer_reasoning,
+        system_rule_applied=row.system_rule_applied,
+        system_strategy_category=row.system_strategy_category,
+        system_risk_level=row.system_risk_level,
+        system_human_review_required=row.system_human_review_required,
+        system_recommended_action=row.system_recommended_action,
+        strategy_agreement=row.strategy_agreement,
+        risk_agreement=row.risk_agreement,
+        human_review_agreement=row.human_review_agreement,
+        created_at=row.created_at,
+    )
+
+
+def create_blind_decision_review_batch(
+    db: Session,
+    *,
+    payload: schemas.BlindDecisionReviewBatchCreate,
+) -> schemas.BlindDecisionReviewBatchResult:
+    batch_id = f"blind-review-{uuid4().hex}"
+    rows: list[models.BlindDecisionReviewSubmission] = []
+
+    for label in payload.labels:
+        comparison = compare_blind_label(label.model_dump())
+        row = models.BlindDecisionReviewSubmission(
+            submission_batch_id=batch_id,
+            reviewer_name=payload.reviewer_name.strip(),
+            reviewer_role=payload.reviewer_role.strip(),
+            reviewer_organisation=(
+                payload.reviewer_organisation.strip()
+                if payload.reviewer_organisation and payload.reviewer_organisation.strip()
+                else None
+            ),
+            reviewer_declared_blind=payload.reviewer_declared_blind,
+            case_id=label.case_id,
+            reviewer_strategy_category=label.strategy_category.strip(),
+            reviewer_risk_level=label.risk_level,
+            reviewer_human_review_required=label.human_review_required,
+            reviewer_confidence=label.confidence,
+            reviewer_reasoning=label.reasoning.strip(),
+            system_rule_applied=comparison["system_rule_applied"],
+            system_strategy_category=comparison["system_strategy_category"],
+            system_risk_level=comparison["system_risk_level"],
+            system_human_review_required=comparison["system_human_review_required"],
+            system_recommended_action=comparison["system_recommended_action"],
+            strategy_agreement=comparison["strategy_agreement"],
+            risk_agreement=comparison["risk_agreement"],
+            human_review_agreement=comparison["human_review_agreement"],
+        )
+        db.add(row)
+        rows.append(row)
+
+    db.commit()
+    for row in rows:
+        db.refresh(row)
+
+    reads = [_blind_review_submission_read(row) for row in rows]
+    metrics = summarise_blind_review_submissions(reads)
+
+    return schemas.BlindDecisionReviewBatchResult(
+        submission_batch_id=batch_id,
+        reviewer_name=payload.reviewer_name.strip(),
+        reviewer_role=payload.reviewer_role.strip(),
+        reviewer_organisation=(
+            payload.reviewer_organisation.strip()
+            if payload.reviewer_organisation and payload.reviewer_organisation.strip()
+            else None
+        ),
+        reviewer_declared_blind=payload.reviewer_declared_blind,
+        submissions=reads,
+        governance_note=(
+            "Agreement metrics compare reviewer labels with a snapshot of Circular Industry AI's output at submission time. "
+            "Exact strategy-category agreement is a coarse measure and should be interpreted alongside reviewer reasoning. "
+            "This workflow enables blind review but does not by itself prove reviewer independence, professional competence "
+            "or external validation quality."
+        ),
+        **metrics,
+    )
+
+
+def get_blind_decision_review_history(
+    db: Session,
+    *,
+    limit: int = 500,
+) -> schemas.BlindDecisionReviewHistory:
+    query = (
+        select(models.BlindDecisionReviewSubmission)
+        .order_by(
+            models.BlindDecisionReviewSubmission.created_at.desc(),
+            models.BlindDecisionReviewSubmission.id.desc(),
+        )
+        .limit(limit)
+    )
+    records = [_blind_review_submission_read(row) for row in db.scalars(query).all()]
+
+    total_submissions = db.scalar(
+        select(func.count(models.BlindDecisionReviewSubmission.id))
+    ) or 0
+    unique_reviewers = db.scalar(
+        select(func.count(func.distinct(models.BlindDecisionReviewSubmission.reviewer_name)))
+    ) or 0
+    unique_cases_reviewed = db.scalar(
+        select(func.count(func.distinct(models.BlindDecisionReviewSubmission.case_id)))
+    ) or 0
+
+    return schemas.BlindDecisionReviewHistory(
+        total_submissions=int(total_submissions),
+        unique_reviewers=int(unique_reviewers),
+        unique_cases_reviewed=int(unique_cases_reviewed),
+        submissions=records,
+        governance_note=(
+            "Stored blind-review submissions are immutable historical comparisons. "
+            "History totals cover the full stored dataset even when the returned record list is limited. "
+            "They should not be described as independent expert validation unless reviewer independence, "
+            "relevant competence and blind review conditions are documented outside this software."
         ),
     )

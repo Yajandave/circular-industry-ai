@@ -315,3 +315,43 @@ class ObservedOutcomeEvidenceReview(Base):
         default=lambda: datetime.now(timezone.utc),
         nullable=False,
     )
+
+
+
+# Milestone 20C.4: blind external-review submissions
+
+class BlindDecisionReviewSubmission(Base):
+    """Immutable reviewer judgement and contemporaneous system-output snapshot."""
+
+    __tablename__ = "blind_decision_review_submissions"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    submission_batch_id: Mapped[str] = mapped_column(String(80), index=True, nullable=False)
+
+    reviewer_name: Mapped[str] = mapped_column(String(120), index=True, nullable=False)
+    reviewer_role: Mapped[str] = mapped_column(String(160), nullable=False)
+    reviewer_organisation: Mapped[str | None] = mapped_column(String(180), nullable=True)
+    reviewer_declared_blind: Mapped[bool] = mapped_column(nullable=False)
+
+    case_id: Mapped[str] = mapped_column(String(80), index=True, nullable=False)
+    reviewer_strategy_category: Mapped[str] = mapped_column(String(120), index=True, nullable=False)
+    reviewer_risk_level: Mapped[str] = mapped_column(String(40), index=True, nullable=False)
+    reviewer_human_review_required: Mapped[bool] = mapped_column(nullable=False)
+    reviewer_confidence: Mapped[int] = mapped_column(Integer, nullable=False)
+    reviewer_reasoning: Mapped[str] = mapped_column(Text, nullable=False)
+
+    system_rule_applied: Mapped[str] = mapped_column(String(120), nullable=False)
+    system_strategy_category: Mapped[str] = mapped_column(String(120), index=True, nullable=False)
+    system_risk_level: Mapped[str] = mapped_column(String(40), index=True, nullable=False)
+    system_human_review_required: Mapped[bool] = mapped_column(nullable=False)
+    system_recommended_action: Mapped[str] = mapped_column(Text, nullable=False)
+
+    strategy_agreement: Mapped[bool] = mapped_column(nullable=False)
+    risk_agreement: Mapped[bool] = mapped_column(nullable=False)
+    human_review_agreement: Mapped[bool] = mapped_column(nullable=False)
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )

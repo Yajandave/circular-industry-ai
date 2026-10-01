@@ -1,0 +1,56 @@
+# Blind decision review protocol
+
+Milestone 20C.4 provides infrastructure for reviewer-versus-system comparison. It does **not** itself create independent validation.
+
+## Purpose
+
+A reviewer evaluates industrial material-stream cases without seeing Circular Industry AI's recommendation, rule, grounded validation constraints or expected answer.
+
+The reviewer records:
+
+- screening-level strategy category
+- risk level
+- whether human review is required
+- confidence from 1 to 5
+- written reasoning
+
+Only after submission does the system compare the review with a contemporaneous snapshot of its own output.
+
+## Blind-review sequence
+
+1. Retrieve `GET /api/decision-validation/blind-review-pack`.
+2. Give the reviewer only that pack.
+3. Do not show the reviewer:
+   - Circular Industry AI recommendations
+   - rule IDs
+   - 20C.1 internal benchmark labels
+   - 20C.2 grounded constraints or interpretations
+   - challenge-summary results
+4. The reviewer evaluates cases independently and records one structured label per case.
+5. Submit those labels through `POST /api/decision-validation/blind-review-submit`.
+6. Review agreement metrics only after submission.
+7. Preserve reviewer identity, role, organisation where applicable, reasoning and the blind declaration.
+
+## Interpretation
+
+The software reports strategy-category, risk-level and human-review agreement separately. Exact strategy-category agreement is intentionally treated as a coarse metric because two competent reviewers may use different category wording or prioritisation while reaching similar practical conclusions.
+
+A stored review should only be described as **independent expert validation** when there is evidence that:
+
+- the reviewer had relevant professional competence
+- the reviewer was sufficiently independent of development of the system
+- the reviewer did not see the system output before making their judgement
+- the reviewed case set was appropriate for the intended claim
+- disagreements and limitations were retained rather than removed
+
+The software cannot prove those conditions by itself.
+
+## Current case set
+
+The blind pack currently uses the 10 England-focused cases from the externally grounded 20C.2 challenge suite, but removes the guidance interpretation, constraints, source catalogue and system answer.
+
+This is a first external-review protocol, not a statistically representative industry validation study.
+
+## Claim boundary
+
+Do not report a high agreement percentage as proof that the product is legally compliant, regulator-approved, independently assured, universally accurate or production-ready.

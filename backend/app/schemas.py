@@ -1367,3 +1367,85 @@ class GroundedChallengeRunResult(BaseModel):
     source_catalogue: dict
     results: list[GroundedChallengeCaseResult]
     governance_note: str
+
+
+
+# Milestone 20C.4: blind external-review validation schemas
+
+class BlindDecisionReviewCase(BaseModel):
+    case_id: str
+    case_number: int
+    jurisdiction: str
+    stream: dict
+    strategy_category_options: list[str]
+    risk_level_options: list[str]
+    reviewer_prompt: str
+    blind_pack_note: str
+
+
+class BlindDecisionReviewLabel(BaseModel):
+    case_id: str
+    strategy_category: str = Field(..., min_length=1, max_length=120)
+    risk_level: str = Field(..., pattern="^(low|medium|high|blocked)$")
+    human_review_required: bool
+    confidence: int = Field(..., ge=1, le=5)
+    reasoning: str = Field(..., min_length=1, max_length=3000)
+
+
+class BlindDecisionReviewBatchCreate(BaseModel):
+    reviewer_name: str = Field(..., min_length=1, max_length=120)
+    reviewer_role: str = Field(..., min_length=1, max_length=160)
+    reviewer_organisation: str | None = Field(default=None, max_length=180)
+    reviewer_declared_blind: bool
+    labels: list[BlindDecisionReviewLabel] = Field(..., min_length=1, max_length=50)
+
+
+class BlindDecisionReviewSubmissionRead(BaseModel):
+    id: int
+    submission_batch_id: str
+    reviewer_name: str
+    reviewer_role: str
+    reviewer_organisation: str | None = None
+    reviewer_declared_blind: bool
+    case_id: str
+    reviewer_strategy_category: str
+    reviewer_risk_level: str
+    reviewer_human_review_required: bool
+    reviewer_confidence: int
+    reviewer_reasoning: str
+    system_rule_applied: str
+    system_strategy_category: str
+    system_risk_level: str
+    system_human_review_required: bool
+    system_recommended_action: str
+    strategy_agreement: bool
+    risk_agreement: bool
+    human_review_agreement: bool
+    created_at: datetime
+
+
+class BlindDecisionReviewBatchResult(BaseModel):
+    submission_batch_id: str
+    reviewer_name: str
+    reviewer_role: str
+    reviewer_organisation: str | None = None
+    reviewer_declared_blind: bool
+    total_labels: int
+    strategy_agreement_count: int
+    strategy_agreement_pct: float
+    risk_agreement_count: int
+    risk_agreement_pct: float
+    human_review_agreement_count: int
+    human_review_agreement_pct: float
+    full_agreement_count: int
+    full_agreement_pct: float
+    submissions: list[BlindDecisionReviewSubmissionRead]
+    governance_note: str
+
+
+class BlindDecisionReviewHistory(BaseModel):
+    total_submissions: int
+    unique_reviewers: int
+    unique_cases_reviewed: int
+    submissions: list[BlindDecisionReviewSubmissionRead]
+    governance_note: str
