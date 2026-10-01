@@ -1481,6 +1481,7 @@ class MultiReviewerCaseAnalysis(BaseModel):
     human_review_consensus: ReviewerDimensionConsensus
     system_snapshot_consistent: bool
     system_snapshot_count: int
+    system_snapshot_observation_count: int
     system_snapshots: list[dict]
     latest_system_snapshot: dict
     system_matches_strategy_consensus: bool | None = None
