@@ -274,6 +274,8 @@ Operators can also save named scenario revisions and revisit them later. Saved r
 
 A saved scenario revision can now receive immutable **observed outcome evidence** records with an observation period, observed recovered quantity, evidence reference and bounded verification status. The system compares the observation with a simple time-scaled version of the saved annual screening scenario and reports variance, while explicitly keeping the result non-claim-ready and non-causal.
 
+Observed outcome records can then pass through an immutable **internal evidence verification and claim-readiness gate**. The gate checks documentary source presence, source traceability, quantity basis, observation-period basis, evidence completeness and internal review status. A passing review may support a narrow internal factual statement only; external claims remain blocked pending a separate verification process, and claims about causal impact, carbon savings, financial savings, legal compliance or verified diversion remain prohibited.
+
 ### 6. Agentic research and insight workflows
 
 The AI-supported layer includes:
