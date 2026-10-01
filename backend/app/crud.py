@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 from app import models, schemas
 from app.outcome_verification import evaluate_observed_outcome_evidence
 from app.blind_decision_review import compare_blind_label, summarise_blind_review_submissions
+from app.blind_review_analysis import build_multi_reviewer_analysis
 
 
 def create_stream(db: Session, stream: schemas.IndustrialStreamCreate) -> models.IndustrialStream:
@@ -982,3 +983,17 @@ def get_blind_decision_review_history(
             "relevant competence and blind review conditions are documented outside this software."
         ),
     )
+
+
+
+def get_blind_multi_reviewer_analysis(
+    db: Session,
+) -> schemas.MultiReviewerAnalysisResult:
+    """Analyse all stored blind reviews without treating reviewer consensus as ground truth."""
+
+    query = select(models.BlindDecisionReviewSubmission).order_by(
+        models.BlindDecisionReviewSubmission.created_at.asc(),
+        models.BlindDecisionReviewSubmission.id.asc(),
+    )
+    records = list(db.scalars(query).all())
+    return schemas.MultiReviewerAnalysisResult(**build_multi_reviewer_analysis(records))

@@ -189,3 +189,15 @@ def blind_decision_review_history(
         db,
         limit=max(1, min(limit, 2000)),
     )
+
+
+
+@router.get(
+    "/blind-review-analysis",
+    response_model=schemas.MultiReviewerAnalysisResult,
+)
+def blind_multi_reviewer_analysis(
+    db: Session = Depends(get_db),
+) -> schemas.MultiReviewerAnalysisResult:
+    """Summarise reviewer consensus, disagreement and system-consensus comparison."""
+    return crud.get_blind_multi_reviewer_analysis(db)

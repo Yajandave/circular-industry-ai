@@ -83,3 +83,30 @@ A technically capable reviewer with direct access to the main application or API
 - do not give them the normal operator URL or validation-summary endpoints before submission
 - document the review session and blind declaration
 - for stronger commercial validation, add authentication and reviewer-specific access controls before relying on the software alone to enforce blinding
+
+
+## Multi-reviewer analysis
+
+After two or more reviewers have assessed overlapping cases, the operator can open:
+
+`<frontend-base-url>/?mode=review-analysis`
+
+or retrieve:
+
+`GET /api/decision-validation/blind-review-analysis`
+
+The analysis reports:
+
+- reviewer-label distributions per case
+- leading reviewer label and leading share
+- unanimity or split/majority status
+- pairwise reviewer agreement for strategy, risk and human-review decisions
+- whether the latest stored Circular Industry AI snapshot matches a non-tied reviewer consensus
+- whether the Circular Industry AI snapshot changed across reviewer submissions
+- reviewer reasoning and confidence
+
+Repeated submissions from the same self-identified reviewer profile for the same case are deduplicated so only the latest judgement contributes to consensus.
+
+In this alpha, a reviewer profile is identified from the submitted name, role and organisation rather than an authenticated account. Unique-reviewer counts therefore remain self-declared rather than identity-verified.
+
+Reviewer consensus is not ground truth. A majority can still be wrong, and disagreement can indicate case ambiguity, taxonomy limitations or genuine professional differences.

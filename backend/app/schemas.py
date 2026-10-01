@@ -1449,3 +1449,59 @@ class BlindDecisionReviewHistory(BaseModel):
     unique_cases_reviewed: int
     submissions: list[BlindDecisionReviewSubmissionRead]
     governance_note: str
+
+
+
+# Milestone 20C.6: multi-reviewer agreement analysis schemas
+
+class ReviewerDimensionConsensus(BaseModel):
+    reviewer_count: int
+    distribution: dict[str, int]
+    leading_label: str | None = None
+    leading_count: int
+    leading_share_pct: float
+    unanimous: bool
+    pairwise_agreement_pct: float | None = None
+    consensus_status: str
+
+
+class ReviewerReasoningRecord(BaseModel):
+    reviewer_name: str
+    reviewer_role: str
+    reviewer_organisation: str | None = None
+    confidence: int
+    reasoning: str
+
+
+class MultiReviewerCaseAnalysis(BaseModel):
+    case_id: str
+    reviewer_count: int
+    strategy_consensus: ReviewerDimensionConsensus
+    risk_consensus: ReviewerDimensionConsensus
+    human_review_consensus: ReviewerDimensionConsensus
+    system_snapshot_consistent: bool
+    system_snapshot_count: int
+    system_snapshot_observation_count: int
+    system_snapshots: list[dict]
+    latest_system_snapshot: dict
+    system_matches_strategy_consensus: bool | None = None
+    system_matches_risk_consensus: bool | None = None
+    system_matches_human_review_consensus: bool | None = None
+    reviewer_reasoning: list[ReviewerReasoningRecord]
+
+
+class SystemConsensusMatchMetric(BaseModel):
+    matched: int
+    eligible: int
+    match_pct: float | None = None
+
+
+class MultiReviewerAnalysisResult(BaseModel):
+    unique_reviewers: int
+    unique_cases_reviewed: int
+    cases_with_multiple_reviewers: int
+    deduplicated_submission_count: int
+    overall_pairwise_agreement: dict[str, float | None]
+    system_consensus_match: dict[str, SystemConsensusMatchMetric]
+    cases: list[MultiReviewerCaseAnalysis]
+    governance_note: str
