@@ -1205,3 +1205,50 @@ class ObservedScenarioOutcomeHistory(BaseModel):
     total_records: int
     records: list[ObservedScenarioOutcomeRead]
     governance_note: str
+
+
+
+class ObservedOutcomeEvidenceReviewCreate(BaseModel):
+    reviewer_name: str = Field(..., min_length=1, max_length=120)
+    reviewer_role: str = Field(..., min_length=1, max_length=120)
+    evidence_completeness: str = Field(
+        ...,
+        pattern="^(complete|partial|insufficient)$",
+    )
+    source_traceability_confirmed: bool
+    quantity_basis_confirmed: bool
+    period_basis_confirmed: bool
+    route_destination_confirmed: bool = False
+    review_note: str = Field(..., min_length=1, max_length=2000)
+
+
+class ObservedOutcomeEvidenceReviewRead(BaseModel):
+    id: int
+    observed_outcome_id: int
+    saved_scenario_id: int
+    stream_id: str
+    reviewer_name: str
+    reviewer_role: str
+    evidence_completeness: str
+    source_traceability_confirmed: bool
+    quantity_basis_confirmed: bool
+    period_basis_confirmed: bool
+    route_destination_confirmed: bool
+    review_note: str
+    verification_decision: str
+    internal_claim_readiness: str
+    external_claim_readiness: str
+    allowed_internal_statement: str | None = None
+    blocked_claims: list[str]
+    checks: dict[str, bool]
+    missing_checks: list[str]
+    governance_note: str
+    created_at: datetime
+
+
+class ObservedOutcomeEvidenceReviewHistory(BaseModel):
+    observed_outcome_id: int
+    total_reviews: int
+    latest_review: ObservedOutcomeEvidenceReviewRead | None = None
+    records: list[ObservedOutcomeEvidenceReviewRead]
+    governance_note: str
