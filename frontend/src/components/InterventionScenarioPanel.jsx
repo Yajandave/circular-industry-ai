@@ -169,6 +169,9 @@ export default function InterventionScenarioPanel({
     setSelectedOutcomeScenario(record);
     setObservedOutcomeForm(DEFAULT_OBSERVED_OUTCOME);
     setOutcomeError('');
+    setSelectedReviewOutcome(null);
+    setEvidenceReviewForm(DEFAULT_EVIDENCE_REVIEW);
+    setReviewError('');
     onLoadObservedOutcomeHistory(record.id);
   }
 
@@ -271,6 +274,9 @@ export default function InterventionScenarioPanel({
 
     try {
       await onRecordObservedOutcome(selectedOutcomeScenario.id, payload);
+      setSelectedReviewOutcome(null);
+      setEvidenceReviewForm(DEFAULT_EVIDENCE_REVIEW);
+      setReviewError('');
     } catch {
       // App-level status reporting already surfaces the API error.
     }
