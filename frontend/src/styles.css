@@ -6254,3 +6254,145 @@ button.donut-legend-row {
     flex-direction: column;
   }
 }
+
+
+/* Milestone 20B.6: evidence verification & claim-readiness gate */
+.scenario-verification-section {
+  margin-top: 22px;
+  padding-top: 20px;
+  border-top: 1px solid #dfe7e2;
+}
+.scenario-verification-form {
+  padding: 18px;
+  border-radius: 18px;
+  border: 1px solid #dfe7e2;
+  background: #fbfdfb;
+}
+.scenario-verification-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.scenario-verification-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  color: #56675f;
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+.scenario-verification-form input[type="text"],
+.scenario-verification-form select,
+.scenario-verification-form textarea {
+  width: 100%;
+  min-width: 0;
+  padding: 10px 11px;
+  border: 1px solid #cadbd1;
+  border-radius: 11px;
+  background: #fff;
+  color: #18231f;
+}
+.scenario-verification-checks {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+  margin: 14px 0;
+}
+.scenario-verification-checks label {
+  flex-direction: row;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid #dfe7e2;
+  background: #fff;
+}
+.scenario-verification-checks input {
+  width: auto;
+}
+.scenario-verification-note {
+  margin-top: 8px;
+}
+.scenario-verification-form > button {
+  margin-top: 14px;
+}
+.scenario-verification-history {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+}
+.scenario-verification-card {
+  padding: 18px;
+  border-radius: 18px;
+  border: 1px solid #dfe7e2;
+  background: #fff;
+}
+.scenario-verification-card-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: flex-start;
+}
+.scenario-verification-card-header > div {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.scenario-verification-card-header small {
+  color: #68776f;
+}
+.scenario-verification-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 14px 0;
+}
+.scenario-verification-summary > div {
+  padding: 12px;
+  border-radius: 13px;
+  background: #f5f8f6;
+  border: 1px solid #e2e9e5;
+}
+.scenario-verification-summary span,
+.scenario-allowed-claim > span {
+  display: block;
+  color: #68776f;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+.scenario-verification-summary strong {
+  display: block;
+  margin-top: 5px;
+}
+.scenario-allowed-claim {
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid #b9dac8;
+  background: #eef8f2;
+  color: #214f3a;
+}
+.scenario-allowed-claim p {
+  margin: 6px 0 0;
+  line-height: 1.5;
+  font-weight: 700;
+}
+.scenario-blocked-claim {
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid #e7c6c6;
+  background: #fff2f2;
+  color: #7a2d2d;
+}
+.scenario-verification-card > p {
+  color: #56675f;
+  line-height: 1.45;
+}
+@media (max-width: 760px) {
+  .scenario-verification-grid,
+  .scenario-verification-checks,
+  .scenario-verification-summary {
+    grid-template-columns: 1fr;
+  }
+  .scenario-verification-card-header {
+    flex-direction: column;
+  }
+}

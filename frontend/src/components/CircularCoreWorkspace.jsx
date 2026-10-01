@@ -53,6 +53,7 @@ export default function CircularCoreWorkspace({
   scenarioComparisonResult,
   scenarioHistory,
   observedOutcomeHistory,
+  outcomeEvidenceReviewHistory,
   filters,
   activeView,
   dashboardData,
@@ -74,6 +75,8 @@ export default function CircularCoreWorkspace({
   onLoadInterventionScenarioHistory,
   onRecordObservedScenarioOutcome,
   onLoadObservedOutcomeHistory,
+  onReviewObservedOutcomeEvidence,
+  onLoadObservedOutcomeEvidenceReviewHistory,
   onDraftSupplierEmail,
   onExplainEvidenceGap,
   onRefreshSiteCopilot,
@@ -151,12 +154,15 @@ export default function CircularCoreWorkspace({
             comparisonResult={scenarioComparisonResult}
             scenarioHistory={scenarioHistory}
             observedOutcomeHistory={observedOutcomeHistory}
+            outcomeEvidenceReviewHistory={outcomeEvidenceReviewHistory}
             onRunScenario={onRunInterventionScenario}
             onCompareScenarios={onCompareInterventionScenarios}
             onSaveScenario={onSaveInterventionScenario}
             onLoadScenarioHistory={onLoadInterventionScenarioHistory}
             onRecordObservedOutcome={onRecordObservedScenarioOutcome}
             onLoadObservedOutcomeHistory={onLoadObservedOutcomeHistory}
+            onReviewObservedOutcomeEvidence={onReviewObservedOutcomeEvidence}
+            onLoadObservedOutcomeEvidenceReviewHistory={onLoadObservedOutcomeEvidenceReviewHistory}
             busy={busy}
           />
         </section>

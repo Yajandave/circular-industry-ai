@@ -275,3 +275,43 @@ class ObservedScenarioOutcome(Base):
         default=lambda: datetime.now(timezone.utc),
         nullable=False,
     )
+
+
+
+# Milestone 20B.6: internal evidence verification reviews
+
+class ObservedOutcomeEvidenceReview(Base):
+    """Immutable internal evidence-review record for one observed outcome."""
+
+    __tablename__ = "observed_outcome_evidence_reviews"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    observed_outcome_id: Mapped[int] = mapped_column(Integer, index=True, nullable=False)
+    saved_scenario_id: Mapped[int] = mapped_column(Integer, index=True, nullable=False)
+    stream_id: Mapped[str] = mapped_column(String(30), index=True, nullable=False)
+
+    reviewer_name: Mapped[str] = mapped_column(String(120), nullable=False)
+    reviewer_role: Mapped[str] = mapped_column(String(120), nullable=False)
+    evidence_completeness: Mapped[str] = mapped_column(String(40), index=True, nullable=False)
+
+    source_traceability_confirmed: Mapped[bool] = mapped_column(nullable=False)
+    quantity_basis_confirmed: Mapped[bool] = mapped_column(nullable=False)
+    period_basis_confirmed: Mapped[bool] = mapped_column(nullable=False)
+    route_destination_confirmed: Mapped[bool] = mapped_column(nullable=False)
+
+    review_note: Mapped[str] = mapped_column(Text, nullable=False)
+
+    verification_decision: Mapped[str] = mapped_column(String(100), index=True, nullable=False)
+    internal_claim_readiness: Mapped[str] = mapped_column(String(100), index=True, nullable=False)
+    external_claim_readiness: Mapped[str] = mapped_column(String(100), index=True, nullable=False)
+    allowed_internal_statement: Mapped[str | None] = mapped_column(Text, nullable=True)
+    blocked_claims_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+    checks_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    missing_checks_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+    governance_note: Mapped[str] = mapped_column(Text, nullable=False)
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )

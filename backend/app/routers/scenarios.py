@@ -379,3 +379,115 @@ def observed_outcome_history(
         saved_scenario=saved_scenario,
         limit=max(1, min(limit, 500)),
     )
+
+
+
+@router.post(
+    "/outcomes/{observed_outcome_id}/reviews",
+    response_model=schemas.ObservedOutcomeEvidenceReviewRead,
+)
+def create_observed_outcome_evidence_review(
+    observed_outcome_id: int,
+    payload: schemas.ObservedOutcomeEvidenceReviewCreate,
+    db: Session = Depends(get_db),
+) -> schemas.ObservedOutcomeEvidenceReviewRead:
+    """Record one immutable internal evidence review for an observed outcome."""
+
+    outcome = crud.get_observed_scenario_outcome_by_id(
+        db,
+        observed_outcome_id=observed_outcome_id,
+    )
+    if outcome is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Observed scenario outcome not found: {observed_outcome_id}",
+        )
+
+    if not payload.reviewer_name.strip():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Reviewer name must contain non-whitespace characters.",
+        )
+    if not payload.reviewer_role.strip():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Reviewer role must contain non-whitespace characters.",
+        )
+    if not payload.review_note.strip():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Review note must contain non-whitespace characters.",
+        )
+
+    review = crud.create_observed_outcome_evidence_review(
+        db,
+        outcome=outcome,
+        payload=payload,
+    )
+
+    crud.create_audit_event(
+        db,
+        event_type="observed_outcome_evidence_reviewed",
+        entity_type="observed_outcome_evidence_review",
+        entity_id=str(review.id),
+        actor_type="operator",
+        actor_id="local_user",
+        source="intervention_scenario_router",
+        action="create_observed_outcome_evidence_review",
+        summary=(
+            f"Recorded internal evidence review for observed outcome {observed_outcome_id}: "
+            f"{review.verification_decision}."
+        ),
+        decision_source="deterministic_evidence_verification_gate",
+        claim_boundary=(
+            "Evidence-review outputs support internal factual reporting only when the gate passes. "
+            "External claims remain blocked pending a separate verification process."
+        ),
+        metadata={
+            "observed_outcome_id": review.observed_outcome_id,
+            "saved_scenario_id": review.saved_scenario_id,
+            "stream_id": review.stream_id,
+            "reviewer_name": review.reviewer_name,
+            "reviewer_role": review.reviewer_role,
+            "evidence_completeness": review.evidence_completeness,
+            "source_traceability_confirmed": review.source_traceability_confirmed,
+            "quantity_basis_confirmed": review.quantity_basis_confirmed,
+            "period_basis_confirmed": review.period_basis_confirmed,
+            "route_destination_confirmed": review.route_destination_confirmed,
+            "verification_decision": review.verification_decision,
+            "internal_claim_readiness": review.internal_claim_readiness,
+            "external_claim_readiness": review.external_claim_readiness,
+            "allowed_internal_statement": review.allowed_internal_statement,
+            "missing_checks": review.missing_checks,
+        },
+    )
+
+    return review
+
+
+@router.get(
+    "/outcomes/{observed_outcome_id}/reviews",
+    response_model=schemas.ObservedOutcomeEvidenceReviewHistory,
+)
+def observed_outcome_evidence_review_history(
+    observed_outcome_id: int,
+    limit: int = 100,
+    db: Session = Depends(get_db),
+) -> schemas.ObservedOutcomeEvidenceReviewHistory:
+    """Return immutable internal evidence reviews for one observed outcome."""
+
+    outcome = crud.get_observed_scenario_outcome_by_id(
+        db,
+        observed_outcome_id=observed_outcome_id,
+    )
+    if outcome is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Observed scenario outcome not found: {observed_outcome_id}",
+        )
+
+    return crud.get_observed_outcome_evidence_review_history(
+        db,
+        outcome=outcome,
+        limit=max(1, min(limit, 500)),
+    )
