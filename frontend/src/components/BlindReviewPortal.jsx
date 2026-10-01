@@ -132,7 +132,7 @@ export default function BlindReviewPortal() {
     }
     if (!allCasesComplete) {
       const firstIncomplete = pack.findIndex((item) => !answerComplete(item.case_id));
-      setError('Complete all 10 cases before submitting the blind review.');
+      setError(`Complete all ${pack.length} cases before submitting the blind review.`);
       if (firstIncomplete >= 0) moveTo(firstIncomplete);
       return;
     }
@@ -171,6 +171,19 @@ export default function BlindReviewPortal() {
           <span className="eyebrow">Circular Industry AI</span>
           <h1>Loading blind reviewer pack…</h1>
           <p>The system comparison remains hidden until reviewer submission.</p>
+        </section>
+      </main>
+    );
+  }
+
+  if (error && !pack.length) {
+    return (
+      <main className="blind-review-shell">
+        <section className="blind-review-loading">
+          <span className="eyebrow">Circular Industry AI</span>
+          <h1>Reviewer pack unavailable</h1>
+          <p>{error}</p>
+          <p>No review data has been loaded or submitted.</p>
         </section>
       </main>
     );
