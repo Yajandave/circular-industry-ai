@@ -100,8 +100,11 @@ def _system_matches(consensus: dict[str, Any], system_value: Any) -> bool | None
 def build_multi_reviewer_analysis(records: list[Any]) -> dict[str, Any]:
     deduplicated = latest_review_per_reviewer_case(records)
     by_case: dict[str, list[Any]] = defaultdict(list)
+    all_by_case: dict[str, list[Any]] = defaultdict(list)
     for record in deduplicated:
         by_case[record.case_id].append(record)
+    for record in records:
+        all_by_case[record.case_id].append(record)
 
     case_results: list[dict[str, Any]] = []
     all_strategy_pairs: list[bool] = []
@@ -124,7 +127,11 @@ def build_multi_reviewer_analysis(records: list[Any]) -> dict[str, Any]:
                 left.reviewer_human_review_required == right.reviewer_human_review_required
             )
 
-        system = case_records[-1]
+        raw_case_records = sorted(
+            all_by_case[case_id],
+            key=lambda item: (item.created_at, item.id),
+        )
+        system = raw_case_records[-1]
         snapshot_counts = Counter(
             (
                 item.system_rule_applied,
@@ -133,7 +140,7 @@ def build_multi_reviewer_analysis(records: list[Any]) -> dict[str, Any]:
                 item.system_human_review_required,
                 item.system_recommended_action,
             )
-            for item in case_records
+            for item in raw_case_records
         )
         system_snapshots = [
             {
@@ -156,6 +163,7 @@ def build_multi_reviewer_analysis(records: list[Any]) -> dict[str, Any]:
                 "human_review_consensus": human_review,
                 "system_snapshot_consistent": len(system_snapshots) == 1,
                 "system_snapshot_count": len(system_snapshots),
+                "system_snapshot_observation_count": len(raw_case_records),
                 "system_snapshots": system_snapshots,
                 "latest_system_snapshot": {
                     "rule_applied": system.system_rule_applied,
