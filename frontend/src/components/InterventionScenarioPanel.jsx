@@ -20,6 +20,17 @@ const DEFAULT_OBSERVED_OUTCOME = {
   operator_note: '',
 };
 
+const DEFAULT_EVIDENCE_REVIEW = {
+  reviewer_name: '',
+  reviewer_role: '',
+  evidence_completeness: 'partial',
+  source_traceability_confirmed: false,
+  quantity_basis_confirmed: false,
+  period_basis_confirmed: false,
+  route_destination_confirmed: false,
+  review_note: '',
+};
+
 const DEFAULT_COMPARISON_CASES = [
   {
     case_name: 'Conservative',
@@ -80,12 +91,15 @@ export default function InterventionScenarioPanel({
   comparisonResult,
   scenarioHistory,
   observedOutcomeHistory,
+  outcomeEvidenceReviewHistory,
   onRunScenario,
   onCompareScenarios,
   onSaveScenario,
   onLoadScenarioHistory,
   onRecordObservedOutcome,
   onLoadObservedOutcomeHistory,
+  onReviewObservedOutcomeEvidence,
+  onLoadObservedOutcomeEvidenceReviewHistory,
   busy,
 }) {
   const [selectedId, setSelectedId] = useState('');
@@ -97,6 +111,9 @@ export default function InterventionScenarioPanel({
   const [selectedOutcomeScenario, setSelectedOutcomeScenario] = useState(null);
   const [observedOutcomeForm, setObservedOutcomeForm] = useState(DEFAULT_OBSERVED_OUTCOME);
   const [outcomeError, setOutcomeError] = useState('');
+  const [selectedReviewOutcome, setSelectedReviewOutcome] = useState(null);
+  const [evidenceReviewForm, setEvidenceReviewForm] = useState(DEFAULT_EVIDENCE_REVIEW);
+  const [reviewError, setReviewError] = useState('');
   const [localError, setLocalError] = useState('');
   const [comparisonError, setComparisonError] = useState('');
 
@@ -115,6 +132,9 @@ export default function InterventionScenarioPanel({
       setSelectedOutcomeScenario(null);
       setObservedOutcomeForm(DEFAULT_OBSERVED_OUTCOME);
       setOutcomeError('');
+      setSelectedReviewOutcome(null);
+      setEvidenceReviewForm(DEFAULT_EVIDENCE_REVIEW);
+      setReviewError('');
     }
     // The App callback is intentionally omitted because it is recreated on render.
   }, [selectedId]);
@@ -136,6 +156,9 @@ export default function InterventionScenarioPanel({
   const outcomeHistoryMatchesSelection = (
     observedOutcomeHistory?.saved_scenario_id === selectedOutcomeScenario?.id
   );
+  const reviewHistoryMatchesSelection = (
+    outcomeEvidenceReviewHistory?.observed_outcome_id === selectedReviewOutcome?.id
+  );
 
   function updateAssumption(key, value) {
     setAssumptions((current) => ({ ...current, [key]: value }));
@@ -152,6 +175,58 @@ export default function InterventionScenarioPanel({
   function updateObservedOutcome(key, value) {
     setObservedOutcomeForm((current) => ({ ...current, [key]: value }));
     setOutcomeError('');
+  }
+
+  function selectReviewOutcome(record) {
+    setSelectedReviewOutcome(record);
+    setEvidenceReviewForm(DEFAULT_EVIDENCE_REVIEW);
+    setReviewError('');
+    onLoadObservedOutcomeEvidenceReviewHistory(record.id);
+  }
+
+  function updateEvidenceReview(key, value) {
+    setEvidenceReviewForm((current) => ({ ...current, [key]: value }));
+    setReviewError('');
+  }
+
+  async function submitEvidenceReview(event) {
+    event.preventDefault();
+    setReviewError('');
+
+    if (!selectedReviewOutcome) {
+      setReviewError('Choose an observed outcome before reviewing its evidence.');
+      return;
+    }
+
+    if (!evidenceReviewForm.reviewer_name.trim()) {
+      setReviewError('Enter the reviewer name.');
+      return;
+    }
+    if (!evidenceReviewForm.reviewer_role.trim()) {
+      setReviewError('Enter the reviewer role.');
+      return;
+    }
+    if (!evidenceReviewForm.review_note.trim()) {
+      setReviewError('Add a review note describing what was checked.');
+      return;
+    }
+
+    const payload = {
+      reviewer_name: evidenceReviewForm.reviewer_name.trim(),
+      reviewer_role: evidenceReviewForm.reviewer_role.trim(),
+      evidence_completeness: evidenceReviewForm.evidence_completeness,
+      source_traceability_confirmed: evidenceReviewForm.source_traceability_confirmed,
+      quantity_basis_confirmed: evidenceReviewForm.quantity_basis_confirmed,
+      period_basis_confirmed: evidenceReviewForm.period_basis_confirmed,
+      route_destination_confirmed: evidenceReviewForm.route_destination_confirmed,
+      review_note: evidenceReviewForm.review_note.trim(),
+    };
+
+    try {
+      await onReviewObservedOutcomeEvidence(selectedReviewOutcome.id, payload);
+    } catch {
+      // App-level status reporting already surfaces the API error.
+    }
   }
 
   async function submitObservedOutcome(event) {
@@ -819,9 +894,177 @@ export default function InterventionScenarioPanel({
                   <p><strong>Evidence:</strong> {humanise(record.evidence_source_type)} · {record.evidence_reference}</p>
                   {record.operator_note && <p>{record.operator_note}</p>}
 
+                  <button
+                    type="button"
+                    className="secondary"
+                    onClick={() => selectReviewOutcome(record)}
+                    disabled={busy}
+                  >
+                    Review evidence / claim readiness
+                  </button>
+
                   <div className="governance-strip">
                     <strong>{humanise(record.claim_status)}</strong>
                     <p>{record.governance_note}</p>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
+
+      {selectedReviewOutcome && (
+        <section className="scenario-verification-section">
+          <div className="section-heading compact-heading">
+            <div>
+              <h3>Evidence verification & claim-readiness gate</h3>
+              <p>
+                Review observed outcome #{selectedReviewOutcome.id}. Passing this gate can support a narrow internal
+                factual statement only; external claims remain gated.
+              </p>
+            </div>
+            <span>{reviewHistoryMatchesSelection ? outcomeEvidenceReviewHistory.total_reviews : 0} reviews</span>
+          </div>
+
+          <form className="scenario-verification-form" onSubmit={submitEvidenceReview}>
+            <div className="scenario-verification-grid">
+              <label>
+                <span>Reviewer name</span>
+                <input
+                  type="text"
+                  value={evidenceReviewForm.reviewer_name}
+                  onChange={(event) => updateEvidenceReview('reviewer_name', event.target.value)}
+                  disabled={busy}
+                />
+              </label>
+              <label>
+                <span>Reviewer role</span>
+                <input
+                  type="text"
+                  value={evidenceReviewForm.reviewer_role}
+                  onChange={(event) => updateEvidenceReview('reviewer_role', event.target.value)}
+                  disabled={busy}
+                />
+              </label>
+              <label>
+                <span>Evidence completeness</span>
+                <select
+                  value={evidenceReviewForm.evidence_completeness}
+                  onChange={(event) => updateEvidenceReview('evidence_completeness', event.target.value)}
+                  disabled={busy}
+                >
+                  <option value="insufficient">Insufficient</option>
+                  <option value="partial">Partial</option>
+                  <option value="complete">Complete</option>
+                </select>
+              </label>
+            </div>
+
+            <div className="scenario-verification-checks">
+              {[
+                ['source_traceability_confirmed', 'Source traceability confirmed'],
+                ['quantity_basis_confirmed', 'Quantity basis confirmed'],
+                ['period_basis_confirmed', 'Observation period basis confirmed'],
+                ['route_destination_confirmed', 'Route / destination evidence confirmed'],
+              ].map(([key, label]) => (
+                <label key={key}>
+                  <input
+                    type="checkbox"
+                    checked={evidenceReviewForm[key]}
+                    onChange={(event) => updateEvidenceReview(key, event.target.checked)}
+                    disabled={busy}
+                  />
+                  <span>{label}</span>
+                </label>
+              ))}
+            </div>
+
+            <label className="scenario-verification-note">
+              <span>Review note</span>
+              <textarea
+                rows="3"
+                value={evidenceReviewForm.review_note}
+                onChange={(event) => updateEvidenceReview('review_note', event.target.value)}
+                placeholder="What documents, calculations and dates were checked?"
+                disabled={busy}
+              />
+            </label>
+
+            {reviewError && <p className="error">{reviewError}</p>}
+            <button type="submit" disabled={busy}>
+              {busy ? 'Recording review…' : 'Run internal claim-readiness gate'}
+            </button>
+          </form>
+
+          <div className="scenario-history-governance">
+            The gate requires complete, traceable documentary evidence and an internally reviewed observed outcome
+            before it can support internal factual reporting. It never authorises external claims.
+          </div>
+
+          {!reviewHistoryMatchesSelection || !outcomeEvidenceReviewHistory?.records?.length ? (
+            <div className="scenario-history-empty">
+              No evidence reviews for this observed outcome yet.
+            </div>
+          ) : (
+            <div className="scenario-verification-history">
+              {outcomeEvidenceReviewHistory.records.map((review) => (
+                <article className="scenario-verification-card" key={review.id}>
+                  <div className="scenario-verification-card-header">
+                    <div>
+                      <span className="record-id">{humanise(review.verification_decision)}</span>
+                      <strong>{humanise(review.internal_claim_readiness)}</strong>
+                      <small>{review.reviewer_name} · {review.reviewer_role}</small>
+                    </div>
+                    <span className="scenario-history-stage">{humanise(review.external_claim_readiness)}</span>
+                  </div>
+
+                  <div className="scenario-verification-summary">
+                    <div>
+                      <span>Evidence completeness</span>
+                      <strong>{humanise(review.evidence_completeness)}</strong>
+                    </div>
+                    <div>
+                      <span>Missing checks</span>
+                      <strong>{review.missing_checks.length ? review.missing_checks.length : 'None'}</strong>
+                    </div>
+                  </div>
+
+                  {review.allowed_internal_statement ? (
+                    <div className="scenario-allowed-claim">
+                      <span>Allowed internal statement</span>
+                      <p>{review.allowed_internal_statement}</p>
+                    </div>
+                  ) : (
+                    <div className="scenario-blocked-claim">
+                      <strong>No internal factual claim is ready from this review.</strong>
+                    </div>
+                  )}
+
+                  {!!review.missing_checks.length && (
+                    <div className="scenario-detail-block">
+                      <h4>Checks still missing</h4>
+                      <ul>
+                        {review.missing_checks.map((item) => (
+                          <li key={item}>{humanise(item)}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  <div className="scenario-detail-block">
+                    <h4>Claims still blocked</h4>
+                    <ul>
+                      {review.blocked_claims.map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <p>{review.review_note}</p>
+                  <div className="governance-strip">
+                    <strong>{humanise(review.external_claim_readiness)}</strong>
+                    <p>{review.governance_note}</p>
                   </div>
                 </article>
               ))}
