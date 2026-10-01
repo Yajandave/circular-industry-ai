@@ -62,11 +62,15 @@ def test_blind_review_pack_withholds_system_answers_and_grounded_labels():
             "case_number",
             "jurisdiction",
             "stream",
+            "strategy_category_options",
+            "risk_level_options",
             "reviewer_prompt",
             "blind_pack_note",
         }
         assert "Circular Industry AI" in case["blind_pack_note"]
         assert "system" not in case["stream"]
+        assert "human review required" in case["strategy_category_options"]
+        assert case["risk_level_options"] == ["low", "medium", "high", "blocked"]
 
     assert pack[0]["case_number"] == 1
     assert pack[-1]["case_number"] == 10
