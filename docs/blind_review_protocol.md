@@ -18,6 +18,23 @@ Only after submission does the system compare the review with a contemporaneous 
 
 ## Blind-review sequence
 
+### Preferred reviewer interface
+
+Share only the dedicated reviewer-mode frontend URL:
+
+`<frontend-base-url>/?mode=blind-review`
+
+The reviewer portal:
+
+- loads the blind case pack without exposing system answers
+- requires reviewer name, professional role and blind declaration
+- requires all 10 current cases before submission
+- captures strategy category, risk level, human-review requirement, confidence and reasoning
+- unlocks the reviewer-versus-system comparison only after successful submission
+- can print or save the complete blind case pack as PDF
+
+### API sequence
+
 1. Retrieve `GET /api/decision-validation/blind-review-pack`.
 2. Give the reviewer only that pack.
 3. Do not show the reviewer:
@@ -54,3 +71,15 @@ This is a first external-review protocol, not a statistically representative ind
 ## Claim boundary
 
 Do not report a high agreement percentage as proof that the product is legally compliant, regulator-approved, independently assured, universally accurate or production-ready.
+
+
+## Alpha access-control limitation
+
+Reviewer mode isolates the reviewer UI from the normal operator interface, but it is not an authentication or authorisation boundary.
+
+A technically capable reviewer with direct access to the main application or API could deliberately navigate outside reviewer mode. For a controlled review:
+
+- give the reviewer only the reviewer-mode URL
+- do not give them the normal operator URL or validation-summary endpoints before submission
+- document the review session and blind declaration
+- for stronger commercial validation, add authentication and reviewer-specific access controls before relying on the software alone to enforce blinding
