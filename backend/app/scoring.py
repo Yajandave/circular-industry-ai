@@ -198,10 +198,10 @@ def score_risk_level(stream: StreamLike) -> tuple[str, bool]:
     material = _clean(stream.material)
     safety_flags = infer_contextual_safety_flags(stream)
 
-    if safety_flags:
-        return "high", True
     if hazardous == "true" and contamination == "high":
         return "blocked", True
+    if safety_flags:
+        return "high", True
     if hazardous == "true":
         return "high", True
     if hazardous == "unknown" and contamination in {"medium", "high", "unknown"}:
