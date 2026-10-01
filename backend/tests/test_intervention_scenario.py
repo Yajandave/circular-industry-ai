@@ -580,3 +580,185 @@ def test_observed_outcome_rejects_unsupported_verification_status():
     )
 
     assert response.status_code == 422
+
+
+
+def _create_reviewable_observed_outcome(*, verification_status="internally_reviewed", source_type="weighbridge_ticket"):
+    client.post("/api/streams/load-sample")
+    client.post("/api/recommendations/run")
+
+    saved = client.post(
+        "/api/scenarios/S001/save",
+        json={
+            "scenario_name": f"Verification gate {uuid4().hex[:10]}",
+            "lifecycle_stage": "pilot_planned",
+            "addressable_fraction_pct": 80,
+            "technical_capture_rate_pct": 85,
+            "route_acceptance_rate_pct": 90,
+            "operator_note": "Scenario saved for evidence-gate testing.",
+        },
+    ).json()
+
+    response = client.post(
+        f"/api/scenarios/saved/{saved['id']}/outcomes",
+        json={
+            "observation_start_date": "2026-05-01",
+            "observation_end_date": "2026-05-31",
+            "observed_recovered_quantity_kg": 640,
+            "evidence_source_type": source_type,
+            "evidence_reference": f"EVID-{uuid4().hex[:8]}",
+            "verification_status": verification_status,
+            "operator_note": "Observed record prepared for internal evidence review.",
+        },
+    )
+    assert response.status_code == 200
+    return response.json()
+
+
+def test_complete_internally_reviewed_documentary_evidence_supports_narrow_internal_statement():
+    outcome = _create_reviewable_observed_outcome()
+
+    response = client.post(
+        f"/api/scenarios/outcomes/{outcome['id']}/reviews",
+        json={
+            "reviewer_name": "Internal Reviewer",
+            "reviewer_role": "Sustainability Assurance",
+            "evidence_completeness": "complete",
+            "source_traceability_confirmed": True,
+            "quantity_basis_confirmed": True,
+            "period_basis_confirmed": True,
+            "route_destination_confirmed": True,
+            "review_note": "Weighbridge references and period totals reconciled to the internal record.",
+        },
+    )
+
+    assert response.status_code == 200
+    review = response.json()
+    assert review["verification_decision"] == "internally_supported_with_route_context"
+    assert review["internal_claim_readiness"] == "internal_factual_reporting_ready"
+    assert review["external_claim_readiness"] == "external_verification_required"
+    assert "640 kg" in review["allowed_internal_statement"]
+    assert "route or destination evidence confirmed" in review["allowed_internal_statement"]
+    assert "carbon or greenhouse-gas savings" in review["blocked_claims"]
+    assert review["missing_checks"] == []
+
+    history_response = client.get(
+        f"/api/scenarios/outcomes/{outcome['id']}/reviews"
+    )
+    assert history_response.status_code == 200
+    history = history_response.json()
+    assert history["total_reviews"] >= 1
+    assert history["latest_review"]["id"] == review["id"]
+    assert "external claims remain gated" in history["governance_note"].lower()
+
+    audit_response = client.get(
+        "/api/audit/events?event_type=observed_outcome_evidence_reviewed&limit=50"
+    )
+    assert audit_response.status_code == 200
+    event = next(
+        item
+        for item in audit_response.json()
+        if item["entity_id"] == str(review["id"])
+    )
+    assert event["metadata_json"]["verification_decision"] == "internally_supported_with_route_context"
+    assert event["metadata_json"]["external_claim_readiness"] == "external_verification_required"
+
+
+def test_internal_gate_can_support_observed_quantity_without_confirming_destination():
+    outcome = _create_reviewable_observed_outcome()
+
+    response = client.post(
+        f"/api/scenarios/outcomes/{outcome['id']}/reviews",
+        json={
+            "reviewer_name": "Internal Reviewer",
+            "reviewer_role": "Operations Review",
+            "evidence_completeness": "complete",
+            "source_traceability_confirmed": True,
+            "quantity_basis_confirmed": True,
+            "period_basis_confirmed": True,
+            "route_destination_confirmed": False,
+            "review_note": "Quantity and dates reconciled; destination evidence remains outstanding.",
+        },
+    )
+
+    assert response.status_code == 200
+    review = response.json()
+    assert review["verification_decision"] == "internally_supported_observed_quantity"
+    assert review["internal_claim_readiness"] == "internal_factual_reporting_ready"
+    assert "destination or circular route is not confirmed" in review["allowed_internal_statement"]
+    assert review["external_claim_readiness"] == "external_verification_required"
+
+
+def test_operator_reported_outcome_cannot_pass_internal_claim_gate():
+    outcome = _create_reviewable_observed_outcome(
+        verification_status="operator_reported",
+        source_type="weighbridge_ticket",
+    )
+
+    response = client.post(
+        f"/api/scenarios/outcomes/{outcome['id']}/reviews",
+        json={
+            "reviewer_name": "Internal Reviewer",
+            "reviewer_role": "Sustainability Assurance",
+            "evidence_completeness": "complete",
+            "source_traceability_confirmed": True,
+            "quantity_basis_confirmed": True,
+            "period_basis_confirmed": True,
+            "route_destination_confirmed": True,
+            "review_note": "Review inputs entered, but source record was never internally reviewed.",
+        },
+    )
+
+    assert response.status_code == 200
+    review = response.json()
+    assert review["verification_decision"] == "evidence_insufficient_for_internal_claim"
+    assert review["internal_claim_readiness"] == "not_ready"
+    assert review["allowed_internal_statement"] is None
+    assert "outcome_internally_reviewed" in review["missing_checks"]
+
+
+def test_operator_log_alone_cannot_pass_documentary_evidence_gate():
+    outcome = _create_reviewable_observed_outcome(
+        verification_status="internally_reviewed",
+        source_type="operator_log",
+    )
+
+    response = client.post(
+        f"/api/scenarios/outcomes/{outcome['id']}/reviews",
+        json={
+            "reviewer_name": "Internal Reviewer",
+            "reviewer_role": "Operations Review",
+            "evidence_completeness": "complete",
+            "source_traceability_confirmed": True,
+            "quantity_basis_confirmed": True,
+            "period_basis_confirmed": True,
+            "route_destination_confirmed": False,
+            "review_note": "Only an operator log is available; documentary evidence is still required.",
+        },
+    )
+
+    assert response.status_code == 200
+    review = response.json()
+    assert review["internal_claim_readiness"] == "not_ready"
+    assert "documentary_source_present" in review["missing_checks"]
+
+
+def test_evidence_review_rejects_blank_reviewer_identity():
+    outcome = _create_reviewable_observed_outcome()
+
+    response = client.post(
+        f"/api/scenarios/outcomes/{outcome['id']}/reviews",
+        json={
+            "reviewer_name": "   ",
+            "reviewer_role": "Reviewer",
+            "evidence_completeness": "complete",
+            "source_traceability_confirmed": True,
+            "quantity_basis_confirmed": True,
+            "period_basis_confirmed": True,
+            "route_destination_confirmed": False,
+            "review_note": "Evidence was reviewed.",
+        },
+    )
+
+    assert response.status_code == 400
+    assert "reviewer name" in response.json()["detail"].lower()
