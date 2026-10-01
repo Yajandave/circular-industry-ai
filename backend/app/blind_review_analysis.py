@@ -125,6 +125,28 @@ def build_multi_reviewer_analysis(records: list[Any]) -> dict[str, Any]:
             )
 
         system = case_records[-1]
+        snapshot_counts = Counter(
+            (
+                item.system_rule_applied,
+                item.system_strategy_category,
+                item.system_risk_level,
+                item.system_human_review_required,
+                item.system_recommended_action,
+            )
+            for item in case_records
+        )
+        system_snapshots = [
+            {
+                "rule_applied": snapshot[0],
+                "strategy_category": snapshot[1],
+                "risk_level": snapshot[2],
+                "human_review_required": snapshot[3],
+                "recommended_action": snapshot[4],
+                "submission_count": count,
+            }
+            for snapshot, count in snapshot_counts.items()
+        ]
+
         case_results.append(
             {
                 "case_id": case_id,
@@ -132,7 +154,10 @@ def build_multi_reviewer_analysis(records: list[Any]) -> dict[str, Any]:
                 "strategy_consensus": strategy,
                 "risk_consensus": risk,
                 "human_review_consensus": human_review,
-                "system_snapshot": {
+                "system_snapshot_consistent": len(system_snapshots) == 1,
+                "system_snapshot_count": len(system_snapshots),
+                "system_snapshots": system_snapshots,
+                "latest_system_snapshot": {
                     "rule_applied": system.system_rule_applied,
                     "strategy_category": system.system_strategy_category,
                     "risk_level": system.system_risk_level,
@@ -202,8 +227,9 @@ def build_multi_reviewer_analysis(records: list[Any]) -> dict[str, Any]:
         "cases": case_results,
         "governance_note": (
             "Reviewer consensus is not treated as ground truth. Pairwise agreement measures how often reviewer "
-            "pairs chose the same label on the same case. System-versus-consensus comparisons are reported only "
-            "where a non-tied leading label exists, and multi-reviewer interpretation should retain disagreements, "
-            "reviewer reasoning and sample-size limitations."
+            "pairs chose the same label on the same case. System-versus-consensus comparisons use the latest stored "
+            "system snapshot and are reported only where a non-tied leading reviewer label exists. Cases also disclose "
+            "whether system snapshots changed across reviewer submissions. Interpretation should retain disagreements, "
+            "reviewer reasoning, model-version effects and sample-size limitations."
         ),
     }
