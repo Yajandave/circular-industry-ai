@@ -638,6 +638,7 @@ def test_complete_internally_reviewed_documentary_evidence_supports_narrow_inter
     assert review["internal_claim_readiness"] == "internal_factual_reporting_ready"
     assert review["external_claim_readiness"] == "external_verification_required"
     assert "640 kg" in review["allowed_internal_statement"]
+    assert "recorded recovered quantity" in review["allowed_internal_statement"]
     assert "route or destination evidence confirmed" in review["allowed_internal_statement"]
     assert "carbon or greenhouse-gas savings" in review["blocked_claims"]
     assert review["missing_checks"] == []
