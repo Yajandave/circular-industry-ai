@@ -210,6 +210,18 @@ Milestone 20C.3 closes the four initially identified grounded gaps through gener
 
 Both validation layers are expected to remain green after these changes: the 20-case internal benchmark must retain full agreement, and all 10 current grounded challenge cases must satisfy their broader guidance-based constraints.
 
+Milestone 20C.4 adds a **blind reviewer workflow** for the next validation stage. The reviewer-facing pack contains case data and a neutral decision taxonomy but withholds Circular Industry AI outputs, rules, grounded constraints, interpretations and expected answers. Reviewer judgements are stored immutably together with a snapshot of the system output generated only at submission time.
+
+The workflow reports strategy-category, risk-level and human-review agreement separately. It does not call those metrics "accuracy" and does not claim independent expert validation unless reviewer competence, independence and blind conditions are documented outside the software.
+
+Endpoints:
+
+- `GET /api/decision-validation/blind-review-pack`
+- `POST /api/decision-validation/blind-review-submit`
+- `GET /api/decision-validation/blind-review-history`
+
+Protocol: `docs/blind_review_protocol.md`
+
 ---
 
 ## Current product capability
