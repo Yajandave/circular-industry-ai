@@ -54,6 +54,12 @@ export const api = {
     body: JSON.stringify(payload),
   }),
   observedOutcomeEvidenceReviewHistory: (observedOutcomeId) => request(`/api/scenarios/outcomes/${observedOutcomeId}/reviews?limit=100`),
+  blindDecisionReviewPack: () => request('/api/decision-validation/blind-review-pack'),
+  submitBlindDecisionReview: (payload) => request('/api/decision-validation/blind-review-submit', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  }),
   reviewPack: (streamId) => request(`/api/agent/review-pack/${encodeURIComponent(streamId)}`),
   managementSummary: () => request('/api/agent/management-summary'),
   actionPlan: (limit = 12) => request(`/api/agent/action-plan?limit=${limit}`),
