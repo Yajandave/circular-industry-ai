@@ -15,6 +15,22 @@ from app.rules_engine import recommend_for_stream
 
 CASE_MAP = {case["case_id"]: case for case in GROUNDED_CHALLENGE_CASES}
 
+STRATEGY_CATEGORY_OPTIONS = [
+    "human review required",
+    "compliant disposal / specialist recovery",
+    "reduce / process redesign",
+    "supplier take-back / circular procurement",
+    "closed-loop recycling",
+    "internal reuse / returnable packaging",
+    "open-loop recycling",
+    "industrial symbiosis / resource recovery",
+    "open-loop recycling / specialist recovery",
+    "compliant disposal",
+    "other / insufficient information",
+]
+
+RISK_LEVEL_OPTIONS = ["low", "medium", "high", "blocked"]
+
 
 def build_blind_review_pack() -> list[dict[str, Any]]:
     pack: list[dict[str, Any]] = []
@@ -25,6 +41,8 @@ def build_blind_review_pack() -> list[dict[str, Any]]:
                 "case_number": index,
                 "jurisdiction": case["jurisdiction"],
                 "stream": case["stream"],
+                "strategy_category_options": STRATEGY_CATEGORY_OPTIONS,
+                "risk_level_options": RISK_LEVEL_OPTIONS,
                 "reviewer_prompt": (
                     "Using only the case information shown, record the most appropriate screening-level "
                     "strategy category, risk level, whether human review is required, and your reasoning."
