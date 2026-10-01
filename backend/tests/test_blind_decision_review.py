@@ -220,3 +220,17 @@ def test_blind_review_submission_rejects_blank_reviewer_identity():
 
     assert response.status_code == 400
     assert "reviewer name" in response.json()["detail"].lower()
+
+
+
+def test_blind_review_submission_rejects_strategy_outside_published_taxonomy():
+    payload = _review_batch()
+    payload["labels"][0]["strategy_category"] = "my custom category"
+
+    response = client.post(
+        "/api/decision-validation/blind-review-submit",
+        json=payload,
+    )
+
+    assert response.status_code == 400
+    assert "blind-pack taxonomy" in response.json()["detail"].lower()
