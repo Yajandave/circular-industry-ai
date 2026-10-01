@@ -195,6 +195,12 @@ Endpoints:
 
 The next validation stage is to challenge and replace these internal reference labels with documented domain judgement and realistic industrial cases.
 
+Milestone 20C.2 adds a separate **externally grounded challenge suite** using current public guidance from GOV.UK, the Environment Agency, Defra and London Fire Brigade. These cases are not labelled with expected Circular Industry AI rule IDs. Instead, they define broader constraints such as whether human review is required, which risk bands are acceptable, which strategy categories are allowed or forbidden, and which safety/classification concepts must appear in the output.
+
+The current grounded challenge set deliberately includes cases expected to expose weaknesses in the present engine, including damaged lithium batteries, unresolved WEEE classification, hazardous-residue packaging and edible food surplus. A gap in this suite is treated as a product finding to investigate, not as a CI failure to hide.
+
+The interpretation of public guidance into software constraints remains an internal product judgement and is not legal advice, regulatory approval or independent professional assurance.
+
 ---
 
 ## Current product capability
