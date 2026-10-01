@@ -193,3 +193,22 @@ def test_edible_food_surplus_prioritises_prevention_and_redistribution_before_re
     assert recommendation.human_review_required is False
     assert "redistribut" in recommendation.recommended_circular_action.lower()
     assert "recovery" in recommendation.reasoning.lower()
+
+
+
+def test_completed_nonhazardous_weee_classification_does_not_trigger_contextual_review():
+    recommendation = recommend_for_stream(
+        _make_stream(
+            stream_name="Classified non-hazardous electronic component rejects",
+            material="electronic components",
+            contamination_risk="low",
+            hazardous_flag="false",
+            current_route="specialist recovery",
+            notes="Classification completed; no hazardous properties identified.",
+        )
+    )
+
+    assert recommendation.rule_applied == "R010_SPECIALIST_RECOVERY"
+    assert recommendation.circular_strategy_category == "open-loop recycling / specialist recovery"
+    assert recommendation.risk_level == "low"
+    assert recommendation.human_review_required is False
