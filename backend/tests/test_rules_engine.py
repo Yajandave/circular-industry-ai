@@ -112,3 +112,84 @@ def test_recommendation_summary_endpoint():
     assert summary["total_recommendations"] >= 40
     assert summary["human_review_required"] > 0
     assert summary["total_estimated_annual_disposal_cost_avoided"] >= 0
+
+
+
+def test_damaged_battery_context_forces_high_risk_human_review_even_if_structured_flags_are_low():
+    recommendation = recommend_for_stream(
+        _make_stream(
+            stream_name="Damaged swollen lithium-ion battery modules",
+            material="batteries",
+            contamination_risk="low",
+            hazardous_flag="false",
+            current_route="mixed recycling",
+            notes="Several modules are damaged and swollen.",
+        )
+    )
+
+    assert recommendation.rule_applied == "R001_HAZARDOUS_OR_UNKNOWN_REVIEW"
+    assert recommendation.circular_strategy_category == "human review required"
+    assert recommendation.risk_level == "high"
+    assert recommendation.human_review_required is True
+    assert "battery" in recommendation.recommended_circular_action.lower()
+    assert "battery condition" in recommendation.missing_data.lower()
+
+
+def test_unresolved_weee_classification_forces_review_before_recovery():
+    recommendation = recommend_for_stream(
+        _make_stream(
+            stream_name="Mixed display and circuit-board assemblies",
+            material="electronic components",
+            contamination_risk="low",
+            hazardous_flag="false",
+            current_route="general recycling",
+            notes="Hazardous substances and POPs classification has not been completed.",
+        )
+    )
+
+    assert recommendation.rule_applied == "R001_HAZARDOUS_OR_UNKNOWN_REVIEW"
+    assert recommendation.risk_level == "high"
+    assert recommendation.human_review_required is True
+    assert "classification" in recommendation.recommended_circular_action.lower()
+    assert "weee" in recommendation.missing_data.lower()
+
+
+def test_hazardous_residue_packaging_blocks_routine_reuse():
+    recommendation = recommend_for_stream(
+        _make_stream(
+            stream_name="Solvent-contaminated return packaging",
+            material="cardboard/packaging",
+            contamination_risk="low",
+            hazardous_flag="false",
+            current_route="packaging reuse",
+            notes="Packaging contains residues from a hazardous solvent product.",
+        )
+    )
+
+    assert recommendation.rule_applied == "R001_HAZARDOUS_OR_UNKNOWN_REVIEW"
+    assert recommendation.circular_strategy_category == "human review required"
+    assert recommendation.risk_level == "high"
+    assert recommendation.human_review_required is True
+    assert "internal reuse" not in recommendation.recommended_circular_action.lower()
+    assert "packaging classification" in recommendation.missing_data.lower()
+
+
+def test_edible_food_surplus_prioritises_prevention_and_redistribution_before_recovery():
+    recommendation = recommend_for_stream(
+        _make_stream(
+            stream_name="Unopened bakery surplus still fit for consumption",
+            material="organic/process residue",
+            source_process="finished goods overproduction",
+            contamination_risk="low",
+            hazardous_flag="false",
+            current_route="anaerobic digestion",
+            notes="Product remains within use-by date and fit for human consumption.",
+        )
+    )
+
+    assert recommendation.rule_applied == "R003_REDUCE_AT_SOURCE"
+    assert recommendation.circular_strategy_category == "reduce / process redesign"
+    assert recommendation.risk_level == "low"
+    assert recommendation.human_review_required is False
+    assert "redistribut" in recommendation.recommended_circular_action.lower()
+    assert "recovery" in recommendation.reasoning.lower()
