@@ -123,6 +123,7 @@ def test_latest_repeat_submission_per_reviewer_case_is_used_once():
     assert result["deduplicated_submission_count"] == 2
     assert result["unique_reviewers"] == 2
     assert case["reviewer_count"] == 2
+    assert case["system_snapshot_observation_count"] == 3
     assert case["strategy_consensus"]["distribution"] == {"closed-loop recycling": 2}
     assert case["strategy_consensus"]["consensus_status"] == "unanimous"
 
