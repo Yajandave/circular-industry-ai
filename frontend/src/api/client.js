@@ -60,6 +60,7 @@ export const api = {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   }),
+  blindReviewAnalysis: () => request('/api/decision-validation/blind-review-analysis'),
   reviewPack: (streamId) => request(`/api/agent/review-pack/${encodeURIComponent(streamId)}`),
   managementSummary: () => request('/api/agent/management-summary'),
   actionPlan: (limit = 12) => request(`/api/agent/action-plan?limit=${limit}`),
