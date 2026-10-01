@@ -1377,6 +1377,8 @@ class BlindDecisionReviewCase(BaseModel):
     case_number: int
     jurisdiction: str
     stream: dict
+    strategy_category_options: list[str]
+    risk_level_options: list[str]
     reviewer_prompt: str
     blind_pack_note: str
 
