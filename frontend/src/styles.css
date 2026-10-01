@@ -6852,3 +6852,10 @@ button.blind-case-dot.active {
 .blind-print-lines {
   line-height: 2;
 }
+
+
+@media print {
+  .blind-print-pack {
+    display: block !important;
+  }
+}
