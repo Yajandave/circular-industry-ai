@@ -52,6 +52,7 @@ export default function App() {
   const [scenarioComparisonResult, setScenarioComparisonResult] = useState(null);
   const [scenarioHistory, setScenarioHistory] = useState(null);
   const [observedOutcomeHistory, setObservedOutcomeHistory] = useState(null);
+  const [outcomeEvidenceReviewHistory, setOutcomeEvidenceReviewHistory] = useState(null);
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
   const [activeView, setActiveView] = useState('dashboard');
   const [activeDomain, setActiveDomain] = useState('circular-core');
@@ -162,6 +163,7 @@ export default function App() {
     setScenarioComparisonResult(null);
     setScenarioHistory(null);
     setObservedOutcomeHistory(null);
+    setOutcomeEvidenceReviewHistory(null);
     setReviewPack(null);
     setAiReasoning(null);
     setSiteCopilotSummary(null);
@@ -181,6 +183,7 @@ export default function App() {
       setScenarioComparisonResult(null);
       setScenarioHistory(null);
       setObservedOutcomeHistory(null);
+      setOutcomeEvidenceReviewHistory(null);
       setAiReasoning(null);
       setSiteCopilotSummary(null);
       setAgenticWorkflow(null);
@@ -230,6 +233,7 @@ export default function App() {
       const history = await api.interventionScenarioHistory(streamId);
       setScenarioHistory(history);
       setObservedOutcomeHistory(null);
+      setOutcomeEvidenceReviewHistory(null);
       setActiveView('scenario');
       return saved;
     });
@@ -251,8 +255,30 @@ export default function App() {
       const saved = await api.recordObservedScenarioOutcome(savedScenarioId, payload);
       const history = await api.observedScenarioOutcomeHistory(savedScenarioId);
       setObservedOutcomeHistory(history);
+      setOutcomeEvidenceReviewHistory(null);
       setActiveView('scenario');
       return saved;
+    });
+  }
+
+  async function loadObservedOutcomeEvidenceReviewHistory(observedOutcomeId) {
+    try {
+      const result = await api.observedOutcomeEvidenceReviewHistory(observedOutcomeId);
+      setOutcomeEvidenceReviewHistory(result);
+      return result;
+    } catch {
+      setOutcomeEvidenceReviewHistory(null);
+      return null;
+    }
+  }
+
+  async function reviewObservedOutcomeEvidence(observedOutcomeId, payload) {
+    return safeRun('Observed outcome evidence review recorded.', async () => {
+      const review = await api.reviewObservedOutcomeEvidence(observedOutcomeId, payload);
+      const history = await api.observedOutcomeEvidenceReviewHistory(observedOutcomeId);
+      setOutcomeEvidenceReviewHistory(history);
+      setActiveView('scenario');
+      return review;
     });
   }
 
@@ -417,6 +443,7 @@ export default function App() {
     scenarioComparisonResult,
     scenarioHistory,
     observedOutcomeHistory,
+    outcomeEvidenceReviewHistory,
     filters,
     activeView,
     dashboardData,
@@ -438,6 +465,8 @@ export default function App() {
     onLoadInterventionScenarioHistory: loadInterventionScenarioHistory,
     onRecordObservedScenarioOutcome: recordObservedScenarioOutcome,
     onLoadObservedOutcomeHistory: loadObservedOutcomeHistory,
+    onReviewObservedOutcomeEvidence: reviewObservedOutcomeEvidence,
+    onLoadObservedOutcomeEvidenceReviewHistory: loadObservedOutcomeEvidenceReviewHistory,
     onDraftSupplierEmail: draftSupplierEmail,
     onExplainEvidenceGap: explainEvidenceGap,
     onRefreshSiteCopilot: refreshSiteCopilot,
