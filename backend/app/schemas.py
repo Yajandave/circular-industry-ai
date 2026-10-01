@@ -1306,3 +1306,64 @@ class DecisionValidationRunResult(BaseModel):
     agreement: dict[str, DecisionValidationAgreementMetric]
     results: list[DecisionValidationCaseResult]
     governance_note: str
+
+
+
+# Milestone 20C.2: externally grounded challenge validation schemas
+
+class GroundedChallengeCaseDefinition(BaseModel):
+    case_id: str
+    title: str
+    case_type: str
+    jurisdiction: str
+    label_source: str
+    validation_status: str
+    interpretation: str
+    source_ids: list[str]
+    sources: list[dict]
+    stream: dict
+    constraints: dict
+
+
+class GroundedChallengeRunRequest(BaseModel):
+    case_ids: list[str] | None = None
+
+
+class GroundedChallengeCheck(BaseModel):
+    check_id: str
+    status: str
+    expected: object
+    actual: object
+    detail: str
+
+
+class GroundedChallengeCaseResult(BaseModel):
+    case_id: str
+    title: str
+    case_type: str
+    jurisdiction: str
+    label_source: str
+    validation_status: str
+    status: str
+    failed_check_count: int
+    checks: list[GroundedChallengeCheck]
+    actual: dict
+    interpretation: str
+    source_ids: list[str]
+    sources: list[dict]
+
+
+class GroundedChallengeRunResult(BaseModel):
+    suite_name: str
+    validation_status: str
+    jurisdiction: str
+    total_cases: int
+    passing_cases: int
+    gap_cases: int
+    pass_pct: float
+    failed_checks: int
+    check_breakdown: dict
+    gap_case_ids: list[str]
+    source_catalogue: dict
+    results: list[GroundedChallengeCaseResult]
+    governance_note: str
