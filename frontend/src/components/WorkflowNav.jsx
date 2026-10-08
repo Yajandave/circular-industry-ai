@@ -2,7 +2,7 @@ const TABS = [
   { id: 'dashboard', label: 'Dashboard', helper: 'Site-level screening and opportunity profile', requiresData: false, requiresRecommendations: false },
   { id: 'recommendations', label: 'Recommendations', helper: 'Locked rules-engine outputs', requiresData: true, requiresRecommendations: false },
   { id: 'scenario', label: 'Scenario screening', helper: 'Assumption-led intervention potential', requiresData: true, requiresRecommendations: true },
-  { id: 'agentic-intelligence', label: 'Agentic intelligence', helper: 'Workflow, graph, history and evaluation', requiresData: true, requiresRecommendations: false },
+  { id: 'agentic-intelligence', label: 'Decision intelligence', helper: 'Controlled retrieval, graph, history and evaluation', requiresData: true, requiresRecommendations: false },
   { id: 'ai-copilot', label: 'AI Copilot', helper: 'Site briefing and next actions', requiresData: true, requiresRecommendations: true },
   { id: 'ai-reasoning', label: 'AI reasoning', helper: 'Optional AI explanation', requiresData: true, requiresRecommendations: true },
   { id: 'resolutions', label: 'Resolution plans', helper: 'Pilots, KPIs and claim boundaries', requiresData: true, requiresRecommendations: true },
