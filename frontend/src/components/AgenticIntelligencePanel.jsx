@@ -58,7 +58,7 @@ function GraphSummary({ workflow }) {
   const relationshipSummary = workflow?.relationship_summary;
 
   if (!graph) {
-    return <p className="muted">Run agentic workflow to inspect graph relationships.</p>;
+    return <p className="muted">Run controlled workflow to inspect graph relationships.</p>;
   }
 
   return (
@@ -96,7 +96,7 @@ function InsightSummary({ workflow }) {
   const insight = workflow?.insight;
 
   if (!insight) {
-    return <p className="muted">Run agentic workflow to generate insight output.</p>;
+    return <p className="muted">Run controlled workflow to generate insight output.</p>;
   }
 
   return (
@@ -207,10 +207,10 @@ export default function AgenticIntelligencePanel({
     <section className="agentic-panel">
       <div className="section-heading compact-heading">
         <div>
-          <h2>Agentic intelligence operator</h2>
+          <h2>Decision intelligence operator</h2>
           <p>
             Inspect the controlled workflow that links raw stream data to retrieval, graph relationships,
-            autonomous insight, saved history and evaluation checks.
+            AI-assisted insight, saved history and evaluation checks.
           </p>
         </div>
         <span>Rules locked</span>
@@ -287,7 +287,7 @@ export default function AgenticIntelligencePanel({
       </div>
 
       <p className="governance-strip">
-        Agentic intelligence output is advisory. The workflow explains retrieval, graph relationships and generated
+        Decision-intelligence output is advisory. The workflow explains controlled retrieval, graph relationships and generated
         insight, but it does not verify legal compliance, supplier acceptance, verified diversion, carbon savings,
         financial savings or completed operational impact.
       </p>
