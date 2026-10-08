@@ -567,6 +567,6 @@ def build_action_plan(
         "phases": dict(phases),
         "governance_note": (
             "Action-plan order is for operator attention, not automatic implementation approval. "
-            "Validation priorities still require feasibility and evidence checks."
+            "Validation priorities still require feasibility and evidence checks, and no external claims are authorised by this ordering."
         ),
     }
