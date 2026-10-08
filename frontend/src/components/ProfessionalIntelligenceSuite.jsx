@@ -8,14 +8,19 @@ function safeRecords(dashboardData) {
 
 function sortByPriority(records) {
   return [...records].sort((a, b) => {
-    const priorityDelta = Number(b.priority_score || 0) - Number(a.priority_score || 0);
+    const priorityDelta = Number(b.priority_rank || 0) - Number(a.priority_rank || 0);
     if (priorityDelta !== 0) return priorityDelta;
     return Number(b.estimated_annual_disposal_cost_avoided || 0) - Number(a.estimated_annual_disposal_cost_avoided || 0);
   });
 }
 
 function evidenceWeakness(record) {
-  return Math.max(0, 100 - Number(record.evidence_quality_score || 0));
+  return {
+    controlled_review: 4,
+    evidence_uplift: 3,
+    screening_ready_with_checks: 2,
+    screening_ready: 1,
+  }[record.evidence_bucket] || 2;
 }
 
 function classifyIssue(record) {
@@ -84,26 +89,35 @@ function buildIssueRegister(records) {
   });
 }
 
-function scenarioScore(record, scenario) {
-  const evidence = Number(record.evidence_quality_score || 0);
-  const confidence = Number(record.confidence_score || 0);
-  const priority = Number(record.priority_score || 0);
-  const riskPenalty = record.risk_level === 'blocked' ? 45 : record.risk_level === 'high' ? 30 : record.risk_level === 'medium' ? 12 : 0;
-  const reviewPenalty = record.human_review_required ? 18 : 0;
-  const supplierBoost = record.supplier_bucket === 'supplier_loop_candidate' ? 14 : 0;
-  const evidencePenalty = record.evidence_bucket === 'evidence_uplift' ? 18 : 0;
+function scenarioPosition(record, scenario) {
+  const category = String(record.circular_strategy_category || '').toLowerCase();
+  const action = String(record.recommended_circular_action || '').toLowerCase();
+  const current = `${category} ${action}`;
 
-  const scenarioBias = {
-    reduce_avoid: 14,
-    internal_reuse: record.opportunity_bucket === 'quick_win' ? 16 : 8,
-    supplier_takeback: supplierBoost,
-    closed_loop_recycling: String(record.material || '').toLowerCase().includes('metal') ? 12 : 7,
-    industrial_symbiosis: record.opportunity_bucket === 'developing' ? 13 : 6,
-    recovery: record.risk_level === 'low' ? 5 : 2,
-    controlled_disposal_fallback: record.human_review_required || ['high', 'blocked'].includes(record.risk_level) ? 18 : -8,
-  }[scenario.key] || 0;
+  if (record.human_review_required || ['high', 'blocked'].includes(record.risk_level)) {
+    return scenario.key === 'controlled_disposal_fallback'
+      ? { rank: 4, label: 'Controlled fallback while review is unresolved' }
+      : { rank: 1, label: 'Do not prioritise before review gate closes' };
+  }
 
-  return Math.max(0, Math.min(100, Math.round(priority * 0.45 + evidence * 0.24 + confidence * 0.18 + scenarioBias - riskPenalty - reviewPenalty - evidencePenalty)));
+  const matches = {
+    reduce_avoid: ['reduce', 'prevent', 'redesign'].some((term) => current.includes(term)),
+    internal_reuse: ['internal reuse', 'returnable packaging', 'reuse'].some((term) => current.includes(term)),
+    supplier_takeback: ['supplier take-back', 'supplier takeback', 'circular procurement'].some((term) => current.includes(term)),
+    closed_loop_recycling: ['closed-loop', 'closed loop'].some((term) => current.includes(term)),
+    industrial_symbiosis: ['industrial symbiosis', 'resource recovery'].some((term) => current.includes(term)),
+    recovery: ['specialist recovery', 'open-loop recycling', 'recovery'].some((term) => current.includes(term)),
+    controlled_disposal_fallback: ['compliant disposal'].some((term) => current.includes(term)),
+  };
+
+  if (matches[scenario.key]) return { rank: 4, label: 'Primary route from current locked screening rule' };
+  if (scenario.key === 'supplier_takeback' && record.supplier_bucket === 'supplier_loop_candidate') {
+    return { rank: 3, label: 'Secondary route worth supplier feasibility review' };
+  }
+  if (record.evidence_bucket === 'evidence_uplift' || record.evidence_bucket === 'screening_ready_with_checks') {
+    return { rank: 2, label: 'Investigate only after evidence checks' };
+  }
+  return { rank: 2, label: 'Alternative route for feasibility screening' };
 }
 
 function buildScenarios(record) {
@@ -170,18 +184,18 @@ function buildScenarios(record) {
 
   return baseScenarios
     .map((scenario) => {
-      const score = scenarioScore(record, scenario);
-      const reviewRequired = record.human_review_required || ['high', 'blocked'].includes(record.risk_level) || record.evidence_bucket === 'evidence_uplift';
+      const position = scenarioPosition(record, scenario);
+      const reviewRequired = record.human_review_required || ['high', 'blocked'].includes(record.risk_level) || ['evidence_uplift', 'screening_ready_with_checks'].includes(record.evidence_bucket);
       return {
         ...scenario,
-        score,
+        position,
         reviewRequired,
         claimSafety: reviewRequired
           ? 'No external claim. Use as screening route until evidence and review gates are closed.'
           : 'Internal validation route only. Do not claim verified impact until implementation evidence exists.',
       };
     })
-    .sort((a, b) => b.score - a.score);
+    .sort((a, b) => b.position.rank - a.position.rank);
 }
 
 function MetricCard({ label, value, note }) {
@@ -196,7 +210,7 @@ function MetricCard({ label, value, note }) {
 
 function ExecutiveReport({ records, dashboardData }) {
   const sorted = sortByPriority(records);
-  const quickWins = sorted.filter((record) => record.priority_band === 'quick win').slice(0, 5);
+  const quickWins = sorted.filter((record) => record.priority_band === 'validation priority').slice(0, 5);
   const controlled = sorted.filter((record) => record.human_review_required || ['high', 'blocked'].includes(record.risk_level)).slice(0, 5);
   const evidenceGaps = sorted.filter((record) => record.evidence_bucket === 'evidence_uplift').slice(0, 5);
   const supplierActions = sorted.filter((record) => record.supplier_bucket === 'supplier_loop_candidate').slice(0, 5);
@@ -213,9 +227,9 @@ function ExecutiveReport({ records, dashboardData }) {
       <article className="professional-briefing-card wide">
         <h3>Executive briefing</h3>
         <p>
-          Circular Industry AI has screened operational material-flow records and converted them into controlled circular economy,
-          ESG, EIA-style and sustainability intelligence outputs. The briefing below identifies where operators should focus
-          attention first: high-priority opportunities, controlled reviews, evidence gaps and supplier-loop actions.
+          Circular Industry AI has screened operational material-flow records into controlled circular-economy decisions and adjacent
+          sustainability issue cues. The briefing below identifies where operators should focus attention first: validation priorities,
+          controlled reviews, evidence gaps and supplier-loop actions. The ESG/EIA cues are screening prompts, not formal assessments.
         </p>
         <p className="professional-governance-note">
           This report is an operator decision-support briefing. It does not verify savings, diversion, environmental benefit,
@@ -223,7 +237,7 @@ function ExecutiveReport({ records, dashboardData }) {
         </p>
       </article>
 
-      <ReportList title="Priority circular opportunities" records={quickWins} empty="No quick-win records currently identified." />
+      <ReportList title="Priority circular opportunities" records={quickWins} empty="No validation-priority records currently identified." />
       <ReportList title="Controlled review priorities" records={controlled} empty="No controlled-review records currently identified." />
       <ReportList title="Evidence uplift actions" records={evidenceGaps} empty="No evidence-uplift records currently identified." />
       <ReportList title="Supplier-loop actions" records={supplierActions} empty="No supplier-loop candidate records currently identified." />
@@ -242,7 +256,7 @@ function ReportList({ title, records, empty }) {
             <div>
               <span className="record-id">{record.stream_id}</span>
               <strong>{record.stream_name}</strong>
-              <small>{record.material} · {record.risk_level} risk · evidence {record.evidence_quality_score}/100</small>
+              <small>{record.material} · {record.risk_level} risk · {record.evidence_label}</small>
             </div>
             <div className="professional-row-value">
               <strong>{formatCurrency(record.estimated_annual_disposal_cost_avoided)}</strong>
@@ -310,7 +324,7 @@ function IssueInspector({ issue, onSelectReviewPack }) {
 
       <div className="professional-kpi-grid">
         <article><span>Risk</span><strong>{issue.risk_level}</strong></article>
-        <article><span>Evidence</span><strong>{issue.evidence_quality_score}/100</strong></article>
+        <article><span>Evidence</span><strong>{issue.evidence_label}</strong></article>
         <article><span>Review</span><strong>{issue.human_review_required ? 'Required' : 'Internal validation'}</strong></article>
         <article><span>Priority</span><strong>{issue.priority_band}</strong></article>
       </div>
@@ -369,7 +383,7 @@ function ScenarioComparison({ records, onSelectReviewPack }) {
               <div>
                 <span className="record-id">{selected.stream_id}</span>
                 <h3>{selected.stream_name}</h3>
-                <p>{selected.material} · {selected.department} · {selected.risk_level} risk · evidence {selected.evidence_quality_score}/100</p>
+                <p>{selected.material} · {selected.department} · {selected.risk_level} risk · {selected.evidence_label}</p>
               </div>
               {onSelectReviewPack && (
                 <button type="button" className="secondary-button" onClick={() => onSelectReviewPack(selected.stream_id)}>
@@ -387,7 +401,7 @@ function ScenarioComparison({ records, onSelectReviewPack }) {
                     <h4>{scenario.label}</h4>
                     <span>{scenario.route}</span>
                   </div>
-                  <strong>{scenario.score}</strong>
+                  <strong>{scenario.position.label}</strong>
                 </div>
                 <div className="scenario-mini-grid">
                   <div><span>Complexity</span><strong>{scenario.complexity}</strong></div>
@@ -423,7 +437,7 @@ export default function ProfessionalIntelligenceSuite({ dashboardData, onSelectR
         <div>
           <h2>Professional intelligence suite</h2>
           <p>
-            Executive reporting, ESG/EIA-style issue classification and scenario comparison built from locked screening records.
+            Executive reporting, adjacent ESG/EIA issue cues and qualitative route screening built from locked circular-economy records. These are not formal ESG or EIA assessments.
           </p>
         </div>
         <span>12D/E/F suite</span>
