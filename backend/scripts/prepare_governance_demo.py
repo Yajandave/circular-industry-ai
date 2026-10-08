@@ -15,7 +15,7 @@ import sys
 
 BACKEND_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(BACKEND_DIR))
-OUTPUT_DIR = BACKEND_DIR / "demo_databases"
+OUTPUT_DIR = Path(os.environ.get("CIRCULAR_DEMO_OUTPUT_DIR", str(BACKEND_DIR / "demo_databases"))).resolve()
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 output = OUTPUT_DIR / f"governance_demo_{datetime.now(timezone.utc):%Y%m%d_%H%M%S_%f}.db"
 if output.exists():
