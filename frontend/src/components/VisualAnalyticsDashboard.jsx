@@ -40,10 +40,16 @@ function sliceMatchesRecord(slice, record) {
 
 function sortRecords(records, mode) {
   const sorted = [...records];
+  const evidenceRank = {
+    controlled_review: 4,
+    evidence_uplift: 3,
+    screening_ready_with_checks: 2,
+    screening_ready: 1,
+  };
   const selectors = {
-    priority: (record) => Number(record.priority_score) || 0,
+    priority: (record) => Number(record.priority_rank) || 0,
     cost: (record) => Number(record.estimated_annual_disposal_cost_avoided) || 0,
-    evidence_weakness: (record) => 100 - (Number(record.evidence_quality_score) || 0),
+    evidence_weakness: (record) => evidenceRank[record.evidence_bucket] || 0,
     diversion: (record) => Number(record.estimated_annual_waste_diverted_kg) || 0,
   };
   const selector = selectors[mode] || selectors.priority;
@@ -227,8 +233,8 @@ function ScenarioPanel({ items = [], selectedSlice, onSelectSlice, onSelectRevie
               <p>{item.scenario}</p>
             </div>
             <div className="scenario-score">
-              <strong>{item.priority_score}</strong>
-              <small>screening score</small>
+              <strong>{item.priority_band}</strong>
+              <small>governance triage band</small>
               <button type="button" className="link-button compact" onClick={() => onSelectSlice(slice)}>Inspect</button>
               {onSelectReviewPack && <button type="button" className="link-button compact" onClick={() => onSelectReviewPack(item.stream_id)}>Review</button>}
             </div>
@@ -252,7 +258,7 @@ function DrilldownListRow({ record, selected, onSelect }) {
         <small>{record.priority_band} · {record.risk_level}</small>
       </div>
       <div className="drilldown-row-metrics">
-        <strong>{record.evidence_quality_score}/100</strong>
+        <strong>{record.evidence_label}</strong>
         <small>{formatCurrency(record.estimated_annual_disposal_cost_avoided)}</small>
       </div>
     </button>
@@ -286,7 +292,7 @@ function DrilldownInspector({ record, onSelectReviewPack }) {
 
       <div className="drilldown-kpi-grid">
         <article><span>Locked risk</span><strong>{record.risk_level}</strong><small>Review: {record.human_review_required ? 'required' : 'clear'}</small></article>
-        <article><span>Evidence quality</span><strong>{record.evidence_quality_score}/100</strong><small>Confidence: {record.confidence_score}/100</small></article>
+        <article><span>Decision basis</span><strong>{humanise(record.decision_support_band)}</strong><small>{record.evidence_label}</small></article>
         <article><span>Screened cost exposure</span><strong>{formatCurrency(record.estimated_annual_disposal_cost_avoided)}</strong><small>Not verified savings</small></article>
         <article><span>Screened quantity opportunity</span><strong>{formatKg(record.estimated_annual_waste_diverted_kg)}</strong><small>Potential only; not verified diversion or impact</small></article>
       </div>
@@ -355,7 +361,7 @@ function OperatorDrilldownPanel({
         <label>
           Sort records
           <select value={sortMode} onChange={(event) => onSortModeChange(event.target.value)}>
-            <option value="priority">Priority score</option>
+            <option value="priority">Governance priority</option>
             <option value="cost">Screened cost exposure</option>
             <option value="evidence_weakness">Evidence weakness</option>
             <option value="diversion">Screened quantity opportunity</option>
@@ -437,7 +443,7 @@ export default function VisualAnalyticsDashboard({ analytics, onSelectReviewPack
 
         <article className="visual-card">
           <h3>Claim-readiness control</h3>
-          <p>Screening proxy based on evidence score, risk and human-review gate.</p>
+          <p>Qualitative screening control based on evidence maturity, locked risk and human-review gates.</p>
           <VisualBarList
             rows={analytics.claimReadiness}
             selectedSlice={selectedSlice}
