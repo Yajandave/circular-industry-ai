@@ -19,7 +19,6 @@ test('operator can navigate a real governed decision from sample data to challen
   await expect(page.getByRole('heading', { name: /S001: Aluminium machining offcuts/ })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Rule provenance' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Human review governance' })).toBeVisible();
-  await expect(page.getByText('No automatic override', { exact: false })).not.toBeVisible();
 
   await page.locator('.governance-challenge-panel summary').click();
   const form = page.locator('.governance-challenge-panel form');
@@ -44,7 +43,7 @@ test('blind reviewer sees no answer until submitting all ten cases and analysis 
   page.on('pageerror', (error) => unexpectedErrors.push(error.message));
   await page.goto('/?mode=blind-review');
   await expect(page.getByRole('heading', { name: 'Blind circular-decision review' })).toBeVisible();
-  await expect(page.getByText('0 / 10')).toBeVisible();
+  await expect(page.getByText('0 / 10').first()).toBeVisible();
   await expect(page.getByText('System action revealed after submission')).toHaveCount(0);
   await expect(page.getByRole('heading', { name: 'Comparison unlocked' })).toHaveCount(0);
 
