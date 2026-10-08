@@ -11,6 +11,7 @@ from sqlalchemy.orm import sessionmaker
 from app import crud, models, schemas
 from app.database import Base, get_db
 from app.main import app
+from app.utils.upload_security import MAX_CSV_UPLOAD_BYTES
 
 
 @pytest.fixture()
@@ -139,4 +140,45 @@ def test_failed_atomic_replacement_preserves_previous_dataset_and_audit_state(is
         audit_count = db.scalar(select(func.count(models.AuditEvent.id))) or 0
 
         assert remaining_ids == ["OLD001"]
+        assert audit_count == 0
+
+
+def test_upload_rejects_unsupported_media_type(isolated_client):
+    client, _ = isolated_client
+    response = client.post(
+        "/api/streams/upload-csv",
+        files={"file": ("custom.csv", b"not,a,real,csv\n1,2,3,4\n", "application/pdf")},
+    )
+    assert response.status_code == 400
+    assert "media type" in response.json()["detail"].lower()
+
+
+def test_upload_rejects_files_over_size_limit(isolated_client):
+    client, _ = isolated_client
+    oversized = b"x" * (MAX_CSV_UPLOAD_BYTES + 1)
+    response = client.post(
+        "/api/streams/upload-csv",
+        files={"file": ("oversized.csv", oversized, "text/csv")},
+    )
+    assert response.status_code == 400
+    assert "upload limit" in response.json()["detail"].lower()
+
+
+def test_upload_rejects_duplicate_stream_ids_before_persistence(isolated_client):
+    client, TestingSession = isolated_client
+    csv_bytes = b"""stream_id,stream_name,material,source_process,monthly_quantity_kg,current_route,disposal_cost_per_month,contamination_risk,hazardous_flag,department,supplier,supplier_takeback_available,recycled_content_available,notes
+D001,Steel one,metals,pressing,100,recycling,50,low,false,operations,Example Supplier,no,yes,clean
+D001,Steel two,metals,pressing,120,recycling,60,low,false,operations,Example Supplier,no,yes,clean
+"""
+    response = client.post(
+        "/api/streams/upload-csv",
+        files={"file": ("duplicates.csv", csv_bytes, "text/csv")},
+    )
+    assert response.status_code == 400
+    assert "duplicate stream_id" in response.json()["detail"]
+
+    with TestingSession() as db:
+        stream_count = db.scalar(select(func.count(models.IndustrialStream.id))) or 0
+        audit_count = db.scalar(select(func.count(models.AuditEvent.id))) or 0
+        assert stream_count == 0
         assert audit_count == 0
