@@ -122,6 +122,8 @@ class AgenticReviewPack(BaseModel):
     decision_locked_by_rules: bool
     rule_applied: str
     base_recommendation: dict
+    rule_provenance: dict
+    review_governance: dict
     executive_synthesis: dict
     evidence_audit: dict
     risk_review: dict
@@ -1271,6 +1273,74 @@ class ObservedOutcomeEvidenceReviewHistory(BaseModel):
     records: list[ObservedOutcomeEvidenceReviewRead]
     governance_note: str
 
+
+
+# Pre-external-review governance schemas
+
+class RuleProvenanceRecord(BaseModel):
+    rule_id: str
+    rule_family: str
+    provenance_status: str
+    external_source_ids: list[str]
+    sources: list[dict]
+    internal_interpretation: str
+    governance_version: str
+    last_reviewed_date: str
+    claim_boundary: str
+
+
+class ReviewGovernanceRecord(BaseModel):
+    gate_status: str
+    primary_reviewer_competence: list[str]
+    supporting_reviewer_competence: list[str]
+    second_review_recommended: bool
+    minimum_review_expectation: str
+    rationale: list[str]
+    override_policy: str
+    governance_note: str
+
+
+class DecisionChallengeCreate(BaseModel):
+    challenger_name: str = Field(..., min_length=1, max_length=120)
+    challenger_role: str = Field(..., min_length=1, max_length=160)
+    challenger_organisation: str | None = Field(default=None, max_length=180)
+    challenge_type: str = Field(
+        ...,
+        pattern="^(route|risk|review_gate|evidence|claim_boundary|other)$",
+    )
+    proposed_change: str = Field(..., min_length=1, max_length=3000)
+    rationale: str = Field(..., min_length=1, max_length=5000)
+    supporting_evidence_reference: str | None = Field(default=None, max_length=1000)
+
+
+class DecisionChallengeRead(BaseModel):
+    id: int
+    stream_id: str
+    recommendation_rule_applied: str
+    current_recommended_action: str
+    current_strategy_category: str
+    current_risk_level: str
+    current_human_review_required: bool
+    challenger_name: str
+    challenger_role: str
+    challenger_organisation: str | None = None
+    challenge_type: str
+    proposed_change: str
+    rationale: str
+    supporting_evidence_reference: str | None = None
+    status: str
+    decision_effect: str
+    governance_note: str
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class DecisionChallengeHistory(BaseModel):
+    stream_id: str
+    total_challenges: int
+    records: list[DecisionChallengeRead]
+    governance_note: str
 
 
 # Milestone 20C.1: circular decision validation benchmark schemas
