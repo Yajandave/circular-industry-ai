@@ -13,8 +13,6 @@ const DEFAULT_FILTERS = {
   strategy: 'all',
   review: 'all',
   priority: 'all',
-  minConfidence: 0,
-  minEvidence: 0,
   sortBy: 'priority',
 };
 
@@ -490,7 +488,7 @@ export default function App() {
         </div>
         <div className="hero-note">
           <strong>Operational intelligence layer</strong>
-          <span>Rules-locked screening, knowledge retrieval, autonomous insights and evidence-controlled action planning</span>
+          <span>Rules-locked screening, knowledge retrieval, AI-assisted insights and evidence-controlled action planning</span>
         </div>
       </header>
 

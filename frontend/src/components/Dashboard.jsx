@@ -73,9 +73,9 @@ export default function Dashboard({ dashboardData, agentSummary, onSelectReviewP
 
       <div className="insight-grid">
         <article className="insight-card positive">
-          <span>Quick-win candidates</span>
+          <span>Validation-priority candidates</span>
           <strong>{quickWins}</strong>
-          <small>Low-risk, high-scoring items suitable for validation before implementation.</small>
+          <small>Rules-cleared, higher-exposure items worth validating first. This does not mean implementation-ready.</small>
         </article>
         <article className="insight-card warning">
           <span>Controlled review items</span>
@@ -83,9 +83,9 @@ export default function Dashboard({ dashboardData, agentSummary, onSelectReviewP
           <small>Hazard, risk or evidence-sensitive streams that need formal review gates.</small>
         </article>
         <article className="insight-card">
-          <span>Low-evidence records</span>
+          <span>Evidence-development records</span>
           <strong>{evidenceGaps}</strong>
-          <small>Items below 70/100 evidence quality. These are data-improvement priorities.</small>
+          <small>Records where explicit evidence or review conditions are not yet strong enough for route change or implementation.</small>
         </article>
         <article className="insight-card dark">
           <span>Screened cost exposure</span>

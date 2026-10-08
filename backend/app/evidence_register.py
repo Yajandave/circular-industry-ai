@@ -13,6 +13,7 @@ from typing import Any
 
 from app import models
 from app.agentic.orchestrator import evidence_audit, risk_reviewer
+from app.governance_maturity import SCORE_SEMANTICS, decision_support_band, evidence_maturity
 
 
 def _join_items(items: list[str]) -> str:
@@ -20,33 +21,37 @@ def _join_items(items: list[str]) -> str:
     return "; ".join(item for item in items if item) if items else "none recorded"
 
 
-def _evidence_status(score: int, human_review_required: bool, risk_level: str) -> str:
-    """Classify evidence maturity in a recruiter-readable way."""
-    if human_review_required or risk_level in {"high", "blocked"}:
-        return "controlled review required"
-    if score >= 85:
-        return "strong evidence"
-    if score >= 70:
-        return "usable evidence with checks"
-    return "evidence improvement required"
+def _evidence_status(recommendation: models.CircularRecommendation) -> str:
+    """Return a readable evidence state without treating a heuristic as assurance."""
+    maturity = evidence_maturity(recommendation)
+    return {
+        "controlled_review_required": "controlled review required",
+        "insufficient_for_route_change": "insufficient for route change",
+        "screening_ready_with_checks": "screening-ready with checks",
+        "screening_ready": "screening-ready",
+    }[maturity]
 
 
-def _claim_readiness(score: int, human_review_required: bool, risk_level: str) -> str:
-    """Decide whether a recommendation can support external claims."""
-    if human_review_required or risk_level in {"high", "blocked"}:
+def _claim_readiness(recommendation: models.CircularRecommendation) -> str:
+    """Return a conservative claim boundary from explicit governance conditions."""
+    maturity = evidence_maturity(recommendation)
+    if maturity == "controlled_review_required":
         return "not claim-ready: review gate unresolved"
-    if score < 70:
-        return "not claim-ready: evidence gaps remain"
+    if maturity == "insufficient_for_route_change":
+        return "not claim-ready: decision basis insufficient"
+    if maturity == "screening_ready_with_checks":
+        return "internal screening only: evidence checks remain"
     return "internal screening only: validate before claims"
 
 
 def _review_gate(recommendation: models.CircularRecommendation) -> str:
-    if recommendation.human_review_required:
+    maturity = evidence_maturity(recommendation)
+    if maturity == "controlled_review_required":
         return "human review required before circular route selection"
-    if recommendation.risk_level == "medium":
-        return "evidence check recommended before implementation"
-    if recommendation.evidence_quality_score < 70:
-        return "data improvement recommended before implementation"
+    if maturity == "insufficient_for_route_change":
+        return "evidence improvement required before route change"
+    if maturity == "screening_ready_with_checks":
+        return "evidence checks recommended before implementation"
     return "rules-cleared for validation"
 
 
@@ -58,11 +63,7 @@ def build_evidence_record(
     audit = evidence_audit(stream, recommendation)
     risk = risk_reviewer(stream, recommendation)
 
-    evidence_status = _evidence_status(
-        recommendation.evidence_quality_score,
-        recommendation.human_review_required,
-        recommendation.risk_level,
-    )
+    evidence_status = _evidence_status(recommendation)
 
     return {
         "stream_id": stream.stream_id,
@@ -77,13 +78,12 @@ def build_evidence_record(
         "human_review_required": recommendation.human_review_required,
         "confidence_score": recommendation.confidence_score,
         "evidence_quality_score": recommendation.evidence_quality_score,
+        "evidence_maturity": evidence_maturity(recommendation),
+        "decision_support_band": decision_support_band(recommendation),
+        "score_semantics": SCORE_SEMANTICS,
         "evidence_status": evidence_status,
         "review_gate": _review_gate(recommendation),
-        "claim_readiness": _claim_readiness(
-            recommendation.evidence_quality_score,
-            recommendation.human_review_required,
-            recommendation.risk_level,
-        ),
+        "claim_readiness": _claim_readiness(recommendation),
         "measured_data": _join_items(audit.get("measured_data", [])),
         "estimated_data": _join_items(audit.get("estimated_data", [])),
         "assumptions": _join_items(audit.get("assumptions", [])),
@@ -117,10 +117,16 @@ def build_evidence_register(
 def build_evidence_summary(records: list[dict[str, Any]]) -> dict[str, Any]:
     """Return summary metrics for the evidence register."""
     statuses = Counter(record["evidence_status"] for record in records)
+    maturity = Counter(record["evidence_maturity"] for record in records)
+    support = Counter(record["decision_support_band"] for record in records)
     claim_readiness = Counter(record["claim_readiness"] for record in records)
     review_required = sum(1 for record in records if record["human_review_required"])
-    low_evidence = sum(1 for record in records if record["evidence_quality_score"] < 70)
-    strong_evidence = sum(1 for record in records if record["evidence_quality_score"] >= 85)
+    low_evidence = sum(
+        1
+        for record in records
+        if record["evidence_maturity"] in {"insufficient_for_route_change", "controlled_review_required"}
+    )
+    strong_evidence = sum(1 for record in records if record["evidence_maturity"] == "screening_ready")
     missing_data_records = sum(
         1
         for record in records
@@ -134,7 +140,10 @@ def build_evidence_summary(records: list[dict[str, Any]]) -> dict[str, Any]:
         "strong_evidence_records": strong_evidence,
         "records_with_missing_data": missing_data_records,
         "evidence_status_breakdown": dict(statuses),
+        "evidence_maturity_breakdown": dict(maturity),
+        "decision_support_breakdown": dict(support),
         "claim_readiness_breakdown": dict(claim_readiness),
+        "score_semantics": SCORE_SEMANTICS,
         "governance_note": (
             "Evidence register outputs are for internal screening and audit preparation. "
             "They do not verify legal waste status, supplier compliance, carbon savings or completed operational impact."

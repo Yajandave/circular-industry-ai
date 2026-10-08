@@ -20,8 +20,12 @@ def test_evidence_register_returns_records():
     assert len(data) == 50
     first = data[0]
     assert "evidence_status" in first
+    assert "evidence_maturity" in first
+    assert "decision_support_band" in first
+    assert "score_semantics" in first
     assert "claim_readiness" in first
     assert "claim_boundary" in first
+    assert "not probabilities" in first["score_semantics"].lower()
 
 
 def test_evidence_summary_contains_governance_metrics():
@@ -31,6 +35,10 @@ def test_evidence_summary_contains_governance_metrics():
     data = response.json()
     assert data["total_records"] == 50
     assert data["human_review_required"] >= 1
+    assert "evidence_maturity_breakdown" in data
+    assert "decision_support_breakdown" in data
+    assert "score_semantics" in data
+    assert "not probabilities" in data["score_semantics"].lower()
     assert "governance_note" in data
 
 
@@ -41,6 +49,9 @@ def test_evidence_csv_export_is_available():
     assert "text/csv" in response.headers["content-type"]
     assert "stream_id" in response.text
     assert "claim_readiness" in response.text
+    assert "evidence_maturity" in response.text
+    assert "decision_support_band" in response.text
+    assert "legacy_internal_evidence_heuristic" in response.text
 
 
 def test_recommendations_csv_export_is_available():
@@ -49,3 +60,7 @@ def test_recommendations_csv_export_is_available():
     assert response.status_code == 200
     assert "text/csv" in response.headers["content-type"]
     assert "recommended_circular_action" in response.text
+    assert "evidence_maturity" in response.text
+    assert "decision_support_band" in response.text
+    assert "legacy_internal_confidence_heuristic" in response.text
+    assert "score_semantics" in response.text

@@ -41,22 +41,52 @@ export function mapObjectToSortedRows(map, { labelKey = 'label', valueKey = 'val
     .slice(0, limit);
 }
 
-export function getPriorityScore(rec) {
-  const confidence = normaliseNumber(rec.confidence_score);
-  const evidence = normaliseNumber(rec.evidence_quality_score);
-  const quantityOpportunity = Math.min(normaliseNumber(rec.estimated_annual_waste_diverted_kg) / 1000, 40);
-  const cost = Math.min(normaliseNumber(rec.estimated_annual_disposal_cost_avoided) / 250, 35);
-  const reviewPenalty = rec.human_review_required ? 35 : 0;
-  const riskPenalty = rec.risk_level === 'blocked' ? 50 : rec.risk_level === 'high' ? 35 : rec.risk_level === 'medium' ? 14 : 0;
-  return Math.max(0, Math.round(confidence * 0.34 + evidence * 0.26 + quantityOpportunity + cost - reviewPenalty - riskPenalty));
+function hasEvidenceGap(rec) {
+  const value = String(rec.missing_data || '').trim().toLowerCase();
+  return !['', 'none', 'none recorded', 'none identified', 'none identified for mvp fields'].includes(value);
+}
+
+export function getEvidenceMaturity(rec) {
+  if (rec.evidence_maturity) return rec.evidence_maturity;
+  if (rec.human_review_required || ['high', 'blocked'].includes(rec.risk_level)) return 'controlled_review_required';
+  if (String(rec.rule_applied || '').toLowerCase() === 'r999_default_evidence_improvement') return 'insufficient_for_route_change';
+  if (rec.risk_level === 'medium' || hasEvidenceGap(rec)) return 'screening_ready_with_checks';
+  return 'screening_ready';
+}
+
+export function getDecisionSupportBand(rec) {
+  if (rec.decision_support_band) return rec.decision_support_band;
+  const maturity = getEvidenceMaturity(rec);
+  return {
+    controlled_review_required: 'human_review_gate',
+    insufficient_for_route_change: 'limited_screening_basis',
+    screening_ready_with_checks: 'screening_basis_with_checks',
+    screening_ready: 'strong_screening_basis',
+  }[maturity] || 'limited_screening_basis';
+}
+
+export function getPriorityRank(rec) {
+  const maturity = getEvidenceMaturity(rec);
+  if (maturity === 'controlled_review_required') return 4;
+  if (maturity === 'screening_ready') {
+    const annualQuantity = normaliseNumber(rec.estimated_annual_waste_diverted_kg);
+    const annualCost = normaliseNumber(rec.estimated_annual_disposal_cost_avoided);
+    return annualQuantity >= 12000 || annualCost >= 5000 ? 3 : 2;
+  }
+  if (maturity === 'screening_ready_with_checks') return 2;
+  return 1;
 }
 
 export function classifyPriority(rec) {
-  if (rec.human_review_required || ['high', 'blocked'].includes(rec.risk_level)) return 'controlled review';
-  const score = getPriorityScore(rec);
-  if (score >= 88) return 'quick win';
-  if (score >= 68) return 'opportunity development';
-  return 'evidence improvement';
+  const maturity = getEvidenceMaturity(rec);
+  if (maturity === 'controlled_review_required') return 'controlled review';
+  if (maturity === 'insufficient_for_route_change') return 'evidence development';
+  if (maturity === 'screening_ready_with_checks') return 'evidence development';
+
+  const annualQuantity = normaliseNumber(rec.estimated_annual_waste_diverted_kg);
+  const annualCost = normaliseNumber(rec.estimated_annual_disposal_cost_avoided);
+  if (annualQuantity >= 12000 || annualCost >= 5000) return 'validation priority';
+  return 'opportunity development';
 }
 
 function orderRiskRows(cells) {
@@ -68,15 +98,15 @@ function orderRiskRows(cells) {
 }
 
 function classifyOpportunity(rec) {
-  if (rec.priority_band === 'quick win') return 'quick_win';
+  if (rec.priority_band === 'validation priority') return 'validation_priority';
   if (rec.priority_band === 'opportunity development') return 'developing';
-  if (rec.priority_band === 'evidence improvement') return 'evidence_uplift';
+  if (rec.priority_band === 'evidence development') return 'evidence_uplift';
   return 'controlled_review';
 }
 
 function opportunityLabel(bucket) {
   return {
-    quick_win: 'Quick win',
+    validation_priority: 'Validation priority',
     developing: 'Developing',
     evidence_uplift: 'Evidence uplift',
     controlled_review: 'Controlled review',
@@ -84,27 +114,31 @@ function opportunityLabel(bucket) {
 }
 
 function evidenceBucket(rec) {
-  const evidence = normaliseNumber(rec.evidence_quality_score);
-  if (evidence >= 85) return 'strong_evidence';
-  if (evidence >= 70) return 'moderate_evidence';
-  return 'evidence_uplift';
+  const maturity = getEvidenceMaturity(rec);
+  return {
+    screening_ready: 'screening_ready',
+    screening_ready_with_checks: 'screening_ready_with_checks',
+    insufficient_for_route_change: 'evidence_uplift',
+    controlled_review_required: 'controlled_review',
+  }[maturity] || 'evidence_uplift';
 }
 
 function evidenceLabel(bucket) {
   return {
-    strong_evidence: 'Strong evidence',
-    moderate_evidence: 'Moderate evidence',
-    evidence_uplift: 'Evidence uplift needed',
+    screening_ready: 'Screening-ready',
+    screening_ready_with_checks: 'Screening-ready with checks',
+    evidence_uplift: 'Evidence development needed',
+    controlled_review: 'Controlled review required',
   }[bucket] || 'Evidence status';
 }
 
 function claimBucket(rec) {
-  const evidence = normaliseNumber(rec.evidence_quality_score);
+  const maturity = getEvidenceMaturity(rec);
   if (['high', 'blocked'].includes(rec.risk_level)) return 'high_blocked_risk';
-  if (rec.human_review_required) return 'controlled_review_gate';
-  if (evidence < 70) return 'evidence_uplift_first';
-  if (evidence >= 85) return 'ready_for_internal_validation';
-  return 'developing_opportunity';
+  if (maturity === 'controlled_review_required') return 'controlled_review_gate';
+  if (maturity === 'insufficient_for_route_change') return 'evidence_uplift_first';
+  if (maturity === 'screening_ready_with_checks') return 'developing_opportunity';
+  return 'ready_for_internal_validation';
 }
 
 function claimLabel(bucket) {
@@ -126,7 +160,7 @@ function hasRecordedSupplier(rec) {
 function supplierBucket(rec) {
   if (!hasRecordedSupplier(rec)) return 'supplier_data_gap';
   if (rec.human_review_required) return 'controlled_supplier_review';
-  if (rec.priority_score >= 68) return 'supplier_loop_candidate';
+  if (['validation priority', 'opportunity development'].includes(rec.priority_band)) return 'supplier_loop_candidate';
   return 'lower_readiness_supplier_record';
 }
 
@@ -141,7 +175,7 @@ function supplierLabel(bucket) {
 
 function buildRiskOpportunityMatrix(enriched) {
   const columns = [
-    { key: 'quick_win', label: 'Quick win' },
+    { key: 'validation_priority', label: 'Validation priority' },
     { key: 'developing', label: 'Developing' },
     { key: 'evidence_uplift', label: 'Evidence uplift' },
     { key: 'controlled_review', label: 'Controlled review' },
@@ -209,11 +243,12 @@ function countRowsByBucket(records, bucketKey, labelFn) {
 }
 
 function buildEvidenceMaturity(records) {
-  const order = ['strong_evidence', 'moderate_evidence', 'evidence_uplift'];
+  const order = ['screening_ready', 'screening_ready_with_checks', 'evidence_uplift', 'controlled_review'];
   const tones = {
-    strong_evidence: '#1f5b43',
-    moderate_evidence: '#7ea58d',
+    screening_ready: '#1f5b43',
+    screening_ready_with_checks: '#7ea58d',
     evidence_uplift: '#d39a2f',
+    controlled_review: '#9b5c45',
   };
   const rows = countRowsByBucket(records, 'evidence_bucket', evidenceLabel);
 
@@ -250,10 +285,11 @@ function scenarioText(rec) {
   if (rec.human_review_required || ['high', 'blocked'].includes(rec.risk_level)) {
     return 'Controlled-review scenario: resolve risk, compliance and evidence gates before action.';
   }
-  if (normaliseNumber(rec.evidence_quality_score) < 70) {
-    return 'Evidence-uplift scenario: collect missing records before claim or implementation.';
+  const maturity = getEvidenceMaturity(rec);
+  if (maturity === 'insufficient_for_route_change' || maturity === 'screening_ready_with_checks') {
+    return 'Evidence-development scenario: resolve missing records before route change, claim or implementation.';
   }
-  if (rec.priority_band === 'quick win') {
+  if (rec.priority_band === 'validation priority') {
     return 'Pilot scenario: suitable for validation planning, with claim wording still controlled.';
   }
   return 'Opportunity-development scenario: useful candidate for operational and supplier feasibility checks.';
@@ -276,9 +312,9 @@ function buildDrilldownRecords(enriched) {
       source_process: stream.source_process || 'unknown process',
       risk_level: rec.risk_level || 'unknown',
       priority_band: rec.priority_band,
-      priority_score: rec.priority_score,
-      evidence_quality_score: normaliseNumber(rec.evidence_quality_score),
-      confidence_score: normaliseNumber(rec.confidence_score),
+      priority_rank: rec.priority_rank,
+      evidence_maturity: getEvidenceMaturity(rec),
+      decision_support_band: getDecisionSupportBand(rec),
       human_review_required: Boolean(rec.human_review_required),
       estimated_annual_disposal_cost_avoided: normaliseNumber(rec.estimated_annual_disposal_cost_avoided),
       estimated_annual_waste_diverted_kg: normaliseNumber(rec.estimated_annual_waste_diverted_kg),
@@ -304,13 +340,14 @@ function buildScenarioItems(records) {
     .sort((a, b) => {
       const costDelta = normaliseNumber(b.estimated_annual_disposal_cost_avoided) - normaliseNumber(a.estimated_annual_disposal_cost_avoided);
       if (costDelta !== 0) return costDelta;
-      return b.priority_score - a.priority_score;
+      return b.priority_rank - a.priority_rank;
     })
     .slice(0, 6)
     .map((record) => ({
       stream_id: record.stream_id,
       stream_name: record.stream_name,
-      priority_score: record.priority_score,
+      priority_rank: record.priority_rank,
+      priority_band: record.priority_band,
       scenario: record.scenario,
     }));
 }
@@ -357,7 +394,7 @@ export function buildDashboardData(recommendations, streams) {
     screened_cost_exposure: normaliseNumber(rec.estimated_annual_disposal_cost_avoided),
     screened_quantity_opportunity_kg: normaliseNumber(rec.estimated_annual_waste_diverted_kg),
     priority_band: classifyPriority(rec),
-    priority_score: getPriorityScore(rec),
+    priority_rank: getPriorityRank(rec),
   }));
 
   const riskBreakdown = mapObjectToSortedRows(countBy(enriched, (rec) => rec.risk_level), {
@@ -382,9 +419,9 @@ export function buildDashboardData(recommendations, streams) {
   const topDiversionCandidates = [...enriched]
     .sort((a, b) => normaliseNumber(b.estimated_annual_waste_diverted_kg) - normaliseNumber(a.estimated_annual_waste_diverted_kg))
     .slice(0, 6);
-  const evidenceGaps = enriched.filter((rec) => normaliseNumber(rec.evidence_quality_score) < 70).length;
+  const evidenceGaps = enriched.filter((rec) => ['insufficient_for_route_change', 'controlled_review_required'].includes(getEvidenceMaturity(rec))).length;
   const reviewRequired = enriched.filter((rec) => rec.human_review_required).length;
-  const quickWins = enriched.filter((rec) => rec.priority_band === 'quick win').length;
+  const quickWins = enriched.filter((rec) => rec.priority_band === 'validation priority').length;
   const controlledReview = enriched.filter((rec) => rec.priority_band === 'controlled review').length;
 
   return {
@@ -407,8 +444,6 @@ export function buildDashboardData(recommendations, streams) {
 
 export function applyRecommendationFilters(enrichedRecommendations, filters) {
   const search = filters.search.trim().toLowerCase();
-  const minConfidence = normaliseNumber(filters.minConfidence);
-  const minEvidence = normaliseNumber(filters.minEvidence);
 
   return enrichedRecommendations.filter((rec) => {
     const stream = rec.stream;
@@ -433,21 +468,24 @@ export function applyRecommendationFilters(enrichedRecommendations, filters) {
       filters.review === 'all' ||
       (filters.review === 'required' && rec.human_review_required) ||
       (filters.review === 'clear' && !rec.human_review_required);
-    const confidenceMatch = normaliseNumber(rec.confidence_score) >= minConfidence;
-    const evidenceMatch = normaliseNumber(rec.evidence_quality_score) >= minEvidence;
 
-    return searchMatch && materialMatch && riskMatch && strategyMatch && priorityMatch && reviewMatch && confidenceMatch && evidenceMatch;
+    return searchMatch && materialMatch && riskMatch && strategyMatch && priorityMatch && reviewMatch;
   });
 }
 
 export function sortRecommendations(recommendations, sortBy) {
   const sorted = [...recommendations];
+  const maturityRank = {
+    controlled_review_required: 4,
+    insufficient_for_route_change: 3,
+    screening_ready_with_checks: 2,
+    screening_ready: 1,
+  };
   const selectors = {
-    priority: (rec) => rec.priority_score,
+    priority: (rec) => rec.priority_rank,
     cost: (rec) => normaliseNumber(rec.estimated_annual_disposal_cost_avoided),
     diversion: (rec) => normaliseNumber(rec.estimated_annual_waste_diverted_kg),
-    confidence: (rec) => normaliseNumber(rec.confidence_score),
-    evidence: (rec) => normaliseNumber(rec.evidence_quality_score),
+    maturity: (rec) => maturityRank[getEvidenceMaturity(rec)] || 0,
     risk: (rec) => ({ blocked: 4, high: 3, medium: 2, low: 1 }[rec.risk_level] || 0),
   };
   const selector = selectors[sortBy] || selectors.priority;

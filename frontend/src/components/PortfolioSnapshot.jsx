@@ -32,7 +32,7 @@ function SnapshotList({ title, items, valueKey, valueFormatter }) {
 
 export default function PortfolioSnapshot({ dashboardData, agentSummary }) {
   const quickWins = dashboardData.enriched
-    .filter((rec) => rec.priority_band === 'quick win')
+    .filter((rec) => rec.priority_band === 'validation priority')
     .slice(0, 4);
 
   const controlledReview = dashboardData.enriched
@@ -60,8 +60,8 @@ export default function PortfolioSnapshot({ dashboardData, agentSummary }) {
         <article className="snapshot-narrative">
           <h3>Decision-support position</h3>
           <p>
-            Circular Industry AI combines deterministic circular economy rules, risk scoring, evidence maturity checks, knowledge retrieval and
-            controlled autonomous insight generation. The interface is designed to support operational screening, supplier engagement,
+            Circular Industry AI combines deterministic circular economy rules, explicit risk gates, qualitative evidence maturity, knowledge retrieval and
+            controlled AI-assisted insight generation. The interface is designed to support operational screening, supplier engagement,
             review gates and evidence-led circular action planning while keeping the decision source auditable.
           </p>
           <p className="snapshot-warning">

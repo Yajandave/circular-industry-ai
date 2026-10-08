@@ -5,7 +5,9 @@ from __future__ import annotations
 from datetime import date, datetime
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, computed_field
+
+from app.governance_maturity import decision_support_band, evidence_maturity
 
 
 class IndustrialStreamBase(BaseModel):
@@ -78,6 +80,16 @@ class CircularRecommendationCreate(CircularRecommendationBase):
 class CircularRecommendationRead(CircularRecommendationBase):
     id: int
     created_at: datetime
+
+    @computed_field
+    @property
+    def evidence_maturity(self) -> str:
+        return evidence_maturity(self)
+
+    @computed_field
+    @property
+    def decision_support_band(self) -> str:
+        return decision_support_band(self)
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -154,6 +166,9 @@ class EvidenceRegisterRecord(BaseModel):
     human_review_required: bool
     confidence_score: int
     evidence_quality_score: int
+    evidence_maturity: str
+    decision_support_band: str
+    score_semantics: str
     evidence_status: str
     review_gate: str
     claim_readiness: str
@@ -176,7 +191,10 @@ class EvidenceRegisterSummary(BaseModel):
     strong_evidence_records: int
     records_with_missing_data: int
     evidence_status_breakdown: dict
+    evidence_maturity_breakdown: dict
+    decision_support_breakdown: dict
     claim_readiness_breakdown: dict
+    score_semantics: str
     governance_note: str
 
 

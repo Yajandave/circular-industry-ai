@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 
 import { API_BASE_URL } from '../api/client.js';
-import { formatCurrency, formatNumber } from '../utils/formatters.js';
+import { formatCurrency, formatNumber, humanise } from '../utils/formatters.js';
 
 function BreakdownList({ title, data }) {
   const entries = Object.entries(data || {});
@@ -87,8 +87,8 @@ function EvidenceListItem({ record, selected, onSelect }) {
         <small>{record.material} · {record.department}</small>
       </div>
       <div className="operator-row-meta">
-        <span>{record.evidence_quality_score}/100</span>
-        <small>{record.human_review_required ? 'Review' : 'Clear'}</small>
+        <span>{humanise(record.evidence_maturity)}</span>
+        <small>{record.human_review_required ? 'Review' : 'Rules-cleared'}</small>
       </div>
     </button>
   );
@@ -131,9 +131,9 @@ function EvidenceInspector({ record, onExplain, busy }) {
           <small>{record.claim_readiness}</small>
         </article>
         <article>
-          <span>Evidence score</span>
-          <strong>{record.evidence_quality_score}/100</strong>
-          <small>Confidence: {record.confidence_score}/100</small>
+          <span>Decision basis</span>
+          <strong>{humanise(record.decision_support_band)}</strong>
+          <small>{humanise(record.evidence_maturity)}</small>
         </article>
         <article>
           <span>Screened exposure</span>
@@ -161,11 +161,19 @@ function EvidenceInspector({ record, onExplain, busy }) {
 }
 
 export default function EvidenceRegister({ records = [], summary = null, explanation = null, onExplain = null, busy = false }) {
-  const sortedRecords = useMemo(() => [...records].sort((a, b) => {
-    const reviewSort = Number(b.human_review_required) - Number(a.human_review_required);
-    if (reviewSort !== 0) return reviewSort;
-    return a.evidence_quality_score - b.evidence_quality_score;
-  }), [records]);
+  const sortedRecords = useMemo(() => {
+    const maturityRank = {
+      controlled_review_required: 4,
+      insufficient_for_route_change: 3,
+      screening_ready_with_checks: 2,
+      screening_ready: 1,
+    };
+    return [...records].sort((a, b) => {
+      const reviewSort = Number(b.human_review_required) - Number(a.human_review_required);
+      if (reviewSort !== 0) return reviewSort;
+      return (maturityRank[b.evidence_maturity] || 0) - (maturityRank[a.evidence_maturity] || 0);
+    });
+  }, [records]);
 
   const [selectedId, setSelectedId] = useState(sortedRecords[0]?.stream_id || '');
   const selected = sortedRecords.find((record) => record.stream_id === selectedId) || sortedRecords[0];
@@ -190,16 +198,22 @@ export default function EvidenceRegister({ records = [], summary = null, explana
         <div className="operator-summary-grid">
           <div className="operator-summary-card"><span>Total records</span><strong>{summary.total_records}</strong><small>recommendations with evidence trail</small></div>
           <div className="operator-summary-card"><span>Human review gates</span><strong>{summary.human_review_required}</strong><small>must be reviewed before action</small></div>
-          <div className="operator-summary-card"><span>Low-evidence records</span><strong>{summary.low_evidence_records}</strong><small>below 70/100 evidence quality</small></div>
-          <div className="operator-summary-card"><span>Strong evidence</span><strong>{summary.strong_evidence_records}</strong><small>85/100 or higher</small></div>
+          <div className="operator-summary-card"><span>Evidence development</span><strong>{summary.low_evidence_records}</strong><small>insufficient basis or controlled review required</small></div>
+          <div className="operator-summary-card"><span>Screening-ready</span><strong>{summary.strong_evidence_records}</strong><small>rules-cleared with no material evidence gap identified</small></div>
         </div>
       )}
 
       {summary && (
         <div className="evidence-breakdown-grid">
           <BreakdownList title="Evidence status" data={summary.evidence_status_breakdown} />
+          <BreakdownList title="Evidence maturity" data={summary.evidence_maturity_breakdown} />
+          <BreakdownList title="Decision support" data={summary.decision_support_breakdown} />
           <BreakdownList title="Claim readiness" data={summary.claim_readiness_breakdown} />
-          <div className="evidence-governance-note"><h4>Governance note</h4><p>{summary.governance_note}</p></div>
+          <div className="evidence-governance-note">
+            <h4>Governance note</h4>
+            <p>{summary.governance_note}</p>
+            <p>{summary.score_semantics}</p>
+          </div>
         </div>
       )}
 

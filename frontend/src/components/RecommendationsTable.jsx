@@ -1,14 +1,14 @@
 import { useMemo, useState } from 'react';
 
-import { RiskBadge, ReviewBadge, ScoreBadge } from './Badges.jsx';
-import { formatCurrency, formatKg } from '../utils/formatters.js';
+import { RiskBadge, ReviewBadge } from './Badges.jsx';
+import { formatCurrency, formatKg, humanise } from '../utils/formatters.js';
 
-function PriorityCell({ band, score }) {
-  const safeBand = String(band || 'unscored');
+function PriorityCell({ band }) {
+  const safeBand = String(band || 'unclassified');
   return (
     <div className="priority-cell">
       <span className={`priority-pill priority-${safeBand.replaceAll(' ', '-')}`}>{safeBand}</span>
-      <small className="table-subtext">Priority {score ?? 0}/100</small>
+      <small className="table-subtext">Governance-led triage band</small>
     </div>
   );
 }
@@ -74,14 +74,12 @@ function RecommendationInspector({ rec, onSelectReviewPack }) {
         </article>
         <article>
           <span>Priority</span>
-          <PriorityCell band={rec.priority_band} score={rec.priority_score} />
+          <PriorityCell band={rec.priority_band} />
         </article>
         <article>
-          <span>Scores</span>
-          <div className="score-stack">
-            <ScoreBadge label="Conf" value={rec.confidence_score} />
-            <ScoreBadge label="Evidence" value={rec.evidence_quality_score} />
-          </div>
+          <span>Decision basis</span>
+          <strong>{humanise(rec.decision_support_band)}</strong>
+          <small>{humanise(rec.evidence_maturity)}</small>
         </article>
       </div>
 
@@ -97,7 +95,7 @@ function RecommendationInspector({ rec, onSelectReviewPack }) {
       </div>
 
       <div className="governance-strip compact">
-        Rules-engine recommendation. Use the review pack before making operational, supplier, cost-saving, diversion or claim decisions.
+        Rules-engine recommendation. Evidence maturity and decision-basis labels are qualitative governance states, not probability or assurance scores.
       </div>
     </aside>
   );

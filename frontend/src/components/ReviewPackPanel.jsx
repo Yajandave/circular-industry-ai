@@ -1,4 +1,5 @@
-import { RiskBadge, ReviewBadge, ScoreBadge } from './Badges.jsx';
+import { RiskBadge, ReviewBadge } from './Badges.jsx';
+import { humanise } from '../utils/formatters.js';
 
 function ListBlock({ title, items }) {
   if (!items || items.length === 0) return null;
@@ -22,11 +23,33 @@ function ReviewSummaryCard({ title, value, detail }) {
   );
 }
 
+function reviewMaturity(base) {
+  if (base.evidence_maturity) return base.evidence_maturity;
+  if (base.human_review_required || ['high', 'blocked'].includes(base.risk_level)) return 'controlled_review_required';
+  if (String(base.rule_applied || '').toLowerCase() === 'r999_default_evidence_improvement') return 'insufficient_for_route_change';
+  const missing = String(base.missing_data || '').trim().toLowerCase();
+  if (base.risk_level === 'medium' || !['', 'none', 'none recorded', 'none identified', 'none identified for mvp fields'].includes(missing)) {
+    return 'screening_ready_with_checks';
+  }
+  return 'screening_ready';
+}
+
+function reviewDecisionBasis(base) {
+  if (base.decision_support_band) return base.decision_support_band;
+  return {
+    controlled_review_required: 'human_review_gate',
+    insufficient_for_route_change: 'limited_screening_basis',
+    screening_ready_with_checks: 'screening_basis_with_checks',
+    screening_ready: 'strong_screening_basis',
+  }[reviewMaturity(base)] || 'limited_screening_basis';
+}
+
+
 export default function ReviewPackPanel({ reviewPack }) {
   if (!reviewPack) {
     return (
       <section id="review-pack-panel" className="review-panel empty focused-review-panel">
-        <h2>Agentic review pack</h2>
+        <h2>Controlled review pack</h2>
         <p>
           Select <strong>Review</strong> from a recommendation or dashboard candidate to inspect the evidence audit, risk locks,
           procurement questions, symbiosis screen and resource-efficiency levers for that stream.
@@ -59,8 +82,8 @@ export default function ReviewPackPanel({ reviewPack }) {
       <div className="review-summary-grid">
         <ReviewSummaryCard title="Locked decision" value={base.recommended_circular_action} detail={base.circular_strategy_category} />
         <ReviewSummaryCard title="Risk level" value={base.risk_level || 'unknown'} detail={base.human_review_required ? 'Human review required' : 'Rules-cleared'} />
-        <ReviewSummaryCard title="Confidence" value={`${base.confidence_score ?? 0}/100`} detail="Rules-engine confidence" />
-        <ReviewSummaryCard title="Evidence" value={`${base.evidence_quality_score ?? 0}/100`} detail="Evidence maturity score" />
+        <ReviewSummaryCard title="Decision basis" value={humanise(reviewDecisionBasis(base))} detail="Qualitative screening basis, not probability" />
+        <ReviewSummaryCard title="Evidence maturity" value={humanise(reviewMaturity(base))} detail="Governance state from explicit risk and evidence conditions" />
       </div>
 
       <article className="executive-review-card">

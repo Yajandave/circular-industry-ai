@@ -14,6 +14,7 @@ from app import crud, schemas
 from app.database import get_db
 from app.evidence_explainer.service import generate_evidence_gap_explanation
 from app.evidence_register import build_evidence_record, build_evidence_register, build_evidence_summary
+from app.governance_maturity import SCORE_SEMANTICS, decision_support_band, evidence_maturity
 
 router = APIRouter(prefix="/api", tags=["evidence and exports"])
 
@@ -72,9 +73,15 @@ def explain_evidence_gap(stream_id: str, db: Session = Depends(get_db)):
     return generate_evidence_gap_explanation(stream, recommendation, evidence)
 @router.get("/export/evidence-register.csv")
 def export_evidence_register(db: Session = Depends(get_db)):
-    """Export the evidence register as CSV."""
+    """Export the evidence register with legacy heuristic fields clearly bounded."""
     records = _require_register(db)
-    return _csv_response(records, "circular-industry-ai-evidence-register.csv")
+    export_rows = []
+    for record in records:
+        row = dict(record)
+        row["legacy_internal_confidence_heuristic"] = row.pop("confidence_score")
+        row["legacy_internal_evidence_heuristic"] = row.pop("evidence_quality_score")
+        export_rows.append(row)
+    return _csv_response(export_rows, "circular-industry-ai-evidence-register.csv")
 
 
 @router.get("/export/recommendations.csv")
@@ -92,8 +99,11 @@ def export_recommendations(db: Session = Depends(get_db)):
             "recommended_circular_action": rec.recommended_circular_action,
             "circular_strategy_category": rec.circular_strategy_category,
             "risk_level": rec.risk_level,
-            "confidence_score": rec.confidence_score,
-            "evidence_quality_score": rec.evidence_quality_score,
+            "evidence_maturity": evidence_maturity(rec),
+            "decision_support_band": decision_support_band(rec),
+            "legacy_internal_confidence_heuristic": rec.confidence_score,
+            "legacy_internal_evidence_heuristic": rec.evidence_quality_score,
+            "score_semantics": SCORE_SEMANTICS,
             "human_review_required": rec.human_review_required,
             "estimated_annual_waste_diverted_kg": rec.estimated_annual_waste_diverted_kg,
             "estimated_annual_disposal_cost_avoided": rec.estimated_annual_disposal_cost_avoided,
