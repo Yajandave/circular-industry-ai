@@ -4,8 +4,7 @@ test('operator can navigate a real governed decision from sample data to challen
   const unexpectedErrors = [];
   page.on('pageerror', (error) => unexpectedErrors.push(error.message));
   await page.goto('/');
-  await expect(page.getByText('Backend:')).toBeVisible();
-  await expect(page.getByText('connected', { exact: true })).toBeVisible();
+  await expect(page.locator('.status-panel')).toContainText('Backend: connected');
 
   await page.getByRole('button', { name: 'Load sample dataset' }).click();
   await expect(page.getByText('Sample industrial stream dataset loaded.')).toBeVisible();
