@@ -40,7 +40,7 @@ test('operator can navigate a real governed decision from sample data to challen
   await page.locator('.operator-list-row[title="Open S022"]').click();
   await page.getByRole('button', { name: 'Open review pack' }).click();
   await expect(page.getByRole('heading', { name: /S022: Spent acetone solvent/ })).toBeVisible();
-  await expect(page.getByText('Competent Human Review Required', { exact: true })).toBeVisible();
+  await expect(page.getByText('competent human review required', { exact: true })).toBeVisible();
   await expect(page.getByText('Second review recommended:')).toBeVisible();
   await expect(page.getByText(/circular-core-ruleset-v1\.0\.0/)).toBeVisible();
   expect(unexpectedErrors).toEqual([]);
