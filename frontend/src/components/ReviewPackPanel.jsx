@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { api } from '../api/client.js';
 import { RiskBadge, ReviewBadge } from './Badges.jsx';
@@ -64,6 +64,12 @@ export default function ReviewPackPanel({ reviewPack }) {
   const [challengeResult, setChallengeResult] = useState(null);
   const [challengeError, setChallengeError] = useState('');
   const [challengeBusy, setChallengeBusy] = useState(false);
+
+  useEffect(() => {
+    setChallengeForm(EMPTY_CHALLENGE);
+    setChallengeResult(null);
+    setChallengeError('');
+  }, [reviewPack?.stream_id]);
 
   function updateChallenge(key, value) {
     setChallengeForm((current) => ({ ...current, [key]: value }));
