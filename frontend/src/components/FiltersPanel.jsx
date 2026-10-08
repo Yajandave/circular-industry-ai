@@ -11,8 +11,6 @@ export default function FiltersPanel({ filters, onChange, materials, strategies,
       strategy: 'all',
       review: 'all',
       priority: 'all',
-      minConfidence: 0,
-      minEvidence: 0,
       sortBy: 'priority',
     });
   }
@@ -73,22 +71,13 @@ export default function FiltersPanel({ filters, onChange, materials, strategies,
           </select>
         </label>
         <label>
-          Minimum confidence
-          <input type="number" min="0" max="100" value={filters.minConfidence} onChange={(event) => update('minConfidence', event.target.value)} />
-        </label>
-        <label>
-          Minimum evidence
-          <input type="number" min="0" max="100" value={filters.minEvidence} onChange={(event) => update('minEvidence', event.target.value)} />
-        </label>
-        <label>
           Sort by
           <select value={filters.sortBy} onChange={(event) => update('sortBy', event.target.value)}>
-            <option value="priority">priority score</option>
+            <option value="priority">governance priority</option>
             <option value="cost">annual cost exposure</option>
-            <option value="diversion">annual diversion potential</option>
+            <option value="diversion">annual quantity opportunity</option>
             <option value="risk">risk severity</option>
-            <option value="confidence">confidence score</option>
-            <option value="evidence">evidence quality score</option>
+            <option value="maturity">evidence maturity</option>
           </select>
         </label>
         <button className="secondary reset-button" onClick={reset}>Reset filters</button>
