@@ -17,9 +17,9 @@ def load_sample_streams(db: Session = Depends(get_db)) -> schemas.LoadSampleResp
     """Load the synthetic sample dataset into SQLite, replacing existing rows."""
     init_db()
     streams = load_streams_from_csv()
-    loaded_rows = crud.bulk_replace_streams(db, streams)
-    crud.create_audit_event(
+    loaded_rows, _ = crud.replace_streams_with_audit_event(
         db,
+        streams,
         event_type="dataset_loaded",
         entity_type="dataset",
         entity_id="sample",
@@ -27,10 +27,10 @@ def load_sample_streams(db: Session = Depends(get_db)) -> schemas.LoadSampleResp
         actor_id="local_user",
         source="streams_router",
         action="load_sample_dataset",
-        summary=f"Loaded {loaded_rows} sample material streams and replaced existing stream/recommendation rows.",
+        summary=f"Loaded {len(streams)} sample material streams and replaced existing stream/recommendation rows.",
         decision_source="operator_action",
         claim_boundary="Data loading does not create verified circular economy, cost or environmental impact claims.",
-        metadata={"loaded_rows": loaded_rows, "replaced_existing_rows": True},
+        metadata={"loaded_rows": len(streams), "replaced_existing_rows": True},
     )
     return schemas.LoadSampleResponse(
         loaded_rows=loaded_rows,
@@ -56,15 +56,15 @@ async def upload_stream_csv(
         streams = load_streams_from_upload_bytes(file_bytes)
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
-    except Exception as exc:  # pandas/parser errors should be shown as controlled bad requests
+    except Exception as exc:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Could not parse uploaded CSV: {exc}",
         ) from exc
 
-    loaded_rows = crud.bulk_replace_streams(db, streams)
-    crud.create_audit_event(
+    loaded_rows, _ = crud.replace_streams_with_audit_event(
         db,
+        streams,
         event_type="dataset_uploaded",
         entity_type="dataset",
         entity_id=file.filename,
@@ -72,24 +72,10 @@ async def upload_stream_csv(
         actor_id="local_user",
         source="streams_router",
         action="upload_csv_dataset",
-        summary=f"Uploaded CSV '{file.filename}' with {loaded_rows} material streams and replaced existing stream/recommendation rows.",
+        summary=f"Uploaded CSV '{file.filename}' with {len(streams)} material streams and replaced existing stream/recommendation rows.",
         decision_source="operator_action",
         claim_boundary="CSV upload does not create verified circular economy, cost or environmental impact claims.",
-        metadata={"loaded_rows": loaded_rows, "filename": file.filename, "replaced_existing_rows": True},
-    )
-    crud.create_audit_event(
-        db,
-        event_type="dataset_loaded",
-        entity_type="dataset",
-        entity_id="sample",
-        actor_type="operator",
-        actor_id="local_user",
-        source="streams_router",
-        action="load_sample_dataset",
-        summary=f"Loaded {loaded_rows} sample material streams and replaced existing stream/recommendation rows.",
-        decision_source="operator_action",
-        claim_boundary="Data loading does not create verified circular economy, cost or environmental impact claims.",
-        metadata={"loaded_rows": loaded_rows, "replaced_existing_rows": True},
+        metadata={"loaded_rows": len(streams), "filename": file.filename, "replaced_existing_rows": True},
     )
     return schemas.LoadSampleResponse(
         loaded_rows=loaded_rows,
