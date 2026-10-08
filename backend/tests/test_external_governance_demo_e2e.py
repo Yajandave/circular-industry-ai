@@ -52,7 +52,7 @@ def test_external_governance_demo_journey_end_to_end(isolated_client):
     # 1. Start from a clean, controlled sample dataset.
     load = client.post("/api/streams/load-sample")
     assert load.status_code == 200
-    assert load.json()["records_loaded"] == 50
+    assert load.json()["loaded_rows"] == 50
 
     run = client.post("/api/recommendations/run")
     assert run.status_code == 200
@@ -100,7 +100,7 @@ def test_external_governance_demo_journey_end_to_end(isolated_client):
     assert scenario.status_code == 200
     scenario_json = scenario.json()
     assert scenario_json["scenario_screened_recoverable_quantity_kg"] > 0
-    assert "screen" in scenario_json["claim_status"].lower() or "claim" in scenario_json["claim_status"].lower()
+    assert scenario_json["claim_status"] == "screening_only_not_claim_ready"
     assert "verify" in scenario_json["governance_note"].lower() or "screen" in scenario_json["governance_note"].lower()
 
     saved = client.post(
@@ -267,7 +267,7 @@ def test_external_governance_demo_journey_end_to_end(isolated_client):
     assert events.status_code == 200
     event_types = {event["event_type"] for event in events.json()}
     assert "dataset_loaded" in event_types
-    assert "recommendations_run" in event_types
+    assert "rules_engine_run" in event_types
     assert "intervention_scenario_screened" in event_types
     assert "intervention_scenario_saved" in event_types
     assert "observed_scenario_outcome_recorded" in event_types
