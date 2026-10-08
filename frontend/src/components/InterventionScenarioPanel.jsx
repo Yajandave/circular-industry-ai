@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 
-import { RiskBadge, ReviewBadge, ScoreBadge } from './Badges.jsx';
+import { RiskBadge, ReviewBadge } from './Badges.jsx';
 import { formatCurrency, formatKg, humanise } from '../utils/formatters.js';
 
 const DEFAULT_ASSUMPTIONS = {
@@ -585,14 +585,14 @@ export default function InterventionScenarioPanel({
                   helper="Current exposure, not scenario savings"
                 />
                 <ScenarioMetric
-                  label="Confidence"
-                  value={`${scenarioResult.recommendation_confidence_score}/100`}
-                  helper="Locked recommendation confidence"
+                  label="Decision basis"
+                  value={humanise(selectedRecommendation?.decision_support_band || 'screening basis')}
+                  helper="Qualitative screening basis, not a probability"
                 />
                 <ScenarioMetric
-                  label="Evidence"
-                  value={`${scenarioResult.evidence_quality_score}/100`}
-                  helper="Evidence quality score"
+                  label="Evidence maturity"
+                  value={humanise(selectedRecommendation?.evidence_maturity || 'screening state')}
+                  helper="Derived from explicit risk, review and evidence conditions"
                 />
               </div>
 
@@ -602,9 +602,9 @@ export default function InterventionScenarioPanel({
                 <p>{scenarioResult.candidate_route}</p>
               </div>
 
-              <div className="scenario-score-row">
-                <ScoreBadge label="Confidence" value={scenarioResult.recommendation_confidence_score} />
-                <ScoreBadge label="Evidence" value={scenarioResult.evidence_quality_score} />
+              <div className="governance-strip compact">
+                Legacy numeric evidence and confidence fields are retained in stored scenario snapshots for compatibility only.
+                They are not probabilities, assurance ratings or validation outcomes.
               </div>
 
               <div className="scenario-detail-block">
