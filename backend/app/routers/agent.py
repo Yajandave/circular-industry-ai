@@ -1,4 +1,4 @@
-"""Agentic analysis endpoints for advanced decision support."""
+"""Controlled specialist analysis endpoints for advanced decision support."""
 
 from __future__ import annotations
 
@@ -13,7 +13,7 @@ from app.agentic.orchestrator import (
 )
 from app.database import get_db
 
-router = APIRouter(prefix="/api/agent", tags=["agentic decision support"])
+router = APIRouter(prefix="/api/agent", tags=["controlled decision support"])
 
 
 @router.get("/review-pack/{stream_id}", response_model=schemas.AgenticReviewPack)
