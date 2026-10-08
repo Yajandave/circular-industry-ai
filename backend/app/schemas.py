@@ -1277,6 +1277,13 @@ class ObservedOutcomeEvidenceReviewHistory(BaseModel):
 
 # Pre-external-review governance schemas
 
+class EvidenceGovernancePolicy(BaseModel):
+    policy_version: str
+    source_classes: list[dict]
+    cross_cutting_checks: list[str]
+    governance_note: str
+
+
 class RuleProvenanceRecord(BaseModel):
     rule_id: str
     rule_family: str
