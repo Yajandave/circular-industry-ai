@@ -20,8 +20,12 @@ def test_evidence_register_returns_records():
     assert len(data) == 50
     first = data[0]
     assert "evidence_status" in first
+    assert "evidence_maturity" in first
+    assert "decision_support_band" in first
+    assert "score_semantics" in first
     assert "claim_readiness" in first
     assert "claim_boundary" in first
+    assert "not probabilities" in first["score_semantics"].lower()
 
 
 def test_evidence_summary_contains_governance_metrics():
@@ -31,6 +35,10 @@ def test_evidence_summary_contains_governance_metrics():
     data = response.json()
     assert data["total_records"] == 50
     assert data["human_review_required"] >= 1
+    assert "evidence_maturity_breakdown" in data
+    assert "decision_support_breakdown" in data
+    assert "score_semantics" in data
+    assert "not probabilities" in data["score_semantics"].lower()
     assert "governance_note" in data
 
 
