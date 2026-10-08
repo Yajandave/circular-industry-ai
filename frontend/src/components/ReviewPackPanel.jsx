@@ -68,6 +68,8 @@ export default function ReviewPackPanel({ reviewPack }) {
   const resource = reviewPack.resource_efficiency_review || {};
   const executive = reviewPack.executive_synthesis || {};
   const risk = reviewPack.risk_review || {};
+  const provenance = reviewPack.rule_provenance || {};
+  const reviewGovernance = reviewPack.review_governance || {};
 
   return (
     <section id="review-pack-panel" className="review-panel focused-review-panel">
@@ -97,6 +99,42 @@ export default function ReviewPackPanel({ reviewPack }) {
           <strong>{executive.recommended_management_action}</strong>
         </div>
       </article>
+
+      <div className="review-grid focused-grid governance-review-grid">
+        <article>
+          <h3>Rule provenance</h3>
+          <p><strong>{provenance.rule_family || reviewPack.rule_applied}</strong></p>
+          <p>{humanise(provenance.provenance_status)}</p>
+          <p>{provenance.internal_interpretation}</p>
+          {!!provenance.sources?.length && (
+            <div className="list-block">
+              <h4>Public guidance informing this boundary</h4>
+              <ul>
+                {provenance.sources.map((source) => (
+                  <li key={source.source_id}>
+                    <a href={source.url} target="_blank" rel="noreferrer">{source.title}</a>
+                    {' '}· {source.publisher}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          <small>Governance version: {provenance.governance_version} · reviewed {provenance.last_reviewed_date}</small>
+          <p className="boundary-note">{provenance.claim_boundary}</p>
+        </article>
+
+        <article>
+          <h3>Human review governance</h3>
+          <p><strong>{humanise(reviewGovernance.gate_status)}</strong></p>
+          <ListBlock title="Primary reviewer competence" items={reviewGovernance.primary_reviewer_competence} />
+          <ListBlock title="Supporting competence" items={reviewGovernance.supporting_reviewer_competence} />
+          <p><strong>Second review recommended:</strong> {reviewGovernance.second_review_recommended ? 'Yes' : 'No'}</p>
+          <p>{reviewGovernance.minimum_review_expectation}</p>
+          <ListBlock title="Why this reviewer profile" items={reviewGovernance.rationale} />
+          <p className="boundary-note">{reviewGovernance.override_policy}</p>
+          <small>{reviewGovernance.governance_note}</small>
+        </article>
+      </div>
 
       <div className="review-grid focused-grid">
         <article>
