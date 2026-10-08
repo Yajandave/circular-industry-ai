@@ -264,8 +264,9 @@ Each stream can receive:
 - circular strategy category
 - reasoning
 - risk level
-- confidence score
-- evidence quality score
+- qualitative decision-support band
+- qualitative evidence maturity
+- legacy internal confidence/evidence heuristics retained only for backwards compatibility and regression analysis
 - missing data
 - human-review flag
 - annual material quantity screened / opportunity exposure
@@ -338,17 +339,17 @@ A saved scenario revision can now receive immutable **observed outcome evidence*
 
 Observed outcome records can then pass through an immutable **internal evidence verification and claim-readiness gate**. The gate checks documentary source presence, source traceability, quantity basis, observation-period basis, evidence completeness and internal review status. A passing review may support a narrow internal factual statement only; external claims remain blocked pending a separate verification process, and claims about causal impact, carbon savings, financial savings, legal compliance or verified diversion remain prohibited.
 
-### 6. Agentic research and insight workflows
+### 6. Controlled decision-intelligence workflows
 
 The AI-supported layer includes:
 
 - knowledge graph relationships
 - controlled retrieval workflows
-- insight generation
+- AI-assisted insight generation
 - insight history and traceability
 - retrieval and insight quality evaluation
 
-These features support investigation and drafting. They do not replace the locked rules engine or professional judgement.
+These features support investigation, explanation and drafting. They do not replace the locked rules engine, risk gates, evidence controls or professional judgement.
 
 ### 7. Visual analytics and operator drilldown
 
@@ -420,17 +421,24 @@ Core fields include:
 
 ## Development status
 
-The repository currently implements the controlled local workflow through **Milestone 20A**, with **Milestone 20B intervention scenario screening now in development**.
+The repository currently implements the controlled local workflow through **Milestone 20C.6**, followed by a dedicated pre-external-review hardening phase covering audit integrity, qualitative evidence maturity, rule provenance, reviewer-competence routing, evidence-source governance and immutable human decision challenges.
 
 The project remains development-stage software. Its outputs are screening and workflow records rather than externally verified environmental performance, legal conclusions or professional assurance opinions.
+
+The current validation position is:
+- internal deterministic benchmark retained across 20 reference cases
+- externally grounded challenge suite retained across 10 England-focused cases
+- blind reviewer workflow implemented
+- multi-reviewer agreement analysis implemented
+- independent external review not yet completed
 
 <details>
 <summary><strong>Technical milestone history</strong></summary>
 
 - **Milestones 1–8F: Core screening and controlled outputs** — dataset and repository foundation; FastAPI, SQLite and stream APIs; locked circular recommendation engine; React review interface; dashboard and filters; evidence register; Circular Resolution Engine; material playbooks; supplier-loop intelligence; AI-assisted evidence explanations, supplier drafting and circular action reports.
 - **Milestones 9A–9F: Alpha hardening and traceability** — workflow readiness diagnostics; bounded AI runtime handling; frontend workflow guardrails; organisation, site and analysis-run metadata; audit events; CSV data-quality validation.
-- **Milestones 10A–10E: Knowledge and autonomous insight layer** — knowledge architecture; controlled knowledge base; retrieval engine; autonomous insight generation; saved insight history and traceability.
-- **Milestones 11A–11E: Agentic intelligence workflow** — knowledge graph relationships; agentic retrieval orchestration; retrieval and insight evaluation; operator UI; usability refinement.
+- **Milestones 10A–10E: Knowledge and AI-assisted insight layer** — knowledge architecture; controlled knowledge base; retrieval engine; AI-assisted insight generation; saved insight history and traceability.
+- **Milestones 11A–11E: Controlled decision-intelligence workflow** — knowledge graph relationships; controlled retrieval orchestration; retrieval and insight evaluation; operator UI; usability refinement.
 - **Milestones 12A–12F: Professional intelligence interface** — visual analytics; drilldown and triage; product wording alignment; executive report generator; ESG/EIA issue register; scenario comparison.
 - **Milestones 13A–13C: Workspace and claim-safety architecture** — domain workspace architecture; workspace contract hardening; metric and claim-safety wording.
 - **Milestones 14A–14F: Data Profiler and ingestion design foundation** — profiler engine; foundation audit; profiler reliability plan; user-confirmed mapping specification; flexible import specification; mapping audit and saved-plan specification.
@@ -439,9 +447,12 @@ The project remains development-stage software. Its outputs are screening and wo
 - **Milestones 17A–17F: User-confirmed mapping** — validation contract and API; frontend API client; operator mapping panel; mapping UX hardening; role-option and copy alignment.
 - **Milestones 18A–18E: Controlled draft import preview** — flexible import contract and endpoint; frontend client; draft preview panel; row inspection, grouped warnings and review-control hardening.
 - **Milestones 19A–19D: Approved persistence and recommendation gate** — approval-controlled SQLite import; audit traceability; frontend save action; separate operator-triggered post-import recommendation run.
-- **Milestone 20A: Decision-integrity hardening (in progress)** — repaired post-import gate state; aligned controlled-import wording; reclassified annual quantity/cost values as screening exposure rather than achieved impact; blocked missing or unsupported quantity units; added field-level source provenance to draft rows and import audit metadata.
+- **Milestone 20A: Decision-integrity hardening** — repaired post-import gate state; aligned controlled-import wording; reclassified annual quantity/cost values as screening exposure rather than achieved impact; blocked missing or unsupported quantity units; added field-level source provenance to draft rows and import audit metadata.
+- **Milestones 20B.1–20B.6: Scenario, outcome and claim-readiness controls** — intervention scenario screening and comparison; immutable saved revisions; observed outcome evidence; deterministic internal evidence-review gate.
+- **Milestones 20C.1–20C.6: Decision validation** — internal benchmark; authoritative-guidance challenge suite; rule-gap closure; blind external-review workflow; standalone reviewer portal; multi-reviewer agreement analysis.
+- **Pre-external-review hardening:** audit/data integrity; qualitative governance maturity replacing score-led presentation; rule provenance; reviewer-competence routing; evidence-source hierarchy; immutable human disagreement records; public terminology cleanup.
 
-**Current implemented milestone: 19D — Post-import Recommendation Run Gate.**
+**Current implemented stage: controlled circular-economy decision-support alpha, prepared for external blind review.**
 
 </details>
 
