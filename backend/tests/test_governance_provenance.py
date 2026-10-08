@@ -175,3 +175,19 @@ def test_governance_api_exposes_rule_catalogue_and_review_profile(isolated_clien
     assert profile.status_code == 200
     assert profile.json()["primary_reviewer_competence"]
     assert "override_policy" in profile.json()
+
+
+
+def test_evidence_policy_separates_documentary_support_from_independent_assurance(isolated_client):
+    client = isolated_client
+    response = client.get("/api/governance/evidence-policy")
+    assert response.status_code == 200
+    policy = response.json()
+
+    by_type = {item["source_type"]: item for item in policy["source_classes"]}
+    assert by_type["operator_log"]["eligible_for_internal_claim_gate"] is False
+    assert by_type["weighbridge_ticket"]["eligible_for_internal_claim_gate"] is True
+    assert by_type["weighbridge_ticket"]["independent_assurance"] is False
+    assert by_type["supplier_confirmation"]["independent_assurance"] is False
+    assert by_type["independent_assurance"]["supported_by_current_alpha"] is False
+    assert "authenticate" in policy["governance_note"].lower()
