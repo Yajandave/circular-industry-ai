@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from datetime import datetime, timezone
 from uuid import uuid4
 
 from sqlalchemy import delete, func, select
@@ -12,6 +13,8 @@ from app import models, schemas
 from app.outcome_verification import evaluate_observed_outcome_evidence
 from app.blind_decision_review import compare_blind_label, summarise_blind_review_submissions
 from app.blind_review_analysis import build_multi_reviewer_analysis
+from app.ruleset_release import RULESET_VERSION, rule_version
+from app.rule_provenance import get_rule_provenance
 
 
 def create_stream(db: Session, stream: schemas.IndustrialStreamCreate) -> models.IndustrialStream:
@@ -1196,3 +1199,108 @@ def get_decision_challenges(
             "or create an approved override."
         ),
     )
+
+
+def persist_versioned_recommendation_run(
+    db: Session,
+    *,
+    streams: list[models.IndustrialStream],
+    recommendations: list[schemas.CircularRecommendationCreate],
+) -> tuple[int, str]:
+    """Atomically persist current decisions, immutable version snapshots and audit."""
+    run_id = f"ruleset-{uuid4().hex}"
+    generated_at = datetime.now(timezone.utc)
+    stream_lookup = {stream.stream_id: stream for stream in streams}
+    try:
+        db.execute(delete(models.CircularRecommendation))
+        for rec in recommendations:
+            stream = stream_lookup[rec.stream_id]
+            version = rule_version(rec.rule_applied)
+            db.add(models.CircularRecommendation(**rec.model_dump(), created_at=generated_at))
+            input_snapshot = {
+                col.name: getattr(stream, col.name)
+                for col in stream.__table__.columns
+                if col.name not in {"id", "created_at"}
+            }
+            db.add(
+                models.RuleDecisionSnapshot(
+                    run_id=run_id,
+                    stream_id=rec.stream_id,
+                    rule_applied=rec.rule_applied,
+                    rule_version=version,
+                    ruleset_version=RULESET_VERSION,
+                    recommendation_generated_at=generated_at,
+                    input_snapshot_json=json.dumps(input_snapshot, ensure_ascii=False, default=str),
+                    decision_snapshot_json=rec.model_dump_json(),
+                    provenance_snapshot_json=json.dumps(get_rule_provenance(rec.rule_applied), ensure_ascii=False),
+                )
+            )
+        db.add(
+            _new_audit_event(
+                event_type="rules_engine_run",
+                entity_type="recommendation_run",
+                entity_id=run_id,
+                actor_type="system",
+                actor_id="rules_engine",
+                source="recommendations_router",
+                action="run_locked_rules_engine",
+                summary=f"Generated {len(recommendations)} locked circular economy recommendations with versioned snapshots.",
+                decision_source="locked_rules_engine",
+                claim_boundary=(
+                    "Ruleset version identifies screening logic, not independent validation. "
+                    "Outputs are not verified circularity, cost or environmental impact claims."
+                ),
+                metadata={
+                    "analysed_streams": len(streams),
+                    "recommendations_created": len(recommendations),
+                    "run_id": run_id,
+                    "ruleset_version": RULESET_VERSION,
+                },
+            )
+        )
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+    return len(recommendations), run_id
+
+
+def _decision_snapshot_read(row: models.RuleDecisionSnapshot) -> dict:
+    return {
+        "run_id": row.run_id,
+        "stream_id": row.stream_id,
+        "rule_applied": row.rule_applied,
+        "rule_version": row.rule_version,
+        "ruleset_version": row.ruleset_version,
+        "generated_at": row.recommendation_generated_at,
+        "input_snapshot": json.loads(row.input_snapshot_json),
+        "decision_snapshot": json.loads(row.decision_snapshot_json),
+        "provenance_snapshot": json.loads(row.provenance_snapshot_json),
+    }
+
+
+def get_versioned_decision_history(db: Session, stream_id: str, limit: int = 50) -> list[dict]:
+    records = db.scalars(
+        select(models.RuleDecisionSnapshot)
+        .where(models.RuleDecisionSnapshot.stream_id == stream_id)
+        .order_by(models.RuleDecisionSnapshot.id.desc())
+        .limit(limit)
+    ).all()
+    return [_decision_snapshot_read(row) for row in records]
+
+
+def get_current_versioned_decision(
+    db: Session,
+    recommendation: models.CircularRecommendation,
+) -> dict | None:
+    """Return version only when snapshot and current recommendation share run timestamp."""
+    row = db.scalars(
+        select(models.RuleDecisionSnapshot)
+        .where(
+            models.RuleDecisionSnapshot.stream_id == recommendation.stream_id,
+            models.RuleDecisionSnapshot.recommendation_generated_at == recommendation.created_at,
+        )
+        .order_by(models.RuleDecisionSnapshot.id.desc())
+        .limit(1)
+    ).first()
+    return _decision_snapshot_read(row) if row is not None else None
