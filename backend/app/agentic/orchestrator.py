@@ -412,7 +412,7 @@ def build_stream_review_pack(
     stream: models.IndustrialStream,
     recommendation: models.CircularRecommendation,
 ) -> dict[str, Any]:
-    """Build a multi-agent review pack for one industrial stream."""
+    """Build a controlled specialist review pack for one industrial stream."""
     evidence = evidence_audit(stream, recommendation)
     risk = risk_reviewer(stream, recommendation)
     procurement = procurement_agent(stream, recommendation)
@@ -471,7 +471,7 @@ def build_management_summary(
     )[:5]
 
     return {
-        "decision_source": "rules_engine_locked_with_agentic_synthesis",
+        "decision_source": "rules_engine_locked_with_controlled_synthesis",
         "total_recommendations": total,
         "human_review_required": human_review,
         "risk_breakdown": dict(risk_counts),
