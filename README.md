@@ -425,10 +425,6 @@ New deterministic recommendation runs are recorded under **Circular Core Ruleset
 
 A safe, fresh synthetic demonstration can be prepared with `python backend/scripts/prepare_governance_demo.py`. This writes a new uniquely named SQLite database and never resets existing application or reviewer data. The [10-minute governance walkthrough](docs/ten_minute_governance_demo.md) documents the exact two cases, screen order, claims to avoid and independent-review questions.
 
-## External governance review preparation
-
-A concise professional-review walkthrough is documented in [docs/external_governance_review_runbook.md](docs/external_governance_review_runbook.md). It separates demoable capability, claim boundaries, blind-review methodology and the questions to put to an external governance reviewer.
-
 ## Development status
 
 The repository currently implements the controlled local workflow through **Milestone 20C.6**, followed by a dedicated pre-external-review hardening phase covering audit integrity, qualitative evidence maturity, rule provenance, reviewer-competence routing, evidence-source governance and immutable human decision challenges.
