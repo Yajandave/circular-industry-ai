@@ -482,7 +482,7 @@ export default function App() {
           <span className="eyebrow">Industrial circular economy decision support</span>
           <h1>Circular Industry AI</h1>
           <p>
-            A controlled agentic system for material-flow screening, by-product valorisation, circular procurement and
+            A controlled decision-support system for material-flow screening, by-product valorisation, circular procurement and
             evidence-led action planning. The rules engine remains the locked decision source.
           </p>
         </div>
