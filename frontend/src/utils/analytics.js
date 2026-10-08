@@ -100,7 +100,7 @@ function orderRiskRows(cells) {
 function classifyOpportunity(rec) {
   if (rec.priority_band === 'validation priority') return 'validation_priority';
   if (rec.priority_band === 'opportunity development') return 'developing';
-  if (rec.priority_band === 'evidence improvement') return 'evidence_uplift';
+  if (rec.priority_band === 'evidence development') return 'evidence_uplift';
   return 'controlled_review';
 }
 
