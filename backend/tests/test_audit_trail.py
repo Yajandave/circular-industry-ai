@@ -7,7 +7,8 @@ from app.main import app
 client = TestClient(app)
 
 
-def test_manual_audit_event_can_be_created_and_listed():
+def test_manual_audit_event_can_be_created_and_listed(monkeypatch):
+    monkeypatch.setenv("ALLOW_MANUAL_AUDIT_EVENTS", "true")
     payload = {
         "event_type": "manual_review_note",
         "entity_type": "workflow",

@@ -23,10 +23,19 @@ def create_stream(db: Session, stream: schemas.IndustrialStreamCreate) -> models
 
 
 def bulk_replace_streams(db: Session, streams: list[schemas.IndustrialStreamCreate]) -> int:
-    db.execute(delete(models.CircularRecommendation))
-    db.execute(delete(models.IndustrialStream))
-    db.add_all([models.IndustrialStream(**stream.model_dump()) for stream in streams])
-    db.commit()
+    """Replace streams in one transaction.
+
+    Prefer replace_streams_with_audit_event for operator-facing dataset
+    replacement so the data mutation and its audit record commit together.
+    """
+    try:
+        db.execute(delete(models.CircularRecommendation))
+        db.execute(delete(models.IndustrialStream))
+        db.add_all([models.IndustrialStream(**stream.model_dump()) for stream in streams])
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
     return len(streams)
 
 
@@ -264,6 +273,40 @@ def _audit_read(event: models.AuditEvent) -> schemas.AuditEventRead:
     )
 
 
+def _new_audit_event(
+    *,
+    event_type: str,
+    entity_type: str,
+    entity_id: str | None,
+    actor_type: str,
+    actor_id: str | None,
+    source: str,
+    action: str,
+    summary: str,
+    decision_source: str,
+    claim_boundary: str,
+    metadata: dict | None = None,
+) -> models.AuditEvent:
+    """Build an audit row without committing.
+
+    This lets workflow mutations and their audit records share one database
+    transaction instead of creating traceability after the fact.
+    """
+    return models.AuditEvent(
+        event_type=event_type,
+        entity_type=entity_type,
+        entity_id=entity_id,
+        actor_type=actor_type,
+        actor_id=actor_id,
+        source=source,
+        action=action,
+        summary=summary,
+        decision_source=decision_source,
+        claim_boundary=claim_boundary,
+        metadata_json=json.dumps(metadata or {}, ensure_ascii=False),
+    )
+
+
 def create_audit_event(
     db: Session,
     *,
@@ -280,7 +323,7 @@ def create_audit_event(
     metadata: dict | None = None,
 ) -> schemas.AuditEventRead:
     """Create and return a traceable audit event."""
-    event = models.AuditEvent(
+    event = _new_audit_event(
         event_type=event_type,
         entity_type=entity_type,
         entity_id=entity_id,
@@ -291,12 +334,59 @@ def create_audit_event(
         summary=summary,
         decision_source=decision_source,
         claim_boundary=claim_boundary,
-        metadata_json=json.dumps(metadata or {}, ensure_ascii=False),
+        metadata=metadata,
     )
-    db.add(event)
-    db.commit()
-    db.refresh(event)
+    try:
+        db.add(event)
+        db.commit()
+        db.refresh(event)
+    except Exception:
+        db.rollback()
+        raise
     return _audit_read(event)
+
+
+def replace_streams_with_audit_event(
+    db: Session,
+    streams: list[schemas.IndustrialStreamCreate],
+    *,
+    event_type: str,
+    entity_type: str,
+    entity_id: str | None,
+    actor_type: str,
+    actor_id: str | None,
+    source: str,
+    action: str,
+    summary: str,
+    decision_source: str,
+    claim_boundary: str,
+    metadata: dict | None = None,
+) -> tuple[int, schemas.AuditEventRead]:
+    """Replace stream data and record the event in one atomic transaction."""
+    event = _new_audit_event(
+        event_type=event_type,
+        entity_type=entity_type,
+        entity_id=entity_id,
+        actor_type=actor_type,
+        actor_id=actor_id,
+        source=source,
+        action=action,
+        summary=summary,
+        decision_source=decision_source,
+        claim_boundary=claim_boundary,
+        metadata=metadata,
+    )
+    try:
+        db.execute(delete(models.CircularRecommendation))
+        db.execute(delete(models.IndustrialStream))
+        db.add_all([models.IndustrialStream(**stream.model_dump()) for stream in streams])
+        db.add(event)
+        db.commit()
+        db.refresh(event)
+    except Exception:
+        db.rollback()
+        raise
+    return len(streams), _audit_read(event)
 
 
 def get_audit_events(
