@@ -7,11 +7,18 @@ from sqlalchemy.orm import Session
 
 from app import crud, schemas
 from app.database import get_db
+from app.evidence_governance import evidence_source_policy
 from app.review_governance import build_review_governance
 from app.rule_provenance import get_rule_provenance, list_rule_provenance
 
 
 router = APIRouter(prefix="/api/governance", tags=["governance and provenance"])
+
+
+@router.get("/evidence-policy", response_model=schemas.EvidenceGovernancePolicy)
+def evidence_policy() -> dict:
+    """Return the current evidence-source hierarchy and its limitations."""
+    return evidence_source_policy()
 
 
 @router.get("/rules", response_model=list[schemas.RuleProvenanceRecord])
