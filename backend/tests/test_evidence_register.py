@@ -49,6 +49,9 @@ def test_evidence_csv_export_is_available():
     assert "text/csv" in response.headers["content-type"]
     assert "stream_id" in response.text
     assert "claim_readiness" in response.text
+    assert "evidence_maturity" in response.text
+    assert "decision_support_band" in response.text
+    assert "legacy_internal_evidence_heuristic" in response.text
 
 
 def test_recommendations_csv_export_is_available():
@@ -57,3 +60,7 @@ def test_recommendations_csv_export_is_available():
     assert response.status_code == 200
     assert "text/csv" in response.headers["content-type"]
     assert "recommended_circular_action" in response.text
+    assert "evidence_maturity" in response.text
+    assert "decision_support_band" in response.text
+    assert "legacy_internal_confidence_heuristic" in response.text
+    assert "score_semantics" in response.text
