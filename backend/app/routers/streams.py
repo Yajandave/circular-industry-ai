@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from app import crud, schemas
 from app.database import get_db, init_db
 from app.utils.csv_loader import load_streams_from_csv, load_streams_from_upload_bytes
+from app.utils.upload_security import read_limited_csv_upload
 
 router = APIRouter(prefix="/api/streams", tags=["streams"])
 
@@ -45,14 +46,8 @@ async def upload_stream_csv(
     db: Session = Depends(get_db),
 ) -> schemas.LoadSampleResponse:
     """Upload a custom industrial stream CSV, validate it, and replace existing stream rows."""
-    if not file.filename or not file.filename.lower().endswith(".csv"):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Upload must be a .csv file.",
-        )
-
     try:
-        file_bytes = await file.read()
+        file_bytes = await read_limited_csv_upload(file)
         streams = load_streams_from_upload_bytes(file_bytes)
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
