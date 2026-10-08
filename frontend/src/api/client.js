@@ -62,6 +62,12 @@ export const api = {
   }),
   blindReviewAnalysis: () => request('/api/decision-validation/blind-review-analysis'),
   reviewPack: (streamId) => request(`/api/agent/review-pack/${encodeURIComponent(streamId)}`),
+  recordDecisionChallenge: (streamId, payload) => request(`/api/governance/decision-challenges/${encodeURIComponent(streamId)}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  }),
+  decisionChallengeHistory: (streamId) => request(`/api/governance/decision-challenges/${encodeURIComponent(streamId)}?limit=100`),
   managementSummary: () => request('/api/agent/management-summary'),
   actionPlan: (limit = 12) => request(`/api/agent/action-plan?limit=${limit}`),
   evidenceRegister: () => request('/api/evidence-register'),

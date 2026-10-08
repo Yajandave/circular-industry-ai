@@ -355,3 +355,51 @@ class BlindDecisionReviewSubmission(Base):
         default=lambda: datetime.now(timezone.utc),
         nullable=False,
     )
+
+
+
+# Pre-external-review governance: immutable human challenge record
+
+class DecisionChallenge(Base):
+    """Human disagreement with a locked screening recommendation.
+
+    A challenge records professional judgement without mutating the original
+    recommendation. Future override authority requires authenticated roles and
+    approval controls.
+    """
+
+    __tablename__ = "decision_challenges"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    stream_id: Mapped[str] = mapped_column(String(30), index=True, nullable=False)
+    recommendation_rule_applied: Mapped[str] = mapped_column(String(120), nullable=False)
+    current_recommended_action: Mapped[str] = mapped_column(Text, nullable=False)
+    current_strategy_category: Mapped[str] = mapped_column(String(120), nullable=False)
+    current_risk_level: Mapped[str] = mapped_column(String(40), nullable=False)
+    current_human_review_required: Mapped[bool] = mapped_column(nullable=False)
+
+    challenger_name: Mapped[str] = mapped_column(String(120), nullable=False)
+    challenger_role: Mapped[str] = mapped_column(String(160), nullable=False)
+    challenger_organisation: Mapped[str | None] = mapped_column(String(180), nullable=True)
+    challenge_type: Mapped[str] = mapped_column(String(60), index=True, nullable=False)
+    proposed_change: Mapped[str] = mapped_column(Text, nullable=False)
+    rationale: Mapped[str] = mapped_column(Text, nullable=False)
+    supporting_evidence_reference: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    status: Mapped[str] = mapped_column(
+        String(80),
+        index=True,
+        nullable=False,
+        default="recorded_for_governance_review",
+    )
+    decision_effect: Mapped[str] = mapped_column(
+        String(80),
+        nullable=False,
+        default="no_automatic_override",
+    )
+    governance_note: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )

@@ -29,6 +29,8 @@ def test_agentic_review_pack_keeps_rules_locked_for_s001():
     assert pack["risk_review"]["locked_controls"]
     assert "evidence_audit" in pack
     assert "procurement_review" in pack
+    assert "rule_provenance" in pack
+    assert "review_governance" in pack
 
 
 def test_agentic_review_pack_preserves_high_risk_human_review():
@@ -53,7 +55,7 @@ def test_agentic_management_summary_returns_portfolio_metrics():
 
     assert summary["total_recommendations"] == 50
     assert summary["human_review_required"] >= 1
-    assert summary["decision_source"] == "rules_engine_locked_with_agentic_synthesis"
+    assert summary["decision_source"] == "rules_engine_locked_with_controlled_synthesis"
     assert len(summary["top_cost_avoidance_candidates"]) <= 5
     assert "decision-support" in summary["portfolio_note"]
 

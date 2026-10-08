@@ -1,3 +1,6 @@
+import { useEffect, useState } from 'react';
+
+import { api } from '../api/client.js';
 import { RiskBadge, ReviewBadge } from './Badges.jsx';
 import { humanise } from '../utils/formatters.js';
 
@@ -45,7 +48,57 @@ function reviewDecisionBasis(base) {
 }
 
 
+const EMPTY_CHALLENGE = {
+  challenger_name: '',
+  challenger_role: '',
+  challenger_organisation: '',
+  challenge_type: 'route',
+  proposed_change: '',
+  rationale: '',
+  supporting_evidence_reference: '',
+};
+
+
 export default function ReviewPackPanel({ reviewPack }) {
+  const [challengeForm, setChallengeForm] = useState(EMPTY_CHALLENGE);
+  const [challengeResult, setChallengeResult] = useState(null);
+  const [challengeError, setChallengeError] = useState('');
+  const [challengeBusy, setChallengeBusy] = useState(false);
+
+  useEffect(() => {
+    setChallengeForm(EMPTY_CHALLENGE);
+    setChallengeResult(null);
+    setChallengeError('');
+  }, [reviewPack?.stream_id]);
+
+  function updateChallenge(key, value) {
+    setChallengeForm((current) => ({ ...current, [key]: value }));
+    setChallengeError('');
+  }
+
+  async function submitChallenge(event) {
+    event.preventDefault();
+    if (!reviewPack?.stream_id) return;
+
+    setChallengeBusy(true);
+    setChallengeError('');
+    setChallengeResult(null);
+    try {
+      const payload = {
+        ...challengeForm,
+        challenger_organisation: challengeForm.challenger_organisation || null,
+        supporting_evidence_reference: challengeForm.supporting_evidence_reference || null,
+      };
+      const result = await api.recordDecisionChallenge(reviewPack.stream_id, payload);
+      setChallengeResult(result);
+      setChallengeForm(EMPTY_CHALLENGE);
+    } catch (error) {
+      setChallengeError(error.message || 'Could not record the decision challenge.');
+    } finally {
+      setChallengeBusy(false);
+    }
+  }
+
   if (!reviewPack) {
     return (
       <section id="review-pack-panel" className="review-panel empty focused-review-panel">
@@ -68,6 +121,8 @@ export default function ReviewPackPanel({ reviewPack }) {
   const resource = reviewPack.resource_efficiency_review || {};
   const executive = reviewPack.executive_synthesis || {};
   const risk = reviewPack.risk_review || {};
+  const provenance = reviewPack.rule_provenance || {};
+  const reviewGovernance = reviewPack.review_governance || {};
 
   return (
     <section id="review-pack-panel" className="review-panel focused-review-panel">
@@ -97,6 +152,134 @@ export default function ReviewPackPanel({ reviewPack }) {
           <strong>{executive.recommended_management_action}</strong>
         </div>
       </article>
+
+      <div className="review-grid focused-grid governance-review-grid">
+        <article>
+          <h3>Rule provenance</h3>
+          <p><strong>{provenance.rule_family || reviewPack.rule_applied}</strong></p>
+          <p>{humanise(provenance.provenance_status)}</p>
+          <p>{provenance.internal_interpretation}</p>
+          {!!provenance.sources?.length && (
+            <div className="list-block">
+              <h4>Public guidance informing this boundary</h4>
+              <ul>
+                {provenance.sources.map((source) => (
+                  <li key={source.source_id}>
+                    <a href={source.url} target="_blank" rel="noreferrer">{source.title}</a>
+                    {' '}· {source.publisher}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          <small>Governance version: {provenance.governance_version} · reviewed {provenance.last_reviewed_date}</small>
+          <p className="boundary-note">{provenance.claim_boundary}</p>
+        </article>
+
+        <article>
+          <h3>Human review governance</h3>
+          <p><strong>{humanise(reviewGovernance.gate_status)}</strong></p>
+          <ListBlock title="Primary reviewer competence" items={reviewGovernance.primary_reviewer_competence} />
+          <ListBlock title="Supporting competence" items={reviewGovernance.supporting_reviewer_competence} />
+          <p><strong>Second review recommended:</strong> {reviewGovernance.second_review_recommended ? 'Yes' : 'No'}</p>
+          <p>{reviewGovernance.minimum_review_expectation}</p>
+          <ListBlock title="Why this reviewer profile" items={reviewGovernance.rationale} />
+          <p className="boundary-note">{reviewGovernance.override_policy}</p>
+          <small>{reviewGovernance.governance_note}</small>
+        </article>
+      </div>
+
+      <details className="section-card governance-challenge-panel">
+        <summary><strong>Record professional disagreement</strong></summary>
+        <p>
+          Use this only when a reviewer disagrees with the locked screening decision, risk, evidence position or claim boundary.
+          Recording a challenge does not change the recommendation.
+        </p>
+        <form className="scenario-verification-form" onSubmit={submitChallenge}>
+          <div className="scenario-verification-grid">
+            <label>
+              <span>Reviewer name</span>
+              <input
+                value={challengeForm.challenger_name}
+                onChange={(event) => updateChallenge('challenger_name', event.target.value)}
+                required
+                disabled={challengeBusy}
+              />
+            </label>
+            <label>
+              <span>Reviewer role</span>
+              <input
+                value={challengeForm.challenger_role}
+                onChange={(event) => updateChallenge('challenger_role', event.target.value)}
+                required
+                disabled={challengeBusy}
+              />
+            </label>
+            <label>
+              <span>Organisation (optional)</span>
+              <input
+                value={challengeForm.challenger_organisation}
+                onChange={(event) => updateChallenge('challenger_organisation', event.target.value)}
+                disabled={challengeBusy}
+              />
+            </label>
+            <label>
+              <span>Challenge type</span>
+              <select
+                value={challengeForm.challenge_type}
+                onChange={(event) => updateChallenge('challenge_type', event.target.value)}
+                disabled={challengeBusy}
+              >
+                <option value="route">Route / strategy</option>
+                <option value="risk">Risk level</option>
+                <option value="review_gate">Review gate</option>
+                <option value="evidence">Evidence position</option>
+                <option value="claim_boundary">Claim boundary</option>
+                <option value="other">Other</option>
+              </select>
+            </label>
+          </div>
+          <label className="scenario-verification-note">
+            <span>Proposed change</span>
+            <textarea
+              rows="2"
+              value={challengeForm.proposed_change}
+              onChange={(event) => updateChallenge('proposed_change', event.target.value)}
+              required
+              disabled={challengeBusy}
+            />
+          </label>
+          <label className="scenario-verification-note">
+            <span>Reasoning</span>
+            <textarea
+              rows="3"
+              value={challengeForm.rationale}
+              onChange={(event) => updateChallenge('rationale', event.target.value)}
+              required
+              disabled={challengeBusy}
+            />
+          </label>
+          <label className="scenario-verification-note">
+            <span>Supporting evidence reference (optional)</span>
+            <input
+              value={challengeForm.supporting_evidence_reference}
+              onChange={(event) => updateChallenge('supporting_evidence_reference', event.target.value)}
+              disabled={challengeBusy}
+            />
+          </label>
+          {challengeError && <p className="error">{challengeError}</p>}
+          <button type="submit" disabled={challengeBusy}>
+            {challengeBusy ? 'Recording challenge…' : 'Record challenge without overriding decision'}
+          </button>
+        </form>
+        {challengeResult && (
+          <div className="governance-strip">
+            <strong>{humanise(challengeResult.status)}</strong>
+            <p>{challengeResult.governance_note}</p>
+            <small>Decision effect: {humanise(challengeResult.decision_effect)}</small>
+          </div>
+        )}
+      </details>
 
       <div className="review-grid focused-grid">
         <article>

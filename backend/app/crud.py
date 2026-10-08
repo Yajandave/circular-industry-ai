@@ -1087,3 +1087,112 @@ def get_blind_multi_reviewer_analysis(
     )
     records = list(db.scalars(query).all())
     return schemas.MultiReviewerAnalysisResult(**build_multi_reviewer_analysis(records))
+
+
+
+# Pre-external-review governance: immutable decision challenges
+
+def create_decision_challenge(
+    db: Session,
+    *,
+    stream: models.IndustrialStream,
+    recommendation: models.CircularRecommendation,
+    payload: schemas.DecisionChallengeCreate,
+) -> schemas.DecisionChallengeRead:
+    """Record human disagreement without mutating the locked recommendation."""
+
+    row = models.DecisionChallenge(
+        stream_id=stream.stream_id,
+        recommendation_rule_applied=recommendation.rule_applied,
+        current_recommended_action=recommendation.recommended_circular_action,
+        current_strategy_category=recommendation.circular_strategy_category,
+        current_risk_level=recommendation.risk_level,
+        current_human_review_required=recommendation.human_review_required,
+        challenger_name=payload.challenger_name.strip(),
+        challenger_role=payload.challenger_role.strip(),
+        challenger_organisation=(
+            payload.challenger_organisation.strip()
+            if payload.challenger_organisation and payload.challenger_organisation.strip()
+            else None
+        ),
+        challenge_type=payload.challenge_type,
+        proposed_change=payload.proposed_change.strip(),
+        rationale=payload.rationale.strip(),
+        supporting_evidence_reference=(
+            payload.supporting_evidence_reference.strip()
+            if payload.supporting_evidence_reference and payload.supporting_evidence_reference.strip()
+            else None
+        ),
+        status="recorded_for_governance_review",
+        decision_effect="no_automatic_override",
+        governance_note=(
+            "This challenge records human professional disagreement. It does not mutate, approve, reject or override "
+            "the locked rules-engine recommendation. Override authority is intentionally unavailable until authenticated "
+            "roles and approval controls are implemented."
+        ),
+    )
+
+    try:
+        db.add(row)
+        db.flush()
+
+        audit_event = _new_audit_event(
+            event_type="decision_challenge_recorded",
+            entity_type="decision_challenge",
+            entity_id=str(row.id),
+            actor_type="reviewer",
+            actor_id=payload.challenger_name.strip(),
+            source="governance_router",
+            action="record_decision_challenge",
+            summary=(
+                f"Recorded a {payload.challenge_type} challenge for stream {stream.stream_id}; "
+                "the locked recommendation was not changed."
+            ),
+            decision_source="human_challenge_no_override",
+            claim_boundary=(
+                "A recorded challenge is governance evidence of disagreement, not approval of the proposed alternative "
+                "and not proof that either the system or challenger is correct."
+            ),
+            metadata={
+                "stream_id": stream.stream_id,
+                "rule_applied": recommendation.rule_applied,
+                "challenger_role": payload.challenger_role.strip(),
+                "challenge_type": payload.challenge_type,
+                "decision_effect": "no_automatic_override",
+            },
+        )
+        db.add(audit_event)
+        db.commit()
+        db.refresh(row)
+    except Exception:
+        db.rollback()
+        raise
+
+    return schemas.DecisionChallengeRead.model_validate(row)
+
+
+def get_decision_challenges(
+    db: Session,
+    *,
+    stream_id: str,
+    limit: int = 100,
+) -> schemas.DecisionChallengeHistory:
+    query = (
+        select(models.DecisionChallenge)
+        .where(models.DecisionChallenge.stream_id == stream_id)
+        .order_by(models.DecisionChallenge.created_at.desc(), models.DecisionChallenge.id.desc())
+        .limit(limit)
+    )
+    records = [
+        schemas.DecisionChallengeRead.model_validate(row)
+        for row in db.scalars(query).all()
+    ]
+    return schemas.DecisionChallengeHistory(
+        stream_id=stream_id,
+        total_challenges=len(records),
+        records=records,
+        governance_note=(
+            "Decision challenges are immutable disagreement records. They do not overwrite historical recommendations "
+            "or create an approved override."
+        ),
+    )

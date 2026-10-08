@@ -15,6 +15,9 @@ from collections import Counter, defaultdict
 from typing import Any
 
 from app import models
+from app.governance_maturity import decision_support_band, evidence_maturity
+from app.review_governance import build_review_governance
+from app.rule_provenance import get_rule_provenance
 
 
 HIGH_VALUE_MATERIALS = {"metals", "electronic components", "glass", "rubber"}
@@ -409,7 +412,7 @@ def build_stream_review_pack(
     stream: models.IndustrialStream,
     recommendation: models.CircularRecommendation,
 ) -> dict[str, Any]:
-    """Build a multi-agent review pack for one industrial stream."""
+    """Build a controlled specialist review pack for one industrial stream."""
     evidence = evidence_audit(stream, recommendation)
     risk = risk_reviewer(stream, recommendation)
     procurement = procurement_agent(stream, recommendation)
@@ -429,8 +432,14 @@ def build_stream_review_pack(
             "risk_level": recommendation.risk_level,
             "confidence_score": recommendation.confidence_score,
             "evidence_quality_score": recommendation.evidence_quality_score,
+            "evidence_maturity": evidence_maturity(recommendation),
+            "decision_support_band": decision_support_band(recommendation),
             "human_review_required": recommendation.human_review_required,
+            "rule_applied": recommendation.rule_applied,
+            "missing_data": recommendation.missing_data,
         },
+        "rule_provenance": get_rule_provenance(recommendation.rule_applied),
+        "review_governance": build_review_governance(stream, recommendation),
         "executive_synthesis": synthesis,
         "evidence_audit": evidence,
         "risk_review": risk,
@@ -449,7 +458,11 @@ def build_management_summary(
     risk_counts = Counter(rec.risk_level for rec in recommendations)
     strategy_counts = Counter(rec.circular_strategy_category for rec in recommendations)
     high_priority = [rec for rec in recommendations if rec.dashboard_priority == "high"]
-    low_evidence = [rec for rec in recommendations if rec.evidence_quality_score < 70]
+    low_evidence = [
+        rec
+        for rec in recommendations
+        if evidence_maturity(rec) in {"insufficient_for_route_change", "controlled_review_required"}
+    ]
 
     top_value = sorted(
         recommendations,
@@ -458,7 +471,7 @@ def build_management_summary(
     )[:5]
 
     return {
-        "decision_source": "rules_engine_locked_with_agentic_synthesis",
+        "decision_source": "rules_engine_locked_with_controlled_synthesis",
         "total_recommendations": total,
         "human_review_required": human_review,
         "risk_breakdown": dict(risk_counts),
@@ -470,7 +483,7 @@ def build_management_summary(
         "executive_summary": (
             f"The current rules run generated {total} circular economy recommendations. "
             f"{human_review} streams require human review, which should be treated as a control rather than a failure. "
-            f"The strongest immediate focus should be high-priority, low-risk streams with good evidence, while high-risk or low-evidence streams should move through controlled review."
+            f"The strongest immediate focus should be rules-cleared validation priorities, while high-risk, review-gated or evidence-insufficient streams should move through controlled review or evidence development."
         ),
         "top_cost_avoidance_candidates": [
             {
@@ -492,32 +505,54 @@ def build_action_plan(
     recommendations: list[models.CircularRecommendation],
     limit: int = 12,
 ) -> dict[str, Any]:
-    """Rank recommendations into a practical action plan."""
-    def score(rec: models.CircularRecommendation) -> float:
-        review_penalty = 35 if rec.human_review_required else 0
-        risk_penalty = {"low": 0, "medium": 10, "high": 35, "blocked": 60}.get(rec.risk_level, 20)
-        value_score = min(rec.estimated_annual_disposal_cost_avoided / 100, 25)
-        diversion_score = min(rec.estimated_annual_waste_diverted_kg / 5000, 20)
-        return rec.confidence_score + value_score + diversion_score - risk_penalty - review_penalty
+    """Group recommendations using transparent governance conditions.
 
-    ranked = sorted(recommendations, key=score, reverse=True)[:limit]
+    Ordering deliberately avoids the legacy confidence/evidence heuristics.
+    Review gates come first, followed by evidence maturity and then screened
+    quantity/cost exposure for operational triage.
+    """
+    def phase_for(rec: models.CircularRecommendation) -> str:
+        maturity = evidence_maturity(rec)
+        if maturity == "controlled_review_required":
+            return "controlled review"
+        if maturity in {"insufficient_for_route_change", "screening_ready_with_checks"}:
+            return "evidence development"
+        if (
+            rec.dashboard_priority == "high"
+            or rec.estimated_annual_disposal_cost_avoided >= 5000
+            or rec.estimated_annual_waste_diverted_kg >= 12000
+        ):
+            return "validation priority"
+        return "opportunity development"
+
+    phase_rank = {
+        "controlled review": 4,
+        "validation priority": 3,
+        "evidence development": 2,
+        "opportunity development": 1,
+    }
+
+    ranked = sorted(
+        recommendations,
+        key=lambda rec: (
+            phase_rank[phase_for(rec)],
+            rec.estimated_annual_disposal_cost_avoided,
+            rec.estimated_annual_waste_diverted_kg,
+        ),
+        reverse=True,
+    )[:limit]
     phases: dict[str, list[dict[str, Any]]] = defaultdict(list)
 
     for rec in ranked:
-        if rec.human_review_required or rec.risk_level in {"high", "blocked"}:
-            phase = "controlled review"
-        elif rec.dashboard_priority == "high" and rec.evidence_quality_score >= 70:
-            phase = "quick-win validation"
-        else:
-            phase = "opportunity development"
-
+        phase = phase_for(rec)
         phases[phase].append(
             {
                 "stream_id": rec.stream_id,
                 "recommended_circular_action": rec.recommended_circular_action,
                 "risk_level": rec.risk_level,
-                "confidence_score": rec.confidence_score,
-                "evidence_quality_score": rec.evidence_quality_score,
+                "evidence_maturity": evidence_maturity(rec),
+                "decision_support_band": decision_support_band(rec),
+                "human_review_required": rec.human_review_required,
                 "estimated_annual_waste_diverted_kg": rec.estimated_annual_waste_diverted_kg,
                 "estimated_annual_disposal_cost_avoided": rec.estimated_annual_disposal_cost_avoided,
                 "next_action": rec.next_action,
@@ -525,7 +560,13 @@ def build_action_plan(
         )
 
     return {
-        "ranking_method": "confidence + screened cost/quantity exposure - risk/review penalties",
+        "ranking_method": (
+            "Governance triage: human-review gate and evidence maturity first, then screened cost and quantity exposure. "
+            "No probability or confidence score is used for ordering."
+        ),
         "phases": dict(phases),
-        "governance_note": "High-scoring items still require evidence confirmation before claims are made.",
+        "governance_note": (
+            "Action-plan order is for operator attention, not automatic implementation approval. "
+            "Validation priorities still require feasibility and evidence checks, and no external claims are authorised by this ordering."
+        ),
     }
