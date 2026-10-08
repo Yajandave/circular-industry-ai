@@ -123,6 +123,7 @@ export default function ReviewPackPanel({ reviewPack }) {
   const risk = reviewPack.risk_review || {};
   const provenance = reviewPack.rule_provenance || {};
   const reviewGovernance = reviewPack.review_governance || {};
+  const ruleset = reviewPack.ruleset_snapshot || {};
 
   return (
     <section id="review-pack-panel" className="review-panel focused-review-panel">
@@ -132,6 +133,14 @@ export default function ReviewPackPanel({ reviewPack }) {
           <p>{reviewPack.material} · rule locked by {reviewPack.rule_applied}</p>
         </div>
         <ReviewBadge required={base.human_review_required} />
+      </div>
+
+      <div className="governance-strip compact">
+        <strong>Decision ruleset:</strong>{' '}
+        {ruleset.record_status === 'versioned_current_decision'
+          ? `${ruleset.ruleset_version} · rule ${ruleset.rule_version} · run ${ruleset.run_id}`
+          : 'Legacy/unversioned decision. Generate a new rules run to capture versioned history.'}
+        <p>Version identity records the screening logic used; it is not independent validation or approval.</p>
       </div>
 
       <div className="review-summary-grid">

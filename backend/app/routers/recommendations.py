@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from app import crud, schemas
 from app.database import get_db
 from app.rules_engine import recommend_for_streams
+from app.ruleset_release import ruleset_metadata
 
 router = APIRouter(prefix="/api/recommendations", tags=["recommendations"])
 
@@ -26,23 +27,8 @@ def run_recommendations(db: Session = Depends(get_db)) -> schemas.RunRecommendat
         schemas.CircularRecommendationCreate(**rec.__dict__)
         for rec in recommend_for_streams(streams)
     ]
-    created_count = crud.bulk_replace_recommendations(db, recommendations)
-    crud.create_audit_event(
-        db,
-        event_type="rules_engine_run",
-        entity_type="recommendation_run",
-        entity_id="latest",
-        actor_type="system",
-        actor_id="rules_engine",
-        source="recommendations_router",
-        action="run_locked_rules_engine",
-        summary=f"Generated {created_count} locked circular economy recommendations.",
-        decision_source="locked_rules_engine",
-        claim_boundary="Rules-engine outputs are screening recommendations, not verified circularity, cost or environmental impact claims.",
-        metadata={
-            "analysed_streams": len(streams),
-            "recommendations_created": created_count,
-        },
+    created_count, _run_id = crud.persist_versioned_recommendation_run(
+        db, streams=streams, recommendations=recommendations,
     )
     human_review_count = sum(1 for rec in recommendations if rec.human_review_required)
     high_priority_count = sum(
@@ -82,6 +68,31 @@ def list_recommendations(
 def recommendation_summary(db: Session = Depends(get_db)) -> schemas.RecommendationSummary:
     """Return summary metrics for the latest rules-based recommendation run."""
     return crud.get_recommendation_summary(db)
+
+
+@router.get("/ruleset", response_model=schemas.RulesetReleaseMetadata)
+def current_ruleset() -> dict:
+    """Describe the published alpha screening logic release."""
+    return ruleset_metadata()
+
+
+@router.get("/history/{stream_id}", response_model=schemas.VersionedDecisionHistory)
+def versioned_history(
+    stream_id: str,
+    limit: int = Query(default=50, ge=1, le=500),
+    db: Session = Depends(get_db),
+) -> dict:
+    """Retain versioned past decisions without relabelling legacy data."""
+    records = crud.get_versioned_decision_history(db, stream_id, limit)
+    return {
+        "stream_id": stream_id,
+        "records": records,
+        "total_returned": len(records),
+        "governance_note": (
+            "Only runs made after versioning was introduced have versioned snapshots. "
+            "A historical decision is not automatically a current or approved decision."
+        ),
+    }
 
 
 @router.get("/{stream_id}", response_model=schemas.CircularRecommendationRead)

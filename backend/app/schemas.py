@@ -94,6 +94,33 @@ class CircularRecommendationRead(CircularRecommendationBase):
     model_config = ConfigDict(from_attributes=True)
 
 
+class RulesetReleaseMetadata(BaseModel):
+    ruleset_version: str
+    release_date: str
+    status: str
+    rule_versions: dict[str, str]
+    provenance_note: str
+
+
+class VersionedDecisionSnapshotRead(BaseModel):
+    run_id: str
+    stream_id: str
+    rule_applied: str
+    rule_version: str
+    ruleset_version: str
+    generated_at: datetime
+    input_snapshot: dict
+    decision_snapshot: dict
+    provenance_snapshot: dict
+
+
+class VersionedDecisionHistory(BaseModel):
+    stream_id: str
+    records: list[VersionedDecisionSnapshotRead]
+    total_returned: int
+    governance_note: str
+
+
 class RunRecommendationsResponse(BaseModel):
     analysed_streams: int
     recommendations_created: int
@@ -121,6 +148,7 @@ class AgenticReviewPack(BaseModel):
     material: str
     decision_locked_by_rules: bool
     rule_applied: str
+    ruleset_snapshot: dict | None = None
     base_recommendation: dict
     rule_provenance: dict
     review_governance: dict

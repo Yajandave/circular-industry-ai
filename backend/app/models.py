@@ -403,3 +403,26 @@ class DecisionChallenge(Base):
         default=lambda: datetime.now(timezone.utc),
         nullable=False,
     )
+
+
+# Versioned decision ledger (new runs only; no retroactive labelling).
+class RuleDecisionSnapshot(Base):
+    """Immutable input/output snapshot for a single deterministic ruleset run."""
+
+    __tablename__ = "rule_decision_snapshots"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    run_id: Mapped[str] = mapped_column(String(80), index=True, nullable=False)
+    stream_id: Mapped[str] = mapped_column(String(30), index=True, nullable=False)
+    rule_applied: Mapped[str] = mapped_column(String(120), nullable=False)
+    rule_version: Mapped[str] = mapped_column(String(40), nullable=False)
+    ruleset_version: Mapped[str] = mapped_column(String(120), nullable=False)
+    recommendation_generated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    input_snapshot_json: Mapped[str] = mapped_column(Text, nullable=False)
+    decision_snapshot_json: Mapped[str] = mapped_column(Text, nullable=False)
+    provenance_snapshot_json: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )

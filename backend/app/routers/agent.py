@@ -34,7 +34,23 @@ def get_agentic_review_pack(stream_id: str, db: Session = Depends(get_db)):
             detail="No recommendation found. Run POST /api/recommendations/run first.",
         )
 
-    return build_stream_review_pack(stream, recommendation)
+    pack = build_stream_review_pack(stream, recommendation)
+    versioned = crud.get_current_versioned_decision(db, recommendation)
+    pack["ruleset_snapshot"] = (
+        {
+            "run_id": versioned["run_id"],
+            "ruleset_version": versioned["ruleset_version"],
+            "rule_version": versioned["rule_version"],
+            "generated_at": versioned["generated_at"].isoformat(),
+            "record_status": "versioned_current_decision",
+        }
+        if versioned is not None
+        else {
+            "record_status": "legacy_unversioned",
+            "governance_note": "This current recommendation predates versioned decision snapshots or was created outside the versioned run path.",
+        }
+    )
+    return pack
 
 
 @router.get("/management-summary", response_model=schemas.AgenticManagementSummary)

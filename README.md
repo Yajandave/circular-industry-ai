@@ -419,6 +419,12 @@ Core fields include:
 
 ---
 
+## Ruleset version history and safe synthetic demo
+
+New deterministic recommendation runs are recorded under **Circular Core Ruleset v1.0.0** with immutable stream-input, decision-output and rule-provenance snapshots. Read `/api/recommendations/ruleset` for the current release and `/api/recommendations/history/S001` for the history of one stream. Decisions created before versioning are not labelled retroactively.
+
+A safe, fresh synthetic demonstration can be prepared with `python backend/scripts/prepare_governance_demo.py`. This writes a new uniquely named SQLite database and never resets existing application or reviewer data. The [10-minute governance walkthrough](docs/ten_minute_governance_demo.md) documents the exact two cases, screen order, claims to avoid and independent-review questions.
+
 ## External governance review preparation
 
 A concise professional-review walkthrough is documented in [docs/external_governance_review_runbook.md](docs/external_governance_review_runbook.md). It separates demoable capability, claim boundaries, blind-review methodology and the questions to put to an external governance reviewer.
