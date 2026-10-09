@@ -316,8 +316,6 @@ function buildDrilldownRecords(enriched) {
       evidence_maturity: getEvidenceMaturity(rec),
       decision_support_band: getDecisionSupportBand(rec),
       human_review_required: Boolean(rec.human_review_required),
-      estimated_annual_disposal_cost_avoided: normaliseNumber(rec.screened_cost_exposure),
-      estimated_annual_waste_diverted_kg: normaliseNumber(rec.screened_quantity_opportunity_kg),
       screened_cost_exposure: normaliseNumber(stream.disposal_cost_per_month) * 12,
       screened_quantity_opportunity_kg: normaliseNumber(stream.monthly_quantity_kg) * 12,
       recommended_circular_action: rec.recommended_circular_action || 'No recommendation recorded.',
@@ -417,7 +415,7 @@ export function buildDashboardData(recommendations, streams) {
     .sort((a, b) => normaliseNumber(b.screened_cost_exposure) - normaliseNumber(a.screened_cost_exposure))
     .slice(0, 6);
   const topDiversionCandidates = [...enriched]
-    .sort((a, b) => normaliseNumber(b.estimated_annual_waste_diverted_kg) - normaliseNumber(a.estimated_annual_waste_diverted_kg))
+    .sort((a, b) => normaliseNumber(b.screened_quantity_opportunity_kg) - normaliseNumber(a.screened_quantity_opportunity_kg))
     .slice(0, 6);
   const evidenceGaps = enriched.filter((rec) => ['insufficient_for_route_change', 'controlled_review_required'].includes(getEvidenceMaturity(rec))).length;
   const reviewRequired = enriched.filter((rec) => rec.human_review_required).length;
