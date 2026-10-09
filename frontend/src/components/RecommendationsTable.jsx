@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { api } from '../api/client.js';
 
 import { RiskBadge, ReviewBadge } from './Badges.jsx';
 import { formatCurrency, formatKg, humanise } from '../utils/formatters.js';
@@ -35,6 +36,17 @@ function RecommendationListItem({ rec, selected, onSelect }) {
 }
 
 function RecommendationInspector({ rec, onSelectReviewPack }) {
+  const [feasibility, setFeasibility] = useState(null);
+  const [feasibilityError, setFeasibilityError] = useState(false);
+  useEffect(() => {
+    let active = true;
+    setFeasibility(null);
+    setFeasibilityError(false);
+    if (rec?.stream_id) api.recommendationFeasibility(rec.stream_id)
+      .then((result) => { if (active) setFeasibility(result); })
+      .catch(() => { if (active) setFeasibilityError(true); });
+    return () => { active = false; };
+  }, [rec?.stream_id]);
   if (!rec) {
     return (
       <aside className="operator-inspector empty">
@@ -92,6 +104,21 @@ function RecommendationInspector({ rec, onSelectReviewPack }) {
       <div className="operator-detail-section">
         <span>Next action</span>
         <p>{rec.next_action}</p>
+      </div>
+
+      <div className="operator-detail-section" aria-label="Operational feasibility">
+        <span>Operational feasibility</span>
+        {feasibilityError ? <p>Feasibility check unavailable. Route remains unverified and unauthorised.</p>
+          : !feasibility ? <p>Loading read-only feasibility checks…</p>
+          : <>
+              <strong>{humanise(feasibility.state)}</strong>
+              <ul>
+                {Object.entries(feasibility.checks || {}).map(([name, state]) => (
+                  <li key={name}>{humanise(name)}: {humanise(state)}</li>
+                ))}
+              </ul>
+              <p>These checks do not independently verify supplier acceptance, legal compliance or commercial feasibility. This application does not authorise a route.</p>
+            </>}
       </div>
 
       <div className="governance-strip compact">
