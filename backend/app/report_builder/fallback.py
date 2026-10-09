@@ -74,7 +74,7 @@ def build_fallback_circular_action_report(
             f"with human review required = {recommendation.human_review_required}. Current annual disposal-cost exposure is "
             f"{_money(recommendation.estimated_annual_disposal_cost_avoided)} and annual material quantity screened is "
             f"{recommendation.estimated_annual_waste_diverted_kg:,.0f} kg. These are baseline screening figures, "
-            "not forecast savings, achieved diversion or verified outcomes."
+            "not verified diversion, forecast savings, achieved diversion or verified outcomes."
         ),
         "locked_recommendation": recommendation.recommended_circular_action,
         "risk_and_review_status": (
