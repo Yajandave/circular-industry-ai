@@ -36,7 +36,8 @@ export function exportAnalysisJson(input) {
 }
 const csvEscape = (value) => {
   const string = value == null ? '' : typeof value === 'object' ? JSON.stringify(value) : String(value);
-  return '"' + string.replace(/"/g, '""') + '"';
+  const safe = /^[\\s]*[=+@-]/.test(string) ? "'" + string : string;
+  return '"' + safe.replace(/"/g, '""') + '"';
 };
 export function exportAnalysisCsv({ recommendations }) {
   const fields = [
@@ -47,7 +48,6 @@ export function exportAnalysisCsv({ recommendations }) {
   ];
   const header = fields.map(csvEscape).join(',');
   const rows = recommendations.map(rec => fields.map(key => csvEscape(rec[key])).join(','));
-  // BOM improves spreadsheet compatibility; preserve all source values without evaluating them as formulae.
-  const safeRows = rows.map(row => row);
-  saveFile(`circular-industry-recommendations-${stamp()}.csv`, '\ufeff' + [header, ...safeRows].join('\r\n'), 'text/csv;charset=utf-8');
+  // BOM improves spreadsheet compatibility; cell strings are escaped against formula injection.
+  saveFile(`circular-industry-recommendations-${stamp()}.csv`, '\ufeff' + [header, ...rows].join('\r\n'), 'text/csv;charset=utf-8');
 }
