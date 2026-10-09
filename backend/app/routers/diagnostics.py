@@ -194,6 +194,16 @@ def system_report():
         ("readiness_endpoint", "/api/diagnostics/workflow-readiness"),
     ]:
         checks.append({"name": name, "status": "PASS" if route in routes else "FAIL"})
+    # In-memory deterministic fixture: does not load records into SQLite.
+    try:
+        from app.data_profiler import profile_csv_bytes
+        fixture = b"Material,Quantity,Route\\nSteel,500,Recycling\\n"
+        report = profile_csv_bytes(fixture, dataset_label="diagnostic_fixture.csv")
+        roles = {item["role"] for item in report["role_mapping"]}
+        correct = ("material" in roles and "hazardous_flag" not in roles and "contamination_risk" not in roles)
+        checks.append({"name": "profiler_noninvented_field_fixture", "status": "PASS" if correct else "FAIL", "detail": "In-memory fixed sample; missing hazard/contamination must not be invented."})
+    except Exception as exc:
+        checks.append({"name": "profiler_noninvented_field_fixture", "status": "FAIL", "error_type": type(exc).__name__})
     for name in ["profiler_classification_accuracy", "hazardous_material_fixture", "rules_regression_suite"]:
         checks.append({"name": name, "status": "NOT TESTED", "detail": "Requires fixture-based regression run; endpoint availability is not functional proof."})
     events = snapshot()
