@@ -11,6 +11,7 @@ from app.data_profiler import profile_csv_bytes
 from app.flexible_circular_import import build_flexible_circular_core_import
 from app.draft_import_persistence import import_circular_core_draft_rows
 from app.mapping_validation import validate_confirmed_mapping
+from app.external_waste_assessment import assess_external_waste_rows
 
 router = APIRouter(prefix="/api/data-profiler", tags=["data profiler"])
 
@@ -95,3 +96,12 @@ def import_circular_core_draft(
             detail=f"Could not import Circular Core draft rows: {exc}",
         ) from exc
 
+
+
+@router.post("/assess-external-waste-records")
+def assess_external_waste_records(payload: list[dict]) -> dict:
+    """Read-only assessment of waste facility movement records; no rule execution or persistence."""
+    try:
+        return assess_external_waste_rows(payload)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
