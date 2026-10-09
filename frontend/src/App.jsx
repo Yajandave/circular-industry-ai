@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { startFrontendDiagnostics, downloadFullDiagnostics } from './utils/fullDiagnostics.js';
+import { exportAnalysisJson, exportAnalysisCsv } from './utils/analysisExport.js';
 import { api } from './api/client.js';
 import CircularCoreWorkspace from './components/CircularCoreWorkspace.jsx';
 import DomainWorkspace from './components/DomainWorkspace.jsx';
@@ -495,8 +496,10 @@ export default function App() {
       </header>
 
       <StatusPanel status={backendStatus} message={message} error={error} />
-      <section aria-label="Diagnostics" style={{display:'flex',justifyContent:'flex-end',margin:'0.75rem 0'}}>
+      <section aria-label="Diagnostics and analysis exports" style={{display:'flex',justifyContent:'flex-end',gap:'0.5rem',flexWrap:'wrap',margin:'0.75rem 0'}}>
         <button type="button" onClick={downloadFullDiagnostics}>Export Full Diagnostics (.json)</button>
+        <button type="button" disabled={!streams.length} onClick={() => exportAnalysisJson({ streams, recommendations, streamSummary, recommendationSummary, evidenceRecords, evidenceSummary, supplierLoopPlans, supplierLoopSummary })}>Export Analysis (.json)</button>
+        <button type="button" disabled={!recommendations.length} onClick={() => exportAnalysisCsv({ streams, recommendations })}>Export Recommendations (.csv)</button>
       </section>
 
       <section className="domain-workspace-shell" aria-label="Circular Industry AI domain workspaces">
