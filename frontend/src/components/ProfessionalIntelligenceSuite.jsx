@@ -10,7 +10,7 @@ function sortByPriority(records) {
   return [...records].sort((a, b) => {
     const priorityDelta = Number(b.priority_rank || 0) - Number(a.priority_rank || 0);
     if (priorityDelta !== 0) return priorityDelta;
-    return Number(b.estimated_annual_disposal_cost_avoided || 0) - Number(a.estimated_annual_disposal_cost_avoided || 0);
+    return Number(b.screened_cost_exposure || 0) - Number(a.screened_cost_exposure || 0);
   });
 }
 
@@ -221,7 +221,7 @@ function ExecutiveReport({ records, dashboardData }) {
         <MetricCard label="Records screened" value={formatNumber(records.length)} note="locked recommendation records" />
         <MetricCard label="Controlled review" value={formatNumber(controlled.length)} note="risk, evidence or review-gated records" />
         <MetricCard label="Screened cost exposure" value={formatCurrency(dashboardData.totalCostExposure)} note="not verified savings" />
-        <MetricCard label="Screened quantity opportunity" value={formatKg(dashboardData.totalDiversionPotential)} note="potential only; not verified diversion" />
+        <MetricCard label="Annual material throughput" value={formatKg(dashboardData.totalDiversionPotential)} note="not estimated as diversion" />
       </div>
 
       <article className="professional-briefing-card wide">
@@ -259,8 +259,8 @@ function ReportList({ title, records, empty }) {
               <small>{record.material} · {record.risk_level} risk · {record.evidence_label}</small>
             </div>
             <div className="professional-row-value">
-              <strong>{formatCurrency(record.estimated_annual_disposal_cost_avoided)}</strong>
-              <small>{formatKg(record.estimated_annual_waste_diverted_kg)}</small>
+              <strong>{formatCurrency(record.screened_cost_exposure)}</strong>
+              <small>{formatKg(record.screened_quantity_opportunity_kg)}</small>
             </div>
           </div>
         ))}
@@ -372,7 +372,7 @@ function ScenarioComparison({ records, onSelectReviewPack }) {
             >
               <span className="record-id">{record.stream_id}</span>
               <strong>{record.stream_name}</strong>
-              <small>{record.material} · {formatCurrency(record.estimated_annual_disposal_cost_avoided)}</small>
+              <small>{record.material} · {formatCurrency(record.screened_cost_exposure)}</small>
             </button>
           ))}
         </div>

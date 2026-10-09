@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { api } from './api/client.js';
+import { downloadDiagnostics, startDiagnostics } from './utils/diagnostics.js';
+import { exportAnalysisJson, exportAnalysisCsv } from './utils/analysisExport.js';
 import CircularCoreWorkspace from './components/CircularCoreWorkspace.jsx';
 import DomainWorkspace from './components/DomainWorkspace.jsx';
 import StatusPanel from './components/StatusPanel.jsx';
@@ -374,6 +376,7 @@ export default function App() {
   }
 
   useEffect(() => {
+    startDiagnostics();
     async function initialise() {
       try {
         await api.health();
@@ -475,6 +478,8 @@ export default function App() {
     onGenerateAiReasoning: generateAiReasoning,
   };
 
+  const exportInput = { streams, recommendations, streamSummary, recommendationSummary, evidenceRecords, evidenceSummary, supplierLoopPlans, supplierLoopSummary };
+
   return (
     <main>
       <header className="hero">
@@ -493,6 +498,17 @@ export default function App() {
       </header>
 
       <StatusPanel status={backendStatus} message={message} error={error} />
+      <section aria-label="Troubleshooting tools" style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', margin: '0.75rem 0' }}>
+        <button type="button" onClick={() => downloadDiagnostics()} title="Download privacy-first error and API request history">
+          Export Diagnostics (.json)
+        </button>
+        <button type="button" disabled={!streams.length} onClick={() => exportAnalysisJson(exportInput)} title="Export current Circular Core analysis, evidence and supplier records">
+          Export Analysis (.json)
+        </button>
+        <button type="button" disabled={!recommendations.length} onClick={() => exportAnalysisCsv(exportInput)} title="Export recommendation rows as CSV">
+          Export Recommendations (.csv)
+        </button>
+      </section>
 
       <section className="domain-workspace-shell" aria-label="Circular Industry AI domain workspaces">
         <div className="section-heading compact-heading">
