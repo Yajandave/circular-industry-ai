@@ -11,11 +11,11 @@ import os
 import re
 from pathlib import Path
 
-_CODE = re.compile(r"^\\d{2}\\s?\\d{2}\\s?\\d{2}\\*?$")
+_CODE = re.compile(r"^\d{2}\s?\d{2}\s?\d{2}\*?$")
 _REQUIRED = {"waste_code", "reported_description"}
 
 def _normalise(code: str) -> str:
-    return re.sub(r"\\s+", "", str(code or "")).upper()
+    return re.sub(r"\s+", "", str(code or "")).upper()
 
 def lookup_reported_waste_code(code: str, catalog_path: str | None = None) -> dict:
     requested = str(code or "").strip()
