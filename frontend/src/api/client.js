@@ -1,16 +1,25 @@
-﻿const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
+import { recordApiResult } from '../utils/diagnostics.js';
+﻿const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
 
 async function request(path, options = {}) {
-  const response = await fetch(`${API_BASE_URL}${path}`, options);
-  const contentType = response.headers.get('content-type') || '';
-  const body = contentType.includes('application/json') ? await response.json() : await response.text();
-
-  if (!response.ok) {
-    const message = typeof body === 'object' && body?.detail ? body.detail : `Request failed: ${response.status}`;
-    throw new Error(Array.isArray(message) ? JSON.stringify(message) : message);
+  const started = performance.now();
+  const method = options.method || 'GET';
+  let status = null;
+  try {
+    const response = await fetch(`${API_BASE_URL}${path}`, options);
+    status = response.status;
+    const contentType = response.headers.get('content-type') || '';
+    const body = contentType.includes('application/json') ? await response.json() : await response.text();
+    recordApiResult(path, method, status, performance.now() - started, !response.ok);
+    if (!response.ok) {
+      const message = typeof body === 'object' && body?.detail ? body.detail : `Request failed: ${response.status}`;
+      throw new Error(Array.isArray(message) ? JSON.stringify(message) : message);
+    }
+    return body;
+  } catch (error) {
+    if (status === null) recordApiResult(path, method, null, performance.now() - started, true);
+    throw error;
   }
-
-  return body;
 }
 
 export const api = {
