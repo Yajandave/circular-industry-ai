@@ -387,13 +387,14 @@ function buildVisualAnalyticsData(enriched, streams) {
 }
 
 export function buildDashboardData(recommendations, streams) {
-  const enriched = enrichRecommendations(recommendations, streams).map((rec) => ({
-    ...rec,
-    screened_cost_exposure: normaliseNumber(rec.stream?.disposal_cost_per_month) * 12,
-    screened_quantity_opportunity_kg: normaliseNumber(rec.stream?.monthly_quantity_kg) * 12,
-    priority_band: classifyPriority(rec),
-    priority_rank: getPriorityRank(rec),
-  }));
+  const enriched = enrichRecommendations(recommendations, streams).map((rec) => {
+    const record = {
+      ...rec,
+      screened_cost_exposure: normaliseNumber(rec.stream?.disposal_cost_per_month) * 12,
+      screened_quantity_opportunity_kg: normaliseNumber(rec.stream?.monthly_quantity_kg) * 12,
+    };
+    return { ...record, priority_band: classifyPriority(record), priority_rank: getPriorityRank(record) };
+  });
 
   const riskBreakdown = mapObjectToSortedRows(countBy(enriched, (rec) => rec.risk_level), {
     labelKey: 'risk',
