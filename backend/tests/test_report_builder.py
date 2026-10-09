@@ -60,3 +60,6 @@ def test_circular_action_report_fallback_locks_decision_fields(monkeypatch):
     assert result["implementation_plan"]
     assert result["unsafe_claims_to_avoid"]
     assert "not verified" in result["executive_summary"].lower()
+    assert "annual material quantity screened" in result["executive_summary"].lower()
+    assert "annual disposal-cost exposure" in result["executive_summary"].lower()
+    assert "screened diversion potential" not in result["executive_summary"].lower()

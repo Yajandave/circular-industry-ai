@@ -71,9 +71,10 @@ def build_fallback_circular_action_report(
         "executive_summary": (
             f"{stream.stream_name} has been screened under the locked rules engine with the recommendation "
             f"'{recommendation.recommended_circular_action}'. The stream is currently risk-rated '{recommendation.risk_level}' "
-            f"with human review required = {recommendation.human_review_required}. Screened annual value at stake is "
-            f"{_money(recommendation.estimated_annual_disposal_cost_avoided)} and screened diversion potential is "
-            f"{recommendation.estimated_annual_waste_diverted_kg:,.0f} kg, but these are not verified outcomes."
+            f"with human review required = {recommendation.human_review_required}. Current annual disposal-cost exposure is "
+            f"{_money(recommendation.estimated_annual_disposal_cost_avoided)} and annual material quantity screened is "
+            f"{recommendation.estimated_annual_waste_diverted_kg:,.0f} kg. These are baseline screening figures, "
+            "not verified diversion, forecast savings, achieved diversion or verified outcomes."
         ),
         "locked_recommendation": recommendation.recommended_circular_action,
         "risk_and_review_status": (

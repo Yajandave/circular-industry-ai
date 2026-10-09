@@ -120,7 +120,14 @@ def build_site_copilot_context(streams: list[Any], recommendations: list[Any]) -
             "Do not change recommended circular action.",
             "Do not invent verified diversion, cost saving, carbon saving, legal compliance or supplier capability.",
             "Do not present estimated impacts as verified claims.",
+            "Legacy diversion and avoided-cost field names mean screened material quantity and current disposal-cost exposure only, never forecast or achieved savings.",
         ],
+        "legacy_field_meanings": {
+            "estimated_annual_waste_diverted_kg": "Annual quantity of the material stream screened (monthly quantity multiplied by 12); NOT estimated or achieved diversion.",
+            "estimated_annual_disposal_cost_avoided": "Current annual disposal-cost exposure (monthly cost multiplied by 12); NOT avoided cost or savings.",
+            "confidence_score": "Legacy internal heuristic, NOT a calibrated probability or professional assurance.",
+            "evidence_quality_score": "Legacy internal heuristic, NOT independently verified evidence quality.",
+        },
         "portfolio_scope": {
             "total_streams": len(streams),
             "total_recommendations": len(recs),
