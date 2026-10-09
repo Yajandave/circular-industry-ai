@@ -9,6 +9,7 @@ import pandas as pd
 
 from app.data_profiler import profile_csv_bytes
 from app.wdi_reference_lookup import lookup_reported_waste_code
+from app.reference_decision_eligibility import evaluate_reference_decision_eligibility
 
 WASTE_CODE_HEADERS = {"waste code", "ewc code", "e wc code", "european waste code", "list of waste code", "low code"}
 
@@ -37,7 +38,11 @@ def profile_with_waste_reference(file_bytes: bytes, filename: str) -> dict:
             "waste_code_lookups": [],
             "note": "Reference enrichment is capped at 1000 distinct codes per request; original profile remains available.",
         }
-    lookups = [lookup_reported_waste_code(code) for code in codes]
+    lookups = []
+    for code in codes:
+        lookup = lookup_reported_waste_code(code)
+        lookup['decision_eligibility'] = evaluate_reference_decision_eligibility(lookup)
+        lookups.append(lookup)
     return {
         "profile": profile,
         "reference_status": "evaluated",
