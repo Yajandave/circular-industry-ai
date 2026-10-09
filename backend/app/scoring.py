@@ -121,10 +121,12 @@ def infer_missing_data(stream: StreamLike) -> list[str]:
         missing.append("measured monthly quantity or energy data")
     if stream.disposal_cost_per_month <= 0 and "return" not in _clean(stream.current_route):
         missing.append("current disposal or handling cost")
-    if _clean(stream.contamination_risk) in {"unknown", "medium", "high"}:
+    if _clean(stream.contamination_risk) not in {"low"}:
         missing.append("contamination assessment")
-    if _clean(stream.hazardous_flag) == "unknown":
+    if _clean(stream.hazardous_flag) not in {"true", "false"}:
         missing.append("confirmed hazardous status")
+    if _clean(stream.material) in {"", "unknown", "unidentified", "unidentified composite", "not identified", "n/a", "unspecified"}:
+        missing.append("confirmed material identity and composition")
     if _clean(stream.supplier_takeback_available) == "unknown":
         missing.append("supplier take-back evidence")
     if _clean(stream.recycled_content_available) == "unknown":
@@ -173,9 +175,9 @@ def score_evidence_quality(stream: StreamLike) -> int:
         score -= 10
     elif contamination == "high":
         score -= 25
-    elif contamination == "unknown":
+    elif contamination not in {"low", "medium", "high"}:
         score -= 20
-    if hazardous == "unknown":
+    if hazardous not in {"true", "false"}:
         score -= 20
     elif hazardous == "true":
         score -= 15
@@ -207,14 +209,18 @@ def score_risk_level(stream: StreamLike) -> tuple[str, bool]:
         return "high", True
     if hazardous == "true":
         return "high", True
-    if hazardous == "unknown" and contamination in {"medium", "high", "unknown"}:
+    if hazardous not in {"true", "false"} and contamination in {"medium", "high", "unknown"}:
         return "high", True
     if contamination == "high":
         return "high", True
     if material in {"chemicals/solvents", "electronic components"} and hazardous != "false":
         return "high", True
-    if contamination == "medium" or hazardous == "unknown":
-        return "medium", hazardous == "unknown"
+    if contamination not in {"low", "medium", "high"}:
+        return "medium", True
+    if material in {"", "unknown", "unidentified", "unidentified composite", "not identified", "n/a", "unspecified"}:
+        return "medium", True
+    if contamination == "medium" or hazardous not in {"true", "false"}:
+        return "medium", hazardous not in {"true", "false"}
     return "low", False
 
 

@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from app import crud, schemas
 from app.database import get_db
 from app.rules_engine import recommend_for_streams
+from app.feasibility_screen import assess_feasibility
 from app.ruleset_release import ruleset_metadata
 
 router = APIRouter(prefix="/api/recommendations", tags=["recommendations"])
@@ -93,6 +94,15 @@ def versioned_history(
             "A historical decision is not automatically a current or approved decision."
         ),
     }
+
+
+@router.get("/{stream_id}/feasibility")
+def get_feasibility(stream_id: str, db: Session = Depends(get_db)) -> dict:
+    """Read-only assessment; no route approval is possible through this endpoint."""
+    recommendation = crud.get_recommendation_by_stream_id(db, stream_id=stream_id)
+    if recommendation is None:
+        raise HTTPException(status_code=404, detail="Recommendation not found.")
+    return assess_feasibility(recommendation)
 
 
 @router.get("/{stream_id}", response_model=schemas.CircularRecommendationRead)
