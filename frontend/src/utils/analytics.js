@@ -391,8 +391,8 @@ function buildVisualAnalyticsData(enriched, streams) {
 export function buildDashboardData(recommendations, streams) {
   const enriched = enrichRecommendations(recommendations, streams).map((rec) => ({
     ...rec,
-    screened_cost_exposure: normaliseNumber(rec.estimated_annual_disposal_cost_avoided),
-    screened_quantity_opportunity_kg: normaliseNumber(rec.estimated_annual_waste_diverted_kg),
+    screened_cost_exposure: normaliseNumber(rec.stream?.disposal_cost_per_month) * 12,
+    screened_quantity_opportunity_kg: normaliseNumber(rec.stream?.monthly_quantity_kg) * 12,
     priority_band: classifyPriority(rec),
     priority_rank: getPriorityRank(rec),
   }));
@@ -436,8 +436,8 @@ export function buildDashboardData(recommendations, streams) {
     reviewRequired,
     quickWins,
     controlledReview,
-    totalCostExposure: sumBy(enriched, (rec) => rec.estimated_annual_disposal_cost_avoided),
-    totalDiversionPotential: sumBy(enriched, (rec) => rec.estimated_annual_waste_diverted_kg),
+    totalCostExposure: sumBy(streams, (stream) => stream.disposal_cost_per_month) * 12,
+    totalDiversionPotential: sumBy(streams, (stream) => stream.monthly_quantity_kg) * 12,
     visualAnalytics: buildVisualAnalyticsData(enriched, streams),
   };
 }
