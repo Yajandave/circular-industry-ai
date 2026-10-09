@@ -161,16 +161,6 @@ def _base_decision(stream: StreamLike) -> tuple[str, str, str, str, str, int]:
             20,
         )
 
-    if material in {"", "unknown", "unidentified", "unidentified composite", "not identified", "n/a", "unspecified"}:
-        return (
-            "Needs more information: material identification required",
-            "human review required",
-            "Material identity is not established. No circular recovery or disposal route can be confirmed from the supplied data.",
-            "Identify composition and relevant classification, then obtain competent review before selecting or changing a route.",
-            "R999_DEFAULT_EVIDENCE_IMPROVEMENT",
-            8,
-        )
-
     if hazardous not in {"true", "false"}:
         return (
             "Needs human review: hazardous status not confirmed",
@@ -179,6 +169,16 @@ def _base_decision(stream: StreamLike) -> tuple[str, str, str, str, str, int]:
             "Confirm hazardous classification and handling requirements before considering a recovery or reuse route.",
             "R001_HAZARDOUS_OR_UNKNOWN_REVIEW",
             20,
+        )
+
+    if material in {"", "unknown", "unidentified", "unidentified composite", "not identified", "n/a", "unspecified"}:
+        return (
+            "Needs more information: material identification required",
+            "human review required",
+            "Material identity is not established. No circular recovery or disposal route can be confirmed from the supplied data.",
+            "Identify composition and relevant classification, then obtain competent review before selecting or changing a route.",
+            "R999_DEFAULT_EVIDENCE_IMPROVEMENT",
+            8,
         )
 
     if contamination not in {"low", "medium", "high"}:
