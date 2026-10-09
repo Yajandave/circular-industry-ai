@@ -123,7 +123,7 @@ def infer_missing_data(stream: StreamLike) -> list[str]:
         missing.append("current disposal or handling cost")
     if _clean(stream.contamination_risk) in {"unknown", "medium", "high"}:
         missing.append("contamination assessment")
-    if _clean(stream.hazardous_flag) == "unknown":
+    if _clean(stream.hazardous_flag) not in {"true", "false"}:
         missing.append("confirmed hazardous status")
     if _clean(stream.supplier_takeback_available) == "unknown":
         missing.append("supplier take-back evidence")
@@ -175,7 +175,7 @@ def score_evidence_quality(stream: StreamLike) -> int:
         score -= 25
     elif contamination == "unknown":
         score -= 20
-    if hazardous == "unknown":
+    if hazardous not in {"true", "false"}:
         score -= 20
     elif hazardous == "true":
         score -= 15
@@ -207,14 +207,14 @@ def score_risk_level(stream: StreamLike) -> tuple[str, bool]:
         return "high", True
     if hazardous == "true":
         return "high", True
-    if hazardous == "unknown" and contamination in {"medium", "high", "unknown"}:
+    if hazardous not in {"true", "false"} and contamination in {"medium", "high", "unknown"}:
         return "high", True
     if contamination == "high":
         return "high", True
     if material in {"chemicals/solvents", "electronic components"} and hazardous != "false":
         return "high", True
-    if contamination == "medium" or hazardous == "unknown":
-        return "medium", hazardous == "unknown"
+    if contamination == "medium" or hazardous not in {"true", "false"}:
+        return "medium", hazardous not in {"true", "false"}
     return "low", False
 
 
