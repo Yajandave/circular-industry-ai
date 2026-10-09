@@ -11,6 +11,8 @@ from app.data_profiler import profile_csv_bytes
 from app.flexible_circular_import import build_flexible_circular_core_import
 from app.draft_import_persistence import import_circular_core_draft_rows
 from app.mapping_validation import validate_confirmed_mapping
+from app.wdi_reference_lookup import lookup_reported_waste_code
+from app.profile_waste_reference import profile_with_waste_reference
 
 router = APIRouter(prefix="/api/data-profiler", tags=["data profiler"])
 
@@ -95,3 +97,20 @@ def import_circular_core_draft(
             detail=f"Could not import Circular Core draft rows: {exc}",
         ) from exc
 
+
+
+@router.get("/reference-waste-code/{waste_code}")
+def reference_waste_code(waste_code: str) -> dict:
+    """Optional read-only reported waste-code lookup; no effect on rules or import."""
+    return lookup_reported_waste_code(waste_code)
+
+
+@router.post("/profile-csv-with-waste-reference")
+async def profile_csv_with_waste_reference(file: UploadFile = File(...)) -> dict:
+    """Existing profiler plus optional local waste-code reference matches; read-only."""
+    if not file.filename or not file.filename.lower().endswith(".csv"):
+        raise HTTPException(status_code=400, detail="Upload must be a .csv file.")
+    try:
+        return profile_with_waste_reference(await file.read(), file.filename)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
