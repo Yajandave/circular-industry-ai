@@ -12,6 +12,7 @@ function saveFile(filename, content, mime) {
 }
 const stamp = () => new Date().toISOString().slice(0, 10);
 export function buildAnalysisExport({ streams, recommendations, streamSummary, recommendationSummary, evidenceRecords, evidenceSummary, supplierLoopPlans, supplierLoopSummary }) {
+  const streamById = new Map(streams.map(stream => [stream.stream_id, stream]));
   return {
     schema_version: 2,
     application: 'Circular Industry AI',
@@ -36,8 +37,8 @@ export function buildAnalysisExport({ streams, recommendations, streamSummary, r
     },
     material_streams: streams,
     recommendations: recommendations.map(({ estimated_annual_waste_diverted_kg, estimated_annual_disposal_cost_avoided, ...rec }) => ({ ...rec,
-      screened_annual_quantity_kg: estimated_annual_waste_diverted_kg,
-      screened_annual_disposal_cost_exposure: estimated_annual_disposal_cost_avoided,
+      screened_annual_quantity_kg: Number(streamById.get(rec.stream_id)?.monthly_quantity_kg || 0) * 12,
+      screened_annual_disposal_cost_exposure: Number(streamById.get(rec.stream_id)?.disposal_cost_per_month || 0) * 12,
       achievable_annual_diversion_kg: null,
       achievable_annual_savings: null,
       benefit_status: 'not_estimated',
