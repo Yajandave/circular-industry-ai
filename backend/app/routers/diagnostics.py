@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends
+from fastapi.responses import JSONResponse
+from app.diagnostic_events import snapshot
 from sqlalchemy.orm import Session
 
 from app import crud, schemas
@@ -166,3 +168,39 @@ def workflow_readiness(db: Session = Depends(get_db)) -> schemas.ProductWorkflow
             "local product workflow has the required data and locked outputs for a controlled demo/use cycle."
         ),
     )
+
+@router.get("/system-report")
+def system_report():
+    """Read-only system diagnostics: not a rules, compliance or accuracy certification."""
+    import importlib
+    from app.main import app
+    checks = []
+    for name, module in [
+        ("backend_import", "app.main"),
+        ("data_profiler_import", "app.data_profiler"),
+        ("mapping_validation_import", "app.mapping_validation"),
+        ("waste_reference_import", "app.profile_waste_reference"),
+        ("rules_engine_import", "app.rules_engine"),
+    ]:
+        try:
+            importlib.import_module(module)
+            checks.append({"name": name, "status": "PASS", "detail": "Module imported."})
+        except Exception as exc:
+            checks.append({"name": name, "status": "FAIL", "error_type": type(exc).__name__})
+    routes = {route.path for route in app.routes}
+    for name, route in [
+        ("profiler_endpoint", "/api/data-profiler/profile-csv"),
+        ("mapping_endpoint", "/api/data-profiler/validate-mapping"),
+        ("readiness_endpoint", "/api/diagnostics/workflow-readiness"),
+    ]:
+        checks.append({"name": name, "status": "PASS" if route in routes else "FAIL"})
+    for name in ["profiler_classification_accuracy", "hazardous_material_fixture", "rules_regression_suite"]:
+        checks.append({"name": name, "status": "NOT TESTED", "detail": "Requires fixture-based regression run; endpoint availability is not functional proof."})
+    events = snapshot()
+    return {
+        "schema_version": 1,
+        "backend_version": app.version,
+        "backend_checks": checks,
+        "api_events": events,
+        "note": "Read-only runtime checks. No datasets, API keys, request bodies, traces, error messages or raw records included. Events reset after restart. Review before sharing.",
+    }
