@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 from app.diagnostic_events import snapshot
 from app.circular_core_diagnostics import inspect_circular_core
+from app.decision_diagnostics import collect_decision_validation
 from sqlalchemy.orm import Session
 
 from app import crud, schemas
@@ -205,18 +206,20 @@ def system_report(db: Session = Depends(get_db)):
         checks.append({"name": "profiler_noninvented_field_fixture", "status": "PASS" if correct else "FAIL", "detail": "In-memory fixed sample; missing hazard/contamination must not be invented."})
     except Exception as exc:
         checks.append({"name": "profiler_noninvented_field_fixture", "status": "FAIL", "error_type": type(exc).__name__})
-    for name in ["profiler_classification_accuracy", "hazardous_material_fixture", "rules_regression_suite"]:
+    for name in ["profiler_classification_accuracy", "hazardous_material_fixture"]:
         checks.append({"name": name, "status": "NOT TESTED", "detail": "Requires fixture-based regression run; endpoint availability is not functional proof."})
     try:
         core = inspect_circular_core(crud.get_streams(db, limit=500), crud.get_recommendations(db, limit=500))
     except Exception as exc:
         core = {"checks": [{"name": "circular_core_integrity", "status": "FAIL", "error_type": type(exc).__name__}]}
+    decision_validation = collect_decision_validation()
     events = snapshot()
     return {
         "schema_version": 1,
         "backend_version": app.version,
         "backend_checks": checks,
         "circular_core": core,
+        "decision_validation": decision_validation,
         "api_events": events,
         "note": "Read-only runtime checks. No datasets, API keys, request bodies, traces, error messages or raw records included. Events reset after restart. Review before sharing.",
     }
