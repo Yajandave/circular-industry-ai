@@ -7,6 +7,8 @@ from __future__ import annotations
 
 import re
 
+FAMILIAR_LEGACY_LABELS = frozenset({"steel", "cardboard"})
+
 CANONICAL_FAMILIES = frozenset({
     "metals", "plastics", "chemicals/solvents", "cardboard/packaging",
     "wood/pallets", "glass", "rubber", "textiles",
@@ -29,6 +31,8 @@ AMBIGUOUS = re.compile(r"\b(?:mixed materials|mixed waste|composite|unknown|unsp
 def interpret_material_family(raw_material: str) -> dict[str, str | None]:
     original = str(raw_material or "").strip()
     normalised = original.casefold()
+    if normalised in FAMILIAR_LEGACY_LABELS:
+        return {"original": original, "proposed_family": None, "status": "familiar_legacy_label_unchanged"}
     if normalised in CANONICAL_FAMILIES:
         return {"original": original, "proposed_family": normalised, "status": "already_canonical"}
     if not original or AMBIGUOUS.search(normalised):
