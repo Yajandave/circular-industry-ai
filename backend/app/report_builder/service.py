@@ -67,6 +67,12 @@ def _build_context(stream: Any, recommendation: Any, evidence: dict[str, Any], r
             "estimated_annual_waste_diverted_kg": recommendation.estimated_annual_waste_diverted_kg,
             "estimated_annual_disposal_cost_avoided": recommendation.estimated_annual_disposal_cost_avoided,
         },
+        "legacy_field_meanings": {
+            "estimated_annual_waste_diverted_kg": "Annual material quantity screened, NOT diverted material.",
+            "estimated_annual_disposal_cost_avoided": "Current annual disposal-cost exposure, NOT saved or avoided costs.",
+            "confidence_score": "Internal heuristic, NOT a calibrated probability.",
+            "evidence_quality_score": "Internal heuristic, NOT proof that evidence is authentic or correct.",
+        },
         "evidence_record": evidence,
         "resolution_plan": resolution,
         "supplier_plan": supplier_plan,
@@ -78,6 +84,7 @@ def _build_context(stream: Any, recommendation: Any, evidence: dict[str, Any], r
             "Do not change review gate.",
             "Do not change procurement route.",
             "Do not invent verified savings, diversion, carbon impact, compliance or supplier capability.",
+            "Treat legacy diversion/avoided-cost fields as current material quantity and disposal-cost exposure, never as forecast or achieved impacts.",
         ],
         "required_tone": "Consultant-style, practical, concise, audit-aware and suitable for a sustainability/procurement review pack.",
     }
