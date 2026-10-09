@@ -11,6 +11,8 @@ from app.data_profiler import profile_csv_bytes
 from app.flexible_circular_import import build_flexible_circular_core_import
 from app.draft_import_persistence import import_circular_core_draft_rows
 from app.mapping_validation import validate_confirmed_mapping
+from app.wdi_reference_lookup import lookup_reported_waste_code
+from app.profile_waste_reference import profile_with_waste_reference
 from app.external_waste_assessment import assess_external_waste_rows
 
 router = APIRouter(prefix="/api/data-profiler", tags=["data profiler"])
@@ -105,3 +107,19 @@ def assess_external_waste_records(payload: list[dict]) -> dict:
         return assess_external_waste_rows(payload)
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
+
+@router.get("/reference-waste-code/{waste_code}")
+def reference_waste_code(waste_code: str) -> dict:
+    return lookup_reported_waste_code(waste_code)
+
+
+@router.post("/profile-csv-with-waste-reference")
+async def profile_csv_with_waste_reference(file: UploadFile = File(...)) -> dict:
+    """Original profiler plus read-only waste-code enrichment."""
+    if not file.filename or not file.filename.lower().endswith(".csv"):
+        raise HTTPException(status_code=400, detail="Upload must be a .csv file.")
+    try:
+        return profile_with_waste_reference(await file.read(), file.filename)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
