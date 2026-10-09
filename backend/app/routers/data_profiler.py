@@ -11,6 +11,7 @@ from app.data_profiler import profile_csv_bytes
 from app.flexible_circular_import import build_flexible_circular_core_import
 from app.draft_import_persistence import import_circular_core_draft_rows
 from app.mapping_validation import validate_confirmed_mapping
+from app.wdi_reference_lookup import lookup_reported_waste_code
 
 router = APIRouter(prefix="/api/data-profiler", tags=["data profiler"])
 
@@ -95,3 +96,9 @@ def import_circular_core_draft(
             detail=f"Could not import Circular Core draft rows: {exc}",
         ) from exc
 
+
+
+@router.get("/reference-waste-code/{waste_code}")
+def reference_waste_code(waste_code: str) -> dict:
+    """Optional read-only reported waste-code lookup; no effect on rules or import."""
+    return lookup_reported_waste_code(waste_code)
