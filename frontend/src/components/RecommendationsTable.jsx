@@ -28,7 +28,7 @@ function RecommendationListItem({ rec, selected, onSelect }) {
       </div>
       <div className="operator-row-meta">
         <RiskBadge value={rec.risk_level} />
-        <span>{formatCurrency(rec.estimated_annual_disposal_cost_avoided)}</span>
+        <span>{formatCurrency(rec.screened_cost_exposure)}</span>
       </div>
     </button>
   );
@@ -85,8 +85,8 @@ function RecommendationInspector({ rec, onSelectReviewPack }) {
 
       <div className="operator-detail-section">
         <span>Screened cost exposure</span>
-        <strong>{formatCurrency(rec.estimated_annual_disposal_cost_avoided)}</strong>
-        <p>{formatKg(rec.estimated_annual_waste_diverted_kg)} screened annual quantity opportunity. Potential only; not verified diversion or savings.</p>
+        <strong>{formatCurrency(rec.screened_cost_exposure)}</strong>
+        <p>{formatKg(rec.screened_quantity_opportunity_kg)} annual material throughput. Achievable diversion and savings have not been estimated.</p>
       </div>
 
       <div className="operator-detail-section">
