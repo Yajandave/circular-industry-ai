@@ -133,23 +133,23 @@ export default function Dashboard({ dashboardData, agentSummary, onSelectReviewP
 
       <div className="candidate-grid">
         <CandidateList
-          title="Top screened cost-exposure candidates"
+          title="Largest annual disposal-cost exposure"
           items={topCostCandidates}
           valueFormatter={formatCurrency}
-          valueKey="estimated_annual_disposal_cost_avoided"
+          valueKey="screened_cost_exposure"
           onSelectReviewPack={onSelectReviewPack}
         />
         <CandidateList
-          title="Top screened quantity-opportunity candidates"
+          title="Largest annual material throughput"
           items={topDiversionCandidates}
           valueFormatter={formatKg}
-          valueKey="estimated_annual_waste_diverted_kg"
+          valueKey="screened_quantity_opportunity_kg"
           onSelectReviewPack={onSelectReviewPack}
         />
       </div>
 
       <p className="governance-strip">
-        Dashboard values are screening outputs. They support prioritisation but should not be presented as verified savings, verified diversion, verified cost reduction or verified environmental benefit until actions are completed and evidenced. Total screened quantity opportunity currently shown: {formatKg(totalDiversionPotential)}.
+        Annual material throughput and disposal-cost exposure are input baselines, not predicted or verified diversion or savings. Achievable benefits have not been modelled; blocked and review-gated streams remain included in exposure totals for visibility. Total annual material throughput currently screened: {formatKg(totalDiversionPotential)}.
       </p>
     </section>
   );
