@@ -1,7 +1,18 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { api } from '../api/client.js';
 
 import { RiskBadge, ReviewBadge } from './Badges.jsx';
 import { formatCurrency, formatKg, humanise } from '../utils/formatters.js';
+
+function FeasibilityStatus({ value }) {
+  const labels = {
+    needs_more_information: 'More information required',
+    human_review_required: 'Human review required',
+    potential_opportunity: 'Potential opportunity; checks outstanding',
+    feasibility_evidence_recorded_not_authorised: 'Evidence recorded; not authorised',
+  };
+  return labels[value] || humanise(value);
+}
 
 function PriorityCell({ band }) {
   const safeBand = String(band || 'unclassified');
@@ -35,6 +46,17 @@ function RecommendationListItem({ rec, selected, onSelect }) {
 }
 
 function RecommendationInspector({ rec, onSelectReviewPack }) {
+  const [feasibility, setFeasibility] = useState(null);
+  const [feasibilityError, setFeasibilityError] = useState(false);
+  useEffect(() => {
+    let active = true;
+    setFeasibility(null);
+    setFeasibilityError(false);
+    if (rec?.stream_id) api.recommendationFeasibility(rec.stream_id)
+      .then((result) => { if (active) setFeasibility(result); })
+      .catch(() => { if (active) setFeasibilityError(true); });
+    return () => { active = false; };
+  }, [rec?.stream_id]);
   if (!rec) {
     return (
       <aside className="operator-inspector empty">
@@ -58,40 +80,55 @@ function RecommendationInspector({ rec, onSelectReviewPack }) {
       </div>
 
       <div className="inspector-decision-box">
-        <span>Locked recommendation</span>
+        <span style={{ display: "block", marginBottom: "0.35rem" }}>Locked recommendation</span>
         <strong>{rec.recommended_circular_action}</strong>
         <p>{rec.circular_strategy_category}</p>
       </div>
 
       <div className="inspector-kpi-grid">
         <article>
-          <span>Risk</span>
+          <span style={{ display: "block", marginBottom: "0.35rem" }}>Risk</span>
           <RiskBadge value={rec.risk_level} />
         </article>
         <article>
-          <span>Review</span>
+          <span style={{ display: "block", marginBottom: "0.35rem" }}>Review</span>
           <ReviewBadge required={rec.human_review_required} />
         </article>
         <article>
-          <span>Priority</span>
+          <span style={{ display: "block", marginBottom: "0.35rem" }}>Priority</span>
           <PriorityCell band={rec.priority_band} />
         </article>
         <article>
-          <span>Decision basis</span>
+          <span style={{ display: "block", marginBottom: "0.35rem" }}>Decision basis</span>
           <strong>{humanise(rec.decision_support_band)}</strong>
           <small>{humanise(rec.evidence_maturity)}</small>
         </article>
       </div>
 
       <div className="operator-detail-section">
-        <span>Screened cost exposure</span>
+        <span style={{ display: "block", marginBottom: "0.35rem" }}>Screened cost exposure</span>
         <strong>{formatCurrency(rec.estimated_annual_disposal_cost_avoided)}</strong>
         <p>{formatKg(rec.estimated_annual_waste_diverted_kg)} screened annual quantity opportunity. Potential only; not verified diversion or savings.</p>
       </div>
 
       <div className="operator-detail-section">
-        <span>Next action</span>
+        <span style={{ display: "block", marginBottom: "0.35rem" }}>Next action</span>
         <p>{rec.next_action}</p>
+      </div>
+
+      <div className="operator-detail-section" aria-label="Operational feasibility">
+        <span style={{ display: "block", marginBottom: "0.35rem" }}>Operational feasibility</span>
+        {feasibilityError ? <p>Feasibility check unavailable. Route remains unverified and unauthorised.</p>
+          : !feasibility ? <p>Loading read-only feasibility checks…</p>
+          : <>
+              <strong style={{ display: "block", marginBottom: "0.5rem" }}><FeasibilityStatus value={feasibility.state} /></strong>
+              <ul>
+                {Object.entries(feasibility.checks || {}).map(([name, state]) => (
+                  <li key={name}>{humanise(name.replace(/_confirmed$/, ""))}: {state === "unconfirmed" ? "Not yet confirmed" : humanise(state)}</li>
+                ))}
+              </ul>
+              <p>These checks do not independently verify supplier acceptance, legal compliance or commercial feasibility. This application does not authorise a route.</p>
+            </>}
       </div>
 
       <div className="governance-strip compact">

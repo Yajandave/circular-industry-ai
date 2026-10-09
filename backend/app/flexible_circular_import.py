@@ -7,6 +7,7 @@ rows. It does not write to the database, run recommendations or verify impacts.
 from __future__ import annotations
 
 from app.mapping_validation import validate_confirmed_mapping
+from app.material_interpretation import interpret_material_family
 
 
 GOVERNANCE_NOTE = (
@@ -126,6 +127,21 @@ def _transform_row(row_number: int, source_row: dict, role_to_source: dict[str, 
         )
 
     material = _required_text(row_number, value_for("material"), "material", warnings)
+    material_interpretation = interpret_material_family(material)
+    if material_interpretation["status"] == "proposed_requires_operator_confirmation":
+        warnings.append(_warning(
+            row_number, "material_family_confirmation_required",
+            role_to_source.get("material"), "material",
+            f"Source material '{material}' could belong to family '{material_interpretation['proposed_family']}'. "
+            "The source value is preserved; confirm the material family manually before running circular rules.",
+        ))
+    elif material_interpretation["status"] in {"unresolved", "ambiguous_or_unrecognised"}:
+        warnings.append(_warning(
+            row_number, "material_family_unresolved",
+            role_to_source.get("material"), "material",
+            f"Material '{material}' cannot be safely mapped to a rules-engine family; "
+            "obtain sufficient material information and confirm classification before recommendations.",
+        ))
     current_route = _required_text(row_number, value_for("current_route"), "current_route", warnings)
     quantity_value = value_for("quantity")
     quantity_unit = _clean_text(value_for("quantity_unit"))

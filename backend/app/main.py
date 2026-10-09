@@ -3,6 +3,10 @@
 from __future__ import annotations
 
 from contextlib import asynccontextmanager
+from time import perf_counter
+from fastapi import Request
+from fastapi.responses import JSONResponse
+from app.diagnostic_events import record
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -24,6 +28,18 @@ app = FastAPI(
     version="0.19.0",
     lifespan=lifespan,
 )
+
+@app.middleware("http")
+async def diagnostic_request_metrics(request: Request, call_next):
+    start = perf_counter()
+    try:
+        response = await call_next(request)
+        record(request.url.path, request.method, response.status_code, round((perf_counter() - start) * 1000))
+        return response
+    except Exception as exc:
+        record(request.url.path, request.method, 500, round((perf_counter() - start) * 1000), type(exc).__name__)
+        # No exception content or input data is returned to the browser.
+        return JSONResponse({"detail": "Internal server error; consult local backend logs."}, status_code=500)
 
 app.add_middleware(
     CORSMiddleware,
