@@ -69,8 +69,8 @@ export function getPriorityRank(rec) {
   const maturity = getEvidenceMaturity(rec);
   if (maturity === 'controlled_review_required') return 4;
   if (maturity === 'screening_ready') {
-    const annualQuantity = normaliseNumber(rec.estimated_annual_waste_diverted_kg);
-    const annualCost = normaliseNumber(rec.estimated_annual_disposal_cost_avoided);
+    const annualQuantity = normaliseNumber(rec.screened_quantity_opportunity_kg);
+    const annualCost = normaliseNumber(rec.screened_cost_exposure);
     return annualQuantity >= 12000 || annualCost >= 5000 ? 3 : 2;
   }
   if (maturity === 'screening_ready_with_checks') return 2;
@@ -83,8 +83,8 @@ export function classifyPriority(rec) {
   if (maturity === 'insufficient_for_route_change') return 'evidence development';
   if (maturity === 'screening_ready_with_checks') return 'evidence development';
 
-  const annualQuantity = normaliseNumber(rec.estimated_annual_waste_diverted_kg);
-  const annualCost = normaliseNumber(rec.estimated_annual_disposal_cost_avoided);
+  const annualQuantity = normaliseNumber(rec.screened_quantity_opportunity_kg);
+  const annualCost = normaliseNumber(rec.screened_cost_exposure);
   if (annualQuantity >= 12000 || annualCost >= 5000) return 'validation priority';
   return 'opportunity development';
 }
@@ -189,7 +189,7 @@ function buildRiskOpportunityMatrix(enriched) {
       acc[key] = { risk, opportunity, count: 0, exposure: 0 };
     }
     acc[key].count += 1;
-    acc[key].exposure += normaliseNumber(rec.estimated_annual_disposal_cost_avoided);
+    acc[key].exposure += normaliseNumber(rec.screened_cost_exposure);
     return acc;
   }, {});
 
@@ -316,10 +316,10 @@ function buildDrilldownRecords(enriched) {
       evidence_maturity: getEvidenceMaturity(rec),
       decision_support_band: getDecisionSupportBand(rec),
       human_review_required: Boolean(rec.human_review_required),
-      estimated_annual_disposal_cost_avoided: normaliseNumber(rec.estimated_annual_disposal_cost_avoided),
-      estimated_annual_waste_diverted_kg: normaliseNumber(rec.estimated_annual_waste_diverted_kg),
-      screened_cost_exposure: normaliseNumber(rec.estimated_annual_disposal_cost_avoided),
-      screened_quantity_opportunity_kg: normaliseNumber(rec.estimated_annual_waste_diverted_kg),
+      estimated_annual_disposal_cost_avoided: normaliseNumber(rec.screened_cost_exposure),
+      estimated_annual_waste_diverted_kg: normaliseNumber(rec.screened_quantity_opportunity_kg),
+      screened_cost_exposure: normaliseNumber(stream.disposal_cost_per_month) * 12,
+      screened_quantity_opportunity_kg: normaliseNumber(stream.monthly_quantity_kg) * 12,
       recommended_circular_action: rec.recommended_circular_action || 'No recommendation recorded.',
       next_action: rec.next_action || 'No next action recorded.',
       opportunity_bucket: opportunity,
@@ -338,7 +338,7 @@ function buildDrilldownRecords(enriched) {
 function buildScenarioItems(records) {
   return [...records]
     .sort((a, b) => {
-      const costDelta = normaliseNumber(b.estimated_annual_disposal_cost_avoided) - normaliseNumber(a.estimated_annual_disposal_cost_avoided);
+      const costDelta = normaliseNumber(b.screened_cost_exposure) - normaliseNumber(a.screened_cost_exposure);
       if (costDelta !== 0) return costDelta;
       return b.priority_rank - a.priority_rank;
     })
@@ -364,7 +364,7 @@ function buildVisualAnalyticsData(enriched, streams) {
   const costPareto = buildParetoRows(
     drilldownRecords,
     (record) => `${record.stream_id} · ${record.stream_name}`,
-    (record) => record.estimated_annual_disposal_cost_avoided,
+    (record) => record.screened_cost_exposure,
     8,
     (record) => ({ stream_id: record.stream_id }),
   );
@@ -414,7 +414,7 @@ export function buildDashboardData(recommendations, streams) {
     valueKey: 'annualKg',
   });
   const topCostCandidates = [...enriched]
-    .sort((a, b) => normaliseNumber(b.estimated_annual_disposal_cost_avoided) - normaliseNumber(a.estimated_annual_disposal_cost_avoided))
+    .sort((a, b) => normaliseNumber(b.screened_cost_exposure) - normaliseNumber(a.screened_cost_exposure))
     .slice(0, 6);
   const topDiversionCandidates = [...enriched]
     .sort((a, b) => normaliseNumber(b.estimated_annual_waste_diverted_kg) - normaliseNumber(a.estimated_annual_waste_diverted_kg))
@@ -483,8 +483,8 @@ export function sortRecommendations(recommendations, sortBy) {
   };
   const selectors = {
     priority: (rec) => rec.priority_rank,
-    cost: (rec) => normaliseNumber(rec.estimated_annual_disposal_cost_avoided),
-    diversion: (rec) => normaliseNumber(rec.estimated_annual_waste_diverted_kg),
+    cost: (rec) => normaliseNumber(rec.screened_cost_exposure),
+    diversion: (rec) => normaliseNumber(rec.screened_quantity_opportunity_kg),
     maturity: (rec) => maturityRank[getEvidenceMaturity(rec)] || 0,
     risk: (rec) => ({ blocked: 4, high: 3, medium: 2, low: 1 }[rec.risk_level] || 0),
   };
