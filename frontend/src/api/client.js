@@ -34,6 +34,7 @@ export const api = {
   streamSummary: () => request('/api/streams/summary'),
   runRecommendations: () => request('/api/recommendations/run', { method: 'POST' }),
   listRecommendations: () => request('/api/recommendations?limit=500'),
+  recommendationFeasibility: (id) => request(`/api/recommendations/${encodeURIComponent(id)}/feasibility`),
   recommendationSummary: () => request('/api/recommendations/summary'),
   screenInterventionScenario: (streamId, payload) => request(`/api/scenarios/${encodeURIComponent(streamId)}/screen`, {
     method: 'POST',
