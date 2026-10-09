@@ -48,9 +48,9 @@ function sortRecords(records, mode) {
   };
   const selectors = {
     priority: (record) => Number(record.priority_rank) || 0,
-    cost: (record) => Number(record.estimated_annual_disposal_cost_avoided) || 0,
+    cost: (record) => Number(record.screened_cost_exposure) || 0,
     evidence_weakness: (record) => evidenceRank[record.evidence_bucket] || 0,
-    diversion: (record) => Number(record.estimated_annual_waste_diverted_kg) || 0,
+    diversion: (record) => Number(record.screened_quantity_opportunity_kg) || 0,
   };
   const selector = selectors[mode] || selectors.priority;
   return sorted.sort((a, b) => selector(b) - selector(a));
@@ -259,7 +259,7 @@ function DrilldownListRow({ record, selected, onSelect }) {
       </div>
       <div className="drilldown-row-metrics">
         <strong>{record.evidence_label}</strong>
-        <small>{formatCurrency(record.estimated_annual_disposal_cost_avoided)}</small>
+        <small>{formatCurrency(record.screened_cost_exposure)}</small>
       </div>
     </button>
   );
@@ -293,8 +293,8 @@ function DrilldownInspector({ record, onSelectReviewPack }) {
       <div className="drilldown-kpi-grid">
         <article><span>Locked risk</span><strong>{record.risk_level}</strong><small>Review: {record.human_review_required ? 'required' : 'clear'}</small></article>
         <article><span>Decision basis</span><strong>{humanise(record.decision_support_band)}</strong><small>{record.evidence_label}</small></article>
-        <article><span>Screened cost exposure</span><strong>{formatCurrency(record.estimated_annual_disposal_cost_avoided)}</strong><small>Not verified savings</small></article>
-        <article><span>Screened quantity opportunity</span><strong>{formatKg(record.estimated_annual_waste_diverted_kg)}</strong><small>Potential only; not verified diversion or impact</small></article>
+        <article><span>Screened cost exposure</span><strong>{formatCurrency(record.screened_cost_exposure)}</strong><small>Not verified savings</small></article>
+        <article><span>Annual material throughput</span><strong>{formatKg(record.screened_quantity_opportunity_kg)}</strong><small>Input volume; not estimated diversion or impact</small></article>
       </div>
 
       <div className="drilldown-detail-box">
@@ -364,7 +364,7 @@ function OperatorDrilldownPanel({
             <option value="priority">Governance priority</option>
             <option value="cost">Screened cost exposure</option>
             <option value="evidence_weakness">Evidence weakness</option>
-            <option value="diversion">Screened quantity opportunity</option>
+            <option value="diversion">Annual material throughput</option>
           </select>
         </label>
       </div>
